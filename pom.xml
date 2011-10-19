@@ -7,14 +7,16 @@
     <name>Entreri Entity-Component Framework</name>
 
     <issueManagement>
-    	<system>Google Code</system>
-    	<url>http://code.google.com/p/entreri/issues/list</url>
+        <system>Google Code</system>
+        <url>http://code.google.com/p/entreri/issues/list</url>
     </issueManagement>
+
     <scm>
-    	<connection>scm:svn:http://entreri.googlecode.com/svn</connection>
-    	<developerConnection>scm:svn:https://entreri.googlecode.com/svn</developerConnection>
-    	<url>http://code.google.com/p/entreri</url>
+        <connection>scm:svn:http://entreri.googlecode.com/svn</connection>
+        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/trunk</developerConnection>
+        <url>http://code.google.com/p/entreri</url>
     </scm>
+
     <build>
         <finalName>entreri</finalName>
 
@@ -23,9 +25,19 @@
 
         <plugins>
             <plugin>
-            	<groupId>org.apache.maven.plugins</groupId>
-            	<artifactId>maven-compiler-plugin</artifactId>
-            	<version>2.3.2</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.2.1</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagBase>https://entreri.googlecode.com/svn/tags</tagBase>
+                </configuration>
             </plugin>
         </plugins>
     </build>
