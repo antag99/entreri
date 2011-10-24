@@ -7,10 +7,10 @@ import com.entreri.property.Property;
 
 /**
  * <p>
- * Component represents a set of self-consistent state that are added to an
- * {@link Entity}. Components are intended to be data storage objects, so their
- * definition should not contain methods for processing or updating (that is the
- * responsibility of a {@link Controller}).
+ * Component represents a grouping of reusable and related states that are added
+ * to an {@link Entity}. Components are intended to be data storage objects, so
+ * their definition should not contain methods for processing or updating (that
+ * is the responsibility of a {@link Controller}).
  * </p>
  * <p>
  * The behavior or purpose of a Component should be well defined, including its
