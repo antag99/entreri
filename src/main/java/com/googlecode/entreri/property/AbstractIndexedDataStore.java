@@ -107,8 +107,7 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
 
     /**
      * Compute the array length of the given array. The array object will have
-     * been created by {@link #createArray(int)} or returned by
-     * {@link #getArray()} so casts are safe.
+     * been returned by {@link #getArray()} so casts are safe.
      * 
      * @param array The array whose length is computed
      * @return The array length

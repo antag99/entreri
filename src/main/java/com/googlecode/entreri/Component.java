@@ -227,9 +227,8 @@ public abstract class Component {
      * TypedId hasn't yet been created a new one is instantiated with the next
      * numeric id in the internal id sequence. The new TypedId is stored for
      * later, so that subsequent calls to {@link #getTypedId(Class)} with
-     * <tt>type</tt> will return the same instance.
-     * {@link Component#Component()} implicitly calls this method when a
-     * Component is created.
+     * <tt>type</tt> will return the same instance. It is recommended that a
+     * Component declare a static final <tt>ID</tt> holding its TypedId.
      * </p>
      * <p>
      * This method also performs runtime checks to ensure the validity of the

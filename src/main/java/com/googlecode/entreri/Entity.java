@@ -95,7 +95,7 @@ public final class Entity implements Iterable<Component> {
      * component can be safely stored in collections.
      * 
      * @param <T> The parameterized type of Component being fetched
-     * @param id The TypedId representing the given type
+     * @param componentId The TypedId representing the given type
      * @return The current Component of type T attached to this container
      * @throws NullPointerException if id is null
      */
