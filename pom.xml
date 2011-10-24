@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.entreri</groupId>
     <artifactId>entreri</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>Entreri Entity-Component Framework</name>
 
     <issueManagement>
@@ -11,9 +11,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:https://entreri.googlecode.com/svn/tags/entreri-0.0.1</connection>
-        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/tags/entreri-0.0.1</developerConnection>
-        <url>scm:svn:https://entreri.googlecode.com/svn/tags/entreri-0.0.1</url>
+        <connection>scm:svn:http://entreri.googlecode.com/svn</connection>
+        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/trunk</developerConnection>
+        <url>http://code.google.com/p/entreri</url>
     </scm>
 
     <build>
