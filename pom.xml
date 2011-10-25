@@ -3,8 +3,29 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.googlecode.entreri</groupId>
     <artifactId>entreri</artifactId>
+    <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
+
     <name>Entreri Entity-Component Framework</name>
+    <description>
+    Entreri is an entity-component framework for Java that helps manage
+    or remove complex OO hierarchies that often form when developing games. For a 
+    useful description of an entity-component framework, see 
+    http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
+    </description>
+    <url>http://entreri.googlecode.com</url>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
+
+    <developers>
+        <developer>
+            <name>Michael Ludwig</name>
+        </developer>
+    </developers>
 
     <licenses>
         <license>
@@ -20,14 +41,45 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://entreri.googlecode.com/svn</connection>
+        <connection>scm:svn:http://entreri.googlecode.com/svn/trunk</connection>
         <developerConnection>scm:svn:https://entreri.googlecode.com/svn/trunk</developerConnection>
-        <url>http://entreri.googlecode.com</url>
+        <url>http://entreri.googlecode.com/svn/trunk</url>
     </scm>
 
-    <build>
-        <finalName>entreri</finalName>
+    <profiles>
+        <profile>
+            <id>release</id>
 
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <build>
         <sourceDirectory>src/main/java</sourceDirectory>
         <testSourceDirectory>src/test/java/</testSourceDirectory>
 
@@ -45,6 +97,7 @@
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <tagBase>https://entreri.googlecode.com/svn/tags</tagBase>
+                    <mavenExecutorId>forked-path</mavenExecutorId>
                 </configuration>
             </plugin>
 
