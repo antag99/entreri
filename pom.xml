@@ -3,7 +3,7 @@
     <groupId>com.googlecode.entreri</groupId>
     <artifactId>entreri</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
     <description>
@@ -40,9 +40,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://entreri.googlecode.com/svn/tags/entreri-1.0.0</connection>
-        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/tags/entreri-1.0.0</developerConnection>
-        <url>http://entreri.googlecode.com/svn/tags/entreri-1.0.0</url>
+        <connection>scm:svn:http://entreri.googlecode.com/svn/trunk</connection>
+        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/trunk</developerConnection>
+        <url>http://entreri.googlecode.com/svn/trunk</url>
     </scm>
 
     <profiles>
