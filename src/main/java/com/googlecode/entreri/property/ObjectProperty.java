@@ -36,8 +36,15 @@ import com.googlecode.entreri.Component;
  * 
  * @author Michael Ludwig
  */
-public final class ObjectProperty implements Property {
+public final class ObjectProperty<T> implements Property {
     private ObjectDataStore store;
+    
+    /**
+     * Create an ObjectProperty with an element size of 1.
+     */
+    public ObjectProperty() {
+        this(1);
+    }
     
     /**
      * Create a new ObjectProperty where each property will have
@@ -58,11 +65,11 @@ public final class ObjectProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for ObjectProperty
      */
-    public static PropertyFactory<ObjectProperty> factory(final int elementSize) {
-        return new PropertyFactory<ObjectProperty>() {
+    public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize) {
+        return new PropertyFactory<ObjectProperty<T>>() {
             @Override
-            public ObjectProperty create() {
-                return new ObjectProperty(elementSize);
+            public ObjectProperty<T> create() {
+                return new ObjectProperty<T>(elementSize);
             }
         };
     }
@@ -79,6 +86,37 @@ public final class ObjectProperty implements Property {
      */
     public Object[] getIndexedData() {
         return store.array;
+    }
+
+    /**
+     * Get the value stored in this property for the given component index, and
+     * offset. Offset is measured from 0 to 1 minus the element size the
+     * property was originally created with.
+     * 
+     * @param componentIndex The component's index
+     * @param offset The offset into the component's data
+     * @return The object at the given offset for the given component
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
+     *             would access illegal indices
+     */
+    @SuppressWarnings("unchecked")
+    public T get(int componentIndex, int offset) {
+        return (T) store.array[componentIndex * store.elementSize + offset];
+    }
+
+    /**
+     * Store <tt>val</tt> in this property for the given component index, at the
+     * specified offset. The offset is measured from 0 to 1 minus the element
+     * size that this property was originally created with.
+     * 
+     * @param val The value to store, can be null
+     * @param componentIndex The index of the component being modified
+     * @param offset The offset into the component's data
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
+     *             would access illegal indices
+     */
+    public void set(T val, int componentIndex, int offset) {
+        store.array[componentIndex * store.elementSize] = val;
     }
     
     @Override

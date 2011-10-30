@@ -37,6 +37,13 @@ import com.googlecode.entreri.Component;
  */
 public final class FloatProperty implements Property {
     private FloatDataStore store;
+    
+    /**
+     * Create a FloatProperty with an element size of 1.
+     */
+    public FloatProperty() {
+        this(1);
+    }
 
     /**
      * Create a new FloatProperty where each property will have
@@ -78,6 +85,36 @@ public final class FloatProperty implements Property {
      */
     public float[] getIndexedData() {
         return store.array;
+    }
+    
+    /**
+     * Get the value stored in this property for the given component index, and
+     * offset. Offset is measured from 0 to 1 minus the element size the
+     * property was originally created with.
+     * 
+     * @param componentIndex The component's index
+     * @param offset The offset into the component's data
+     * @return The object at the given offset for the given component
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
+     *             would access illegal indices
+     */
+    public float get(int componentIndex, int offset) {
+        return store.array[componentIndex * store.elementSize + offset];
+    }
+
+    /**
+     * Store <tt>val</tt> in this property for the given component index, at the
+     * specified offset. The offset is measured from 0 to 1 minus the element
+     * size that this property was originally created with.
+     * 
+     * @param val The value to store, can be null
+     * @param componentIndex The index of the component being modified
+     * @param offset The offset into the component's data
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
+     *             would access illegal indices
+     */
+    public void set(float val, int componentIndex, int offset) {
+        store.array[componentIndex * store.elementSize] = val;
     }
     
     @Override

@@ -38,7 +38,7 @@ import com.googlecode.entreri.property.Parameter;
  */
 public abstract class AbstractComponent extends Component {
     @Parameter(type=int.class, value="1")
-    private ObjectProperty property;
+    private ObjectProperty<Object> property;
     
     protected AbstractComponent(EntitySystem system, int index) {
         super(system, index);
