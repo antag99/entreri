@@ -149,7 +149,7 @@ public final class EntitySystem {
      * <p>
      * The iterator returns the canonical Component instance for each component
      * of the type in the system. This is the same instance that was returned by
-     * {@link Entity#add(TypedId)} and is safe to access and store after
+     * {@link Entity#add(TypedId, Object...)} and is safe to access and store after
      * iteration has completed.
      * </p>
      * 

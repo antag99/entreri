@@ -131,13 +131,33 @@ public final class Entity implements Iterable<Component> {
      * @param componentId The TypedId of the component type
      * @param initParams The initialization parameters required for the
      *            component type
-     * @return A new component of type T, or an existing T if already attached
+     * @return A new component of type T
      * @throws NullPointerException if componentId is null
      * @throws IllegalArgumentException if any of the init params are invalid
      */
     public <T extends Component> T add(TypedId<T> componentId, Object... initParams) {
         ComponentIndex<T> ci = system.getIndex(componentId);
         return ci.addComponent(index, initParams);
+    }
+
+    /**
+     * Add a Component of type T to this Entity, but clone its state from the
+     * existing component of type T. The existing component must still be
+     * attached to an Entity other than this entity, but it could be from a
+     * different EntitySystem. If there already exists a component of type T
+     * added to this entity, it is removed first, and a new one is instantiated.
+     * 
+     * @param <T> The parameterized type of component to add
+     * @param toClone The existing T to clone when attaching to this component
+     * @return A new component of type T
+     * @throws NullPointerException if toClone is null
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <T extends Component> T add(T toClone) {
+        if (toClone == null)
+            throw new NullPointerException("Component template, toClone, cannot be null");
+        ComponentIndex ci = system.getIndex(toClone.getTypedId());
+        return (T) ci.addComponent(index, toClone);
     }
 
     /**
