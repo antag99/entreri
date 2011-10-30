@@ -36,7 +36,9 @@ import com.googlecode.entreri.property.Property;
  * Component represents a grouping of reusable and related states that are added
  * to an {@link Entity}. Components are intended to be data storage objects, so
  * their definition should not contain methods for processing or updating (that
- * is the responsibility of a {@link Controller}).
+ * is the responsibility of a {@link Controller}). Some Components may be
+ * defined with an {@link InitParams} annotation, which defines their required
+ * arguments when adding a new component to an Entity.
  * </p>
  * <p>
  * The behavior or purpose of a Component should be well defined, including its
@@ -143,13 +145,31 @@ public abstract class Component {
     }
 
     /**
+     * <p>
      * Called when the EntitySystem creates a new Component and has properly
      * configured its declared properties. This is only called when the
      * Component is being added to an Entity. This is not called when a new
      * component instance is created for the purposes of a fast iterator
      * (because it's just acting as a shell in that case).
+     * </p>
+     * <p>
+     * The var-args initParams are the initial object parameters, in the same
+     * order as they were declared in the component's {@link InitParams}
+     * annotation. If the component does not define an InitParams annotation, no
+     * arguments are passed in. This will only be called after the EntitySystem
+     * has validated the proper type of each argument, although primitives will
+     * be boxed. Further validation, such as null checks, must be performed
+     * here.
+     * </p>
+     * <p>
+     * The InitParams annotation is inherited, so care must be given when
+     * extending an intermediate, abstract component type. Subclasses must be
+     * sure to call super with arguments matching its super-type's InitParams
+     * annotation.
+     * </p>
+     * @param initParams The initial parameters for the Component
      */
-    protected void init() {
+    protected void init(Object... initParams) throws Exception {
         // do nothing by default
     }
     

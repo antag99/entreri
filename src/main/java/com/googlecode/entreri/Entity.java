@@ -105,20 +105,39 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * <p>
      * Attach a Component of type T to this Entity. If the Entity already has
-     * component of type T attached, that component is returned unmodified.
-     * Otherwise, a new instance is created with its default values and added to
-     * the system. The returned instance will be the canonical component for the
-     * given type (until its removed) and can be safely stored in collections.
+     * component of type T attached, that component is removed and a new one is
+     * created. Otherwise, a new instance is created with its default values and
+     * added to the system. The returned instance will be the canonical
+     * component for the given type (until its removed) and can be safely stored
+     * in collections.
+     * </p>
+     * <p>
+     * Some Component types may require arguments to be properly initialized. If
+     * they do, they will have been defined with the {@link InitParams}
+     * annotation that describes their required arguments. If present, instances
+     * of the declared types must be passed in in the var-args
+     * <tt>initParams</tt>, in the order they were declared by the type. An
+     * exception will be thrown if the arguments are incorrect, or if the type's
+     * own validation rules fails (such as not allowing null's, etc).
+     * </p>
+     * <p>
+     * A Component that does not require init parameters can have a 0-length or
+     * null var-args passed in.
+     * </p>
      * 
      * @param <T> The parameterized type of component being added
      * @param componentId The TypedId of the component type
+     * @param initParams The initialization parameters required for the
+     *            component type
      * @return A new component of type T, or an existing T if already attached
      * @throws NullPointerException if componentId is null
+     * @throws IllegalArgumentException if any of the init params are invalid
      */
-    public <T extends Component> T add(TypedId<T> componentId) {
+    public <T extends Component> T add(TypedId<T> componentId, Object... initParams) {
         ComponentIndex<T> ci = system.getIndex(componentId);
-        return ci.addComponent(index, null);
+        return ci.addComponent(index, initParams);
     }
 
     /**

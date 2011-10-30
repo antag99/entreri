@@ -62,6 +62,7 @@ final class ComponentIndex<T extends Component> {
     
     private final ComponentBuilder<T> builder;
     private final List<Property> builderProperties; // Properties from declaredProperties, cached for newInstance()
+    private final Class<?>[] initParams; // all primitives will be boxed at this point
     
     private final EntitySystem system;
     
@@ -80,6 +81,7 @@ final class ComponentIndex<T extends Component> {
             throw new NullPointerException("Arguments cannot be null");
         
         this.system = system;
+        initParams = getInitParams(type.getType());
         
         builder = Component.getBuilder(type);
         
@@ -112,6 +114,36 @@ final class ComponentIndex<T extends Component> {
         
         // Make sure properties' stores hold enough space
         resizePropertyStores(declaredProperties, 1);
+    }
+    
+    private static Class<?>[] getInitParams(Class<? extends Component> type) {
+        InitParams params = type.getAnnotation(InitParams.class);
+        if (params == null)
+            return new Class<?>[0];
+        
+        Class<?>[] declaredTypes = params.value();
+        Class<?>[] boxedTypes = new Class<?>[declaredTypes.length];
+        for (int i = 0; i < declaredTypes.length; i++) {
+            if (int.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Integer.class;
+            else if (short.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Short.class;
+            else if (byte.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Byte.class;
+            else if (long.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Long.class;
+            else if (float.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Float.class;
+            else if (double.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Double.class;
+            else if (boolean.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Boolean.class;
+            else if (char.class.equals(declaredTypes[i]))
+                boxedTypes[i] = Character.class;
+            else
+                boxedTypes[i] = declaredTypes[i];
+        }
+        return boxedTypes;
     }
 
     /**
@@ -215,42 +247,91 @@ final class ComponentIndex<T extends Component> {
 
     /**
      * Create a new component of this index's type and attach to it the entity
-     * at the given entity index. If <tt>fromTemplate</tt> is non-null, the
-     * property values from the template should be copied to the values of new
-     * component.
+     * at the given entity index, the new component will have its values copied
+     * from the existing template.
      * 
      * @param entityIndex The entity index which the component is attached to
-     * @param fromTemplate A template to assign values to the new component, may
-     *            be null
+     * @param fromTemplate A template to assign values to the new component
      * @return A new component of type T
+     * @throws NullPointerException if fromTemplate is null
+     */
+    public T addComponent(int entityIndex, T fromTemplate) {
+        T instance = addComponent(entityIndex);
+
+        // Copy values from fromTemplate's properties to the new instances
+        List<PropertyStore> templateProps = fromTemplate.owner.declaredProperties;
+        for (int i = 0; i < templateProps.size(); i++) {
+            templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
+                                                              declaredProperties.get(i).property.getDataStore(), 
+                                                              instance.getIndex());
+        }
+        
+        return instance;
+    }
+
+    /**
+     * Create a new component of this index's type and attach to it the entity
+     * at the given entity index, the new component will be initialized with the
+     * given init parameters.
+     * 
+     * @param entityIndex The entity index which the component is attached to
+     * @param initParams The var-args of parameters that must match the
+     *            InitParams annotation of the type
+     * @return A new component of type T
+     * @throws IllegalArgumentException if initParams is incorrect
+     */
+    public T addComponent(int entityIndex, Object... initParams) {
+        // validate input
+        if (initParams == null)
+            initParams = new Object[0];
+        
+        boolean valid = true;
+        if (initParams.length == this.initParams.length) {
+            for (int i = 0; i < initParams.length; i++) {
+                if (!this.initParams[i].isInstance(initParams[i])) {
+                    valid = false;
+                    break;
+                }
+            }
+        } else {
+            valid = false;
+        }
+
+        if (!valid)
+            throw new IllegalArgumentException("Must provide init params in the order: " + Arrays.toString(this.initParams));
+
+        // We know the arguments types match, so continue
+        T instance = addComponent(entityIndex);
+        
+        try {
+            // Pass parameters in as-is
+            instance.init(initParams);
+        } catch(Exception e) {
+            // initialization failed, so remove the created entity
+            removeComponent(entityIndex);
+            throw new IllegalArgumentException("Init parameters failed validation", e);
+        }
+        
+        return instance;
+    }
+    
+    /*
+     * Allocate and store a new component, but don't initialize it yet.
      */
     @SuppressWarnings("unchecked")
-    public T addComponent(int entityIndex, T fromTemplate) {
-        int componentIndex = entityIndexToComponentIndex[entityIndex];
-        if (componentIndex == 0) {
-            // no existing component, so we make one, possibly expanding the backing array
-            componentIndex = componentInsert++;
-            if (componentIndex >= components.length)
-                expandComponentIndex(componentIndex + 1);
-            
-            T instance = newInstance(componentIndex);
-            components[componentIndex] = instance;
-            componentIndexToEntityIndex[componentIndex] = entityIndex;
-            entityIndexToComponentIndex[entityIndex] = componentIndex;
-            
-            instance.init();
-        }
+    private T addComponent(int entityIndex) {
+        if (entityIndexToComponentIndex[entityIndex] != 0)
+            removeComponent(entityIndex);
         
-        if (fromTemplate != null) {
-            // Copy values from fromTemplate's properties to the new instances
-            List<PropertyStore> templateProps = fromTemplate.owner.declaredProperties;
-            for (int i = 0; i < templateProps.size(); i++) {
-                templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
-                                                                  declaredProperties.get(i).property.getDataStore(), 
-                                                                  componentIndex);
-            }
-        }
-        
+        int componentIndex = componentInsert++;
+        if (componentIndex >= components.length)
+            expandComponentIndex(componentIndex + 1);
+
+        T instance = newInstance(componentIndex);
+        components[componentIndex] = instance;
+        componentIndexToEntityIndex[componentIndex] = entityIndex;
+        entityIndexToComponentIndex[entityIndex] = componentIndex;
+
         // Copy default value for decorated properties
         for (int i = 0; i < decoratedProperties.size(); i++) {
             PropertyStore p = decoratedProperties.get(i);

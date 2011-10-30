@@ -35,6 +35,7 @@ import com.googlecode.entreri.Component;
 import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.component.FloatComponent;
+import com.googlecode.entreri.component.InitParamsComponent;
 import com.googlecode.entreri.component.IntComponent;
 
 public class EntityTest {
@@ -44,6 +45,54 @@ public class EntityTest {
         Entity e = system.addEntity();
         
         Assert.assertEquals(system, e.getEntitySystem());
+    }
+    
+    @Test
+    public void testValidInitParams() {
+        TypedId<InitParamsComponent> id = Component.getTypedId(InitParamsComponent.class);
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        
+        // First test a simple add
+        Object val = new Object();
+        InitParamsComponent c = e.add(id, 4f, val);
+        Assert.assertEquals(4f, c.getFloat(), .0001f);
+        Assert.assertEquals(val, c.getObject());
+    }
+    
+    @Test
+    public void testBadInitParams() {
+        // empty args when expected some
+        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[0], new Object[] {4f, new Object()});
+        // not enough args when expected some
+        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {5f}, new Object[] {4f, new Object()});
+        // swapped type list
+        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {new Object(), 5f}, new Object[] {4f, new Object()});
+        // bad type list
+        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {"", 2}, new Object[] {4f, new Object()});
+        // parameters when none are expected
+        doTestBadInitParams(Component.getTypedId(FloatComponent.class), new Object[] { 4f, 3f }, new Object[0]);
+    }
+    
+    private void doTestBadInitParams(TypedId<? extends Component> id, Object[] use, Object[] valid) {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        
+        try {
+            e.add(id, use);
+            Assert.fail();
+        } catch(IllegalArgumentException iae) {
+            // expected
+        }
+        
+        // verify that this still works
+        Component c = e.add(id, valid);
+        Iterator<? extends Component> it = system.iterator(id);
+        while(it.hasNext()) {
+            Assert.assertEquals(c, it.next());
+            break;
+        }
+        Assert.assertFalse(it.hasNext());
     }
     
     @Test
