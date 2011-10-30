@@ -169,9 +169,7 @@ public abstract class Component {
      * </p>
      * @param initParams The initial parameters for the Component
      */
-    protected void init(Object... initParams) throws Exception {
-        // do nothing by default
-    }
+    protected abstract void init(Object... initParams) throws Exception;
     
     /**
      * <p>

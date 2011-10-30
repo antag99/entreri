@@ -39,4 +39,8 @@ public class PublicConstructorComponent extends Component {
     public PublicConstructorComponent(EntitySystem system, int index) {
         super(system, index);
     }
+    
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }

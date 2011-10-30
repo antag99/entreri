@@ -39,4 +39,8 @@ public class BadConstructorComponent extends Component {
     protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {
         super(system, index);
     }
+
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }

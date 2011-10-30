@@ -66,4 +66,8 @@ public class MultiPropertyComponent extends Component {
     public NoParameterProperty getCompactProperty() {
         return noparams;
     }
+    
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }

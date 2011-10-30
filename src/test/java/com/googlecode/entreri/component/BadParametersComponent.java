@@ -47,4 +47,8 @@ public class BadParametersComponent extends Component {
     protected BadParametersComponent(EntitySystem system, int index) {
         super(system, index);
     }
+    
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }

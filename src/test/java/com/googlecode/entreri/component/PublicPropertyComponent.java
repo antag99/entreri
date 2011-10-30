@@ -44,4 +44,8 @@ public class PublicPropertyComponent extends Component {
     protected PublicPropertyComponent(EntitySystem system, int index) {
         super(system, index);
     }
+    
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }

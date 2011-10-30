@@ -53,4 +53,8 @@ public class IntComponent extends Component {
         int index = getIndex() * 3 + offset;
         property.getIndexedData()[index] = value;
     }
+    
+    @Override
+    protected void init(Object... initParams) throws Exception {
+    }
 }
