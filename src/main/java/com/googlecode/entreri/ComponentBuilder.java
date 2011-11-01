@@ -34,7 +34,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.googlecode.entreri.property.Factory;
 import com.googlecode.entreri.property.Parameter;
@@ -103,46 +106,46 @@ final class ComponentBuilder<T extends Component> {
     }
 
     /**
-     * Create a new list of property instances that can be shared by all
-     * instances of the Component type built by this builder for a single
-     * EntitySystem. The list is ordered such that it can be passed into
-     * {@link #newInstance(EntitySystem, int, List)}.
+     * Create a new map from field to property instances that can be shared by
+     * all instances of the Component type built by this builder for a single
+     * EntitySystem. It can be passed into
+     * {@link #newInstance(EntitySystem, int, Map)}.
      * 
      * @return A new list of properties used to set the property fields in the
      *         component
      */
-    public List<Property> createProperties() {
-        List<Property> props = new ArrayList<Property>(propertyFactories.size());
+    public Map<Field, Property> createProperties() {
+        Map<Field, Property> props = new HashMap<Field, Property>(propertyFactories.size());
         for (int i = 0; i < propertyFactories.size(); i++)
-            props.add(propertyFactories.get(i).create());
-        return props;
+            props.put(fields.get(i), propertyFactories.get(i).create());
+        return Collections.unmodifiableMap(props);
     }
 
     /**
      * <p>
      * Create a new instance of the Component type created by this builder, for
      * the given system. The component will use the given index initially, but
-     * its {@link Component#init()} method is NOT called. The list of properties
+     * its {@link Component#init()} method is NOT called. The map of properties
      * is used to assign values to the declared property fields of the type.
      * </p>
      * <p>
-     * It is assumed that the list was previously returned from a call to
+     * It is assumed that the map was previously returned from a call to
      * {@link #createProperties()}.
      * </p>
      * 
      * @param system The owning EntitySystem
      * @param index The index of the new component in the system
-     * @param properties The list of properties used to assign field values for
+     * @param properties The map of properties used to assign field values for
      *            the new component
      * @return A new component of type T
      * @throws RuntimeException if the properties weren't compatible with the
      *             list returned by createProperties()
      */
-    public T newInstance(EntitySystem system, int index, List<Property> properties) {
+    public T newInstance(EntitySystem system, int index, Map<Field, Property> properties) {
         try {
             T t = constructor.newInstance(system, index);
             for (int i = 0; i < fields.size(); i++) {
-                fields.get(i).set(t, properties.get(i));
+                fields.get(i).set(t, properties.get(fields.get(i)));
             }
             
             return t;
@@ -275,24 +278,32 @@ final class ComponentBuilder<T extends Component> {
     
     private static List<Field> getFields(Class<? extends Component> type) {
         Field[] declared = type.getDeclaredFields();
-        AccessibleObject[] access = new AccessibleObject[declared.length];
+        List<Field> nonTransientFields = new ArrayList<Field>(declared.length);
 
         for (int i = 0; i < declared.length; i++) {
             int modifiers = declared[i].getModifiers();
             if (Modifier.isStatic(modifiers))
                 continue; // ignore static fields
             
-            if (!Property.class.isAssignableFrom(declared[i].getType()))
-                throw new IllegalComponentDefinitionException(type, "Component has non-Property field: " + declared[i]);
+            if (!Property.class.isAssignableFrom(declared[i].getType())) {
+                if (Modifier.isTransient(modifiers))
+                    continue; // ignore this field
+                else
+                    throw new IllegalComponentDefinitionException(type, "Component has non-Property field that is not transient: " + declared[i]);
+            }
+            
             if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers))
                 throw new IllegalComponentDefinitionException(type, "Field must be private or protected: " + declared[i]);
             
-            access[i] = declared[i];
+            nonTransientFields.add(declared[i]);
         }
         
         // Make sure all fields are accessible so we can assign them
+        AccessibleObject[] access = new AccessibleObject[nonTransientFields.size()];
+        for (int i = 0; i < access.length; i++)
+            access[i] = nonTransientFields.get(i);
         Field.setAccessible(access, true);
-        return Arrays.asList(declared);
+        return nonTransientFields;
     }
     
     private static class ReflectionPropertyFactory<P extends Property> implements PropertyFactory<P> {

@@ -66,6 +66,9 @@ public interface Property {
      * ways to access their data; as an example see
      * {@link FloatProperty#getIndexedData()}.
      * </p>
+     * <p>
+     * The returned data store must always have at least 1 element in it.
+     * </p>
      * 
      * @return The current IndexedDataStore used by the property
      */

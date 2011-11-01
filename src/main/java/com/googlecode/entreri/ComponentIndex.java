@@ -26,11 +26,15 @@
  */
 package com.googlecode.entreri;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
 import com.googlecode.entreri.property.CompactAwareProperty;
@@ -61,7 +65,7 @@ final class ComponentIndex<T extends Component> {
     private final List<PropertyStore> decoratedProperties;
     
     private final ComponentBuilder<T> builder;
-    private final List<Property> builderProperties; // Properties from declaredProperties, cached for newInstance()
+    private final Map<Field, Property> builderProperties; // Properties from declaredProperties, cached for newInstance()
     private final Class<?>[] initParams; // all primitives will be boxed at this point
     
     private final EntitySystem system;
@@ -89,8 +93,10 @@ final class ComponentIndex<T extends Component> {
         
         declaredProperties = new ArrayList<PropertyStore>();
         decoratedProperties = new ArrayList<PropertyStore>(); // empty for now
-        for (Property p: builderProperties)
-            declaredProperties.add(new PropertyStore(p));
+        for (Entry<Field, Property> e: builderProperties.entrySet()) {
+            boolean isTransient = Modifier.isTransient(e.getKey().getModifiers());
+            declaredProperties.add(new PropertyStore(e.getValue(), isTransient));
+        }
         
         entityIndexToComponentIndex = new int[1]; // holds default 0 value in 0th index
         componentIndexToEntityIndex = new int[1]; // holds default 0 value in 0th index
@@ -261,9 +267,11 @@ final class ComponentIndex<T extends Component> {
         // Copy values from fromTemplate's properties to the new instances
         List<PropertyStore> templateProps = fromTemplate.owner.declaredProperties;
         for (int i = 0; i < templateProps.size(); i++) {
-            templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
-                                                              declaredProperties.get(i).property.getDataStore(), 
-                                                              instance.getIndex());
+            if (!templateProps.get(i).transientProperty) {
+                templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
+                                                                  declaredProperties.get(i).property.getDataStore(), 
+                                                                  instance.getIndex());
+            }
         }
         
         return instance;
@@ -332,7 +340,12 @@ final class ComponentIndex<T extends Component> {
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentIndex[entityIndex] = componentIndex;
 
-        // Copy default value for decorated properties
+        // Copy default value for declared and decorated properties
+        for (int i = 0; i < declaredProperties.size(); i++) {
+            PropertyStore p = declaredProperties.get(i);
+            p.defaultData.copy(0, 1, p.property.getDataStore(), componentIndex);
+        }
+        
         for (int i = 0; i < decoratedProperties.size(); i++) {
             PropertyStore p = decoratedProperties.get(i);
             p.defaultData.copy(0, 1, p.property.getDataStore(), componentIndex);
@@ -536,17 +549,15 @@ final class ComponentIndex<T extends Component> {
         int size = (declaredProperties.isEmpty() ? componentInsert + 1 
                                                  : declaredProperties.get(0).property.getDataStore().size());
         
+        PropertyStore pstore = new PropertyStore(prop, true);
+
         // Copy original values from factory property over to all component slots
-        IndexedDataStore oldStore = prop.getDataStore();
-        IndexedDataStore newStore = oldStore.create(size);
+        IndexedDataStore newStore = prop.getDataStore().create(size);
         for (int i = 1; i < size; i++) {
             // This assumes that the property stores its data in the 0th index
-            oldStore.copy(0, 1, newStore, i);
+            pstore.defaultData.copy(0, 1, newStore, i);
         }
         prop.setDataStore(newStore);
-        
-        PropertyStore pstore = new PropertyStore(prop);
-        pstore.defaultData = oldStore;
         
         decoratedProperties.add(pstore);
         return prop;
@@ -675,11 +686,18 @@ final class ComponentIndex<T extends Component> {
     
     private static class PropertyStore {
         final Property property;
+        final boolean transientProperty;
+        final IndexedDataStore defaultData; // if not null, has a single component
+
         IndexedDataStore swap; // may be null
-        IndexedDataStore defaultData; // if not null, has a single component
         
-        public PropertyStore(Property p) {
+        
+        public PropertyStore(Property p, boolean isTransient) {
             property = p;
+            transientProperty = isTransient;
+            
+            defaultData = property.getDataStore().create(1);
+            property.getDataStore().copy(0, 1, defaultData, 0);
         }
     }
 }

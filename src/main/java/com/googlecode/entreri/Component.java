@@ -260,10 +260,22 @@ public abstract class Component {
      * private and with arguments: EntitySystem, int. Abstract Component types
      * do not have this restriction.</li>
      * <li>Any non-static fields defined in a Component (abstract or concrete)
-     * must implement Property and be declared private or protected.</li>
+     * must implement Property and be declared private or protected, or be
+     * transient.</li>
      * </ul>
      * Additionally, abstract Component types cannot have a TypedId assigned to
      * them.
+     * </p>
+     * <p>
+     * A note on transient fields when defining a component. Transient fields
+     * that are not properties are completely unmanaged. They are intended for
+     * caching at the level of Component instance, and not storing managed
+     * component data (i.e. the instance created for a fast iterator transient
+     * fields are different from the canonical instance). Transient fields that
+     * are Properties are still managed, and are intended for caching at the
+     * level of conceptual component. Their values are not copied when a
+     * Component is used as a template, but are otherwise like regular
+     * properties.
      * </p>
      * 
      * @param <T> The Component class type

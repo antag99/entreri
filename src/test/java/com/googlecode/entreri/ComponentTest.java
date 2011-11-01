@@ -26,19 +26,14 @@
  */
 package com.googlecode.entreri;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.ComponentBuilder;
-import com.googlecode.entreri.Entity;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.IllegalComponentDefinitionException;
 import com.googlecode.entreri.component.BadConstructorComponent;
 import com.googlecode.entreri.component.BadParametersComponent;
 import com.googlecode.entreri.component.ExtraFieldComponent;
@@ -49,6 +44,7 @@ import com.googlecode.entreri.component.MultiPropertyComponent;
 import com.googlecode.entreri.component.ObjectComponent;
 import com.googlecode.entreri.component.PublicConstructorComponent;
 import com.googlecode.entreri.component.PublicPropertyComponent;
+import com.googlecode.entreri.component.TransientFieldComponent;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.FloatPropertyFactory;
 import com.googlecode.entreri.property.MultiParameterProperty;
@@ -62,6 +58,7 @@ public class ComponentTest {
         doGetTypedIdTest(IntComponent.class);
         doGetTypedIdTest(ObjectComponent.class);
         doGetTypedIdTest(MultiPropertyComponent.class);
+        doGetTypedIdTest(TransientFieldComponent.class);
     }
     
     private void doGetTypedIdTest(Class<? extends Component> type) {
@@ -90,7 +87,7 @@ public class ComponentTest {
     @Test
     public void testPropertyLookup() {
         ComponentBuilder<MultiPropertyComponent> builder = Component.getBuilder(Component.getTypedId(MultiPropertyComponent.class));
-        List<Property> props = builder.createProperties();
+        Collection<Property> props = builder.createProperties().values();
         
         Set<Class<? extends Property>> propTypeSet = new HashSet<Class<? extends Property>>();
         for (Property p: props) {
@@ -101,6 +98,30 @@ public class ComponentTest {
         Assert.assertTrue(propTypeSet.contains(MultiParameterProperty.class));
         Assert.assertTrue(propTypeSet.contains(NoParameterProperty.class));
         Assert.assertTrue(propTypeSet.contains(FloatProperty.class));
+    }
+    
+    @Test
+    public void testTransientField() {
+        TypedId<TransientFieldComponent> id = Component.getTypedId(TransientFieldComponent.class);
+        
+        EntitySystem system = new EntitySystem();
+        for (int i = 0; i < 4; i++) {
+            system.addEntity().add(id).setFloat(i);
+        }
+        
+        int i = 0;
+        Iterator<TransientFieldComponent> it = system.iterator(id);
+        while(it.hasNext()) {
+            float f = it.next().getFloat();
+            Assert.assertEquals(i, f, .0001f);
+            i++;
+        }
+        
+        it = system.fastIterator(id);
+        while(it.hasNext()) {
+            float f = it.next().getFloat();
+            Assert.assertEquals(0, f, .0001f);
+        }
     }
     
     @Test
