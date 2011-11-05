@@ -26,17 +26,24 @@
  */
 package com.googlecode.entreri.property;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
-    public static final float DEFAULT = 5f;
-    
-    @Override
-    public FloatProperty create() {
-        return new FloatProperty(1);
-    }
-    
-    @Override
-    public void setValue(FloatProperty p, int index) {
-        p.set(DEFAULT, index, 0);
-    }
-}
+import com.googlecode.entreri.IllegalComponentDefinitionException;
+
+/**
+ * Unmanaged is an annotation that can be applied to fields in a Component
+ * definition to make the field completely ignored by the EntitySystem creating
+ * or managing the component. This can be used to store per-instance cached data
+ * in the component without triggering
+ * {@link IllegalComponentDefinitionException exceptions}. However, it makes
+ * little sense to declare a Property field as unmanaged because then its data
+ * store will not be kept in sync with the component's other indexed data.
+ * 
+ * @author Michael Ludwig
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Unmanaged { }

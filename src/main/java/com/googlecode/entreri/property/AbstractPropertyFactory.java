@@ -24,38 +24,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.component;
+package com.googlecode.entreri.property;
 
-import com.googlecode.entreri.Component;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.property.ObjectProperty;
-
-public class TransientFieldComponent extends Component {
-    private transient ObjectProperty<Object> transientProperty;
-    private transient float field;
-    
-    protected TransientFieldComponent(EntitySystem system, int index) {
-        super(system, index);
+/**
+ * AbstractPropertyFactory is an abstract PropertyFactory implementation that
+ * implements {@link #setValue(Property, int)} in terms of
+ * {@link IndexedDataStore#setDefault(int)} and implements
+ * {@link #clone(Property, int, Property, int)} in terms of
+ * {@link IndexedDataStore#copy(int, int, IndexedDataStore, int)}. In many cases
+ * this is sufficient for most PropertyFactories.
+ * 
+ * @author Michael Ludwig
+ * @param <P>
+ */
+public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
+    @Override
+    public void setValue(P property, int index) {
+        property.getDataStore().setDefault(index);
     }
 
     @Override
-    protected void init(Object... initParams) throws Exception {
-        
-    }
-
-    public void setObject(Object v) {
-        transientProperty.set(v, getIndex(), 0);
-    }
-    
-    public Object getObject() {
-        return transientProperty.get(getIndex(), 0);
-    }
-    
-    public float getFloat() {
-        return field;
-    }
-    
-    public void setFloat(float f) {
-        field = f;
+    public void clone(P src, int srcIndex, P dst, int dstIndex) {
+        src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);
     }
 }

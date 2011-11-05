@@ -27,10 +27,10 @@
 package com.googlecode.entreri;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -61,12 +61,12 @@ final class ComponentIndex<T extends Component> {
     
     private int componentInsert;
 
-    private final List<PropertyStore> declaredProperties;
-    private final List<PropertyStore> decoratedProperties;
+    private final List<PropertyStore<?>> declaredProperties;
+    private final List<PropertyStore<?>> decoratedProperties;
     
     private final ComponentBuilder<T> builder;
     private final Map<Field, Property> builderProperties; // Properties from declaredProperties, cached for newInstance()
-    private final Class<?>[] initParams; // all primitives will be boxed at this point
+    private final Class<?>[] initParamTypes; // all primitives will be boxed at this point
     
     private final EntitySystem system;
     
@@ -80,22 +80,25 @@ final class ComponentIndex<T extends Component> {
      * @param type The type of component
      * @throws NullPointerException if system or type are null
      */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public ComponentIndex(EntitySystem system, TypedId<T> type) {
         if (system == null || type == null)
             throw new NullPointerException("Arguments cannot be null");
         
         this.system = system;
-        initParams = getInitParams(type.getType());
+        initParamTypes = getInitParams(type.getType());
         
         builder = Component.getBuilder(type);
         
-        builderProperties = builder.createProperties();
+        Map<Field, PropertyFactory<?>> builderPropertyFactories = builder.getPropertyFactories();
+        builderProperties = new HashMap<Field, Property>();
         
-        declaredProperties = new ArrayList<PropertyStore>();
-        decoratedProperties = new ArrayList<PropertyStore>(); // empty for now
-        for (Entry<Field, Property> e: builderProperties.entrySet()) {
-            boolean isTransient = Modifier.isTransient(e.getKey().getModifiers());
-            declaredProperties.add(new PropertyStore(e.getValue(), isTransient));
+        declaredProperties = new ArrayList<PropertyStore<?>>();
+        decoratedProperties = new ArrayList<PropertyStore<?>>(); // empty for now
+        for (Entry<Field, PropertyFactory<?>> e: builderPropertyFactories.entrySet()) {
+            PropertyStore store = new PropertyStore(e.getValue());
+            declaredProperties.add(store);
+            builderProperties.put(e.getKey(), store.property);
         }
         
         entityIndexToComponentIndex = new int[1]; // holds default 0 value in 0th index
@@ -231,7 +234,7 @@ final class ComponentIndex<T extends Component> {
      * Convenience to create a new data store for each property with the given
      * size, copy the old data over, and assign it back to the property.
      */
-    private void resizePropertyStores(List<PropertyStore> properties, int size) {
+    private void resizePropertyStores(List<PropertyStore<?>> properties, int size) {
         int ct = properties.size();
         for (int i = 0; i < ct; i++) {
             IndexedDataStore oldStore = properties.get(i).property.getDataStore();
@@ -261,19 +264,21 @@ final class ComponentIndex<T extends Component> {
      * @return A new component of type T
      * @throws NullPointerException if fromTemplate is null
      */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public T addComponent(int entityIndex, T fromTemplate) {
         T instance = addComponent(entityIndex);
 
         // Copy values from fromTemplate's properties to the new instances
-        List<PropertyStore> templateProps = fromTemplate.owner.declaredProperties;
+        List<PropertyStore<?>> templateProps = fromTemplate.owner.declaredProperties;
         for (int i = 0; i < templateProps.size(); i++) {
-            if (!templateProps.get(i).transientProperty) {
-                templateProps.get(i).property.getDataStore().copy(fromTemplate.index, 1,
-                                                                  declaredProperties.get(i).property.getDataStore(), 
-                                                                  instance.getIndex());
-            }
+            PropertyStore src = templateProps.get(i);
+            PropertyStore dst = declaredProperties.get(i);
+            
+            src.clone(fromTemplate.index, dst.property, instance.index);
         }
         
+        // fire add-event listener after cloning is completed
+        system.getControllerManager().fireComponentAdd(instance);
         return instance;
     }
 
@@ -294,9 +299,9 @@ final class ComponentIndex<T extends Component> {
             initParams = new Object[0];
         
         boolean valid = true;
-        if (initParams.length == this.initParams.length) {
+        if (initParams.length == this.initParamTypes.length) {
             for (int i = 0; i < initParams.length; i++) {
-                if (!this.initParams[i].isInstance(initParams[i])) {
+                if (!this.initParamTypes[i].isInstance(initParams[i])) {
                     valid = false;
                     break;
                 }
@@ -306,7 +311,7 @@ final class ComponentIndex<T extends Component> {
         }
 
         if (!valid)
-            throw new IllegalArgumentException("Must provide init params in the order: " + Arrays.toString(this.initParams));
+            throw new IllegalArgumentException("Must provide init params in the order: " + Arrays.toString(this.initParamTypes));
 
         // We know the arguments types match, so continue
         T instance = addComponent(entityIndex);
@@ -320,13 +325,14 @@ final class ComponentIndex<T extends Component> {
             throw new IllegalArgumentException("Init parameters failed validation", e);
         }
         
+        // fire add-event listener after initialization is completed
+        system.getControllerManager().fireComponentAdd(instance);
         return instance;
     }
     
     /*
      * Allocate and store a new component, but don't initialize it yet.
      */
-    @SuppressWarnings("unchecked")
     private T addComponent(int entityIndex) {
         if (entityIndexToComponentIndex[entityIndex] != 0)
             removeComponent(entityIndex);
@@ -340,18 +346,18 @@ final class ComponentIndex<T extends Component> {
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentIndex[entityIndex] = componentIndex;
 
-        // Copy default value for declared and decorated properties
+        // Set default value for declared and decorated properties,
+        // this is needed because we might be overwriting a previously removed
+        // component, or the factory might be doing something tricky
         for (int i = 0; i < declaredProperties.size(); i++) {
-            PropertyStore p = declaredProperties.get(i);
-            p.defaultData.copy(0, 1, p.property.getDataStore(), componentIndex);
+            declaredProperties.get(i).setValue(componentIndex);
         }
         
         for (int i = 0; i < decoratedProperties.size(); i++) {
-            PropertyStore p = decoratedProperties.get(i);
-            p.defaultData.copy(0, 1, p.property.getDataStore(), componentIndex);
+            decoratedProperties.get(i).setValue(componentIndex);
         }
         
-        return (T) components[componentIndex];
+        return instance;
     }
 
     /**
@@ -367,14 +373,15 @@ final class ComponentIndex<T extends Component> {
 
         // This code works even if componentIndex is 0
         Component oldComponent = components[componentIndex];
+        if (oldComponent != null) {
+            // perform component clean up before data is invalidated
+            system.getControllerManager().fireComponentRemove(oldComponent);
+            oldComponent.index = 0;
+        }
 
         components[componentIndex] = null;
         entityIndexToComponentIndex[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
-        
-        // Make all removed component instances point to the 0th index
-        if (oldComponent != null)
-            oldComponent.index = 0;
         
         return oldComponent != null;
     }
@@ -383,9 +390,9 @@ final class ComponentIndex<T extends Component> {
      * Update all component data in the list of properties. If possible the data
      * store in swap is reused.
      */
-    private void update(List<PropertyStore> properties, Component[] newToOldMap) {
+    private void update(List<PropertyStore<?>> properties, Component[] newToOldMap) {
         for (int i = 0; i < properties.size(); i++) {
-            PropertyStore p = properties.get(i);
+            PropertyStore<?> p = properties.get(i);
             IndexedDataStore origStore = p.property.getDataStore();
             
             p.property.setDataStore(update(origStore, p.swap, newToOldMap));
@@ -436,8 +443,8 @@ final class ComponentIndex<T extends Component> {
         return dst;
     }
     
-    private void notifyCompactAwareProperties(List<PropertyStore> props) {
-        PropertyStore p;
+    private void notifyCompactAwareProperties(List<PropertyStore<?>> props) {
+        PropertyStore<?> p;
         for (int i = 0; i < props.size(); i++) {
             p = props.get(i);
             if (p.property instanceof CompactAwareProperty)
@@ -544,23 +551,20 @@ final class ComponentIndex<T extends Component> {
      * @return The property decorated onto the type of the index
      */
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
-        P prop = factory.create();
-        
-        int size = (declaredProperties.isEmpty() ? componentInsert + 1 
+        int size = (declaredProperties.isEmpty() ? componentInsert
                                                  : declaredProperties.get(0).property.getDataStore().size());
         
-        PropertyStore pstore = new PropertyStore(prop, true);
+        PropertyStore<P> pstore = new PropertyStore<P>(factory);
 
-        // Copy original values from factory property over to all component slots
-        IndexedDataStore newStore = prop.getDataStore().create(size);
+        // Set values from factory to all component slots
+        IndexedDataStore newStore = pstore.property.getDataStore().create(size);
+        pstore.property.setDataStore(newStore);
         for (int i = 1; i < size; i++) {
-            // This assumes that the property stores its data in the 0th index
-            pstore.defaultData.copy(0, 1, newStore, i);
+            pstore.setValue(i);
         }
-        prop.setDataStore(newStore);
         
         decoratedProperties.add(pstore);
-        return prop;
+        return pstore.property;
     }
 
     /**
@@ -571,7 +575,7 @@ final class ComponentIndex<T extends Component> {
      * @param p The property to remove
      */
     public void undecorate(Property p) {
-        Iterator<PropertyStore> it = decoratedProperties.iterator();
+        Iterator<PropertyStore<?>> it = decoratedProperties.iterator();
         while(it.hasNext()) {
             if (it.next().property == p) {
                 it.remove();
@@ -684,20 +688,23 @@ final class ComponentIndex<T extends Component> {
         }
     }
     
-    private static class PropertyStore {
-        final Property property;
-        final boolean transientProperty;
-        final IndexedDataStore defaultData; // if not null, has a single component
-
+    private static class PropertyStore<P extends Property> {
+        final P property;
+        final PropertyFactory<P> creator;
         IndexedDataStore swap; // may be null
         
         
-        public PropertyStore(Property p, boolean isTransient) {
-            property = p;
-            transientProperty = isTransient;
-            
-            defaultData = property.getDataStore().create(1);
-            property.getDataStore().copy(0, 1, defaultData, 0);
+        public PropertyStore(PropertyFactory<P> creator) {
+            this.creator = creator;
+            property = creator.create();
+        }
+        
+        private void clone(int srcIndex, P dst, int dstIndex) {
+            creator.clone(property, srcIndex, dst, dstIndex);
+        }
+        
+        private void setValue(int index) {
+            creator.setValue(property, index);
         }
     }
 }

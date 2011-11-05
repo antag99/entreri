@@ -26,7 +26,6 @@
  */
 package com.googlecode.entreri;
 
-import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +46,16 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Michael Ludwig
  */
 public class ControllerManager {
+    /**
+     * Key represents a typed key into controller data managed by a
+     * ControllerManager. Equality is defined by reference, so it is generally
+     * best to store keys for reuse in private or public fields (possibly static
+     * if the key is shared).
+     * 
+     * @param <T> The type of data associated with the key
+     */
+    public static class Key<T> { }
+    
     /**
      * The Phase enum represents the different phases of
      * processing that an EntitySystem can go through during
@@ -89,8 +98,7 @@ public class ControllerManager {
     
     // This is a concurrent map so that parallel controllers can access it efficiently
     // - the rest of the class is assumed to be single-threaded
-    private final ConcurrentHashMap<Class<? extends Annotation>, Object> controllerData;
-    private final ConcurrentHashMap<Object, Object> privateData;
+    private final ConcurrentHashMap<Key<?>, Object> controllerData;
 
     private final EntitySystem system;
 
@@ -106,8 +114,7 @@ public class ControllerManager {
             throw new NullPointerException("EntitySystem cannot be null");
         
         this.system = system;
-        controllerData = new ConcurrentHashMap<Class<? extends Annotation>, Object>();
-        privateData = new ConcurrentHashMap<Object, Object>();
+        controllerData = new ConcurrentHashMap<Key<?>, Object>();
         controllers = new ArrayList<Controller>();
         
         fixedDelta = 1 / 60f; // 60fps
@@ -133,77 +140,42 @@ public class ControllerManager {
     public float getFixedDelta() {
         return fixedDelta;
     }
-    
+
     /**
-     * Return the controller data that has been mapped to the given annotation
-     * <tt>key</tt>. This will return if there has been no assigned data. This
-     * can be used to store arbitrary data that must be shared between related
-     * controllers.
+     * Return the controller data that has been mapped to the given <tt>key</tt>
+     * . This will return null if there has been no assigned data. The getData()
+     * and setData() methods should be used by controllers to share data between
+     * themselves, and to store system-dependent state so that their
+     * implementations are properly indepdent of the system.
      * 
      * @param key The annotation key
      * @return The object previously mapped to the annotation with
      *         {@link #setControllerData(Class, Object)}
      * @throws NullPointerException if key is null
      */
-    public Object getControllerData(Class<? extends Annotation> key) {
+    @SuppressWarnings("unchecked")
+    public <T> T getData(Key<T> key) {
         if (key == null)
             throw new NullPointerException("Key cannot be null");
-        return controllerData.get(key);
+        return (T) controllerData.get(key);
     }
 
     /**
-     * Map <tt>value</tt> to the given annotation <tt>key</tt> so that future
-     * calls to {@link #getControllerData(Class)} with the same key will return
+     * Store <tt>value</tt> to the given <tt>key</tt> so that future
+     * calls to {@link #getData(Key)} with the same key will return
      * the new value. If the value is null, any previous mapping is removed.
      * 
-     * @param key The annotation key
+     * @param key The key
      * @param value The new value to store
      * @throws NullPointerException if key is null
      */
-    public void setControllerData(Class<? extends Annotation> key, Object value) {
+    public <T> void setData(Key<T> key, T value) {
         if (key == null)
             throw new NullPointerException("Key cannot be null");
         if (value == null)
             controllerData.remove(key);
         else
             controllerData.put(key, value);
-    }
-
-    /**
-     * Retrieve a privately stored instance from this manager's cache. It is
-     * similar to {@link #getControllerData(Class)} except the key is intended
-     * to be something known only to the owner so the data is effectively hidden
-     * from other controllers (unlike the annotation key which facilitates
-     * cross-controller communication).
-     * 
-     * @param key The key to lookup
-     * @return The value associated with the key, or null
-     * @throws NullPointerException if key is null
-     */
-    public Object getPrivateData(Object key) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        return privateData.get(key);
-    }
-
-    /**
-     * Store the given value into this manager's cache so that it can be
-     * retrieved by the given key. It is intended that the key is not accessible
-     * to other controllers so that this represents private data. If sharing is
-     * desired, create an annotation description and use
-     * {@link #setControllerData(Class, Object)}.
-     * 
-     * @param key The key to store the value to
-     * @param value The value being stored, or null to remove the old value
-     * @throws NullPointerException if key is null
-     */
-    public void setPrivateData(Object key, Object value) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        if (value == null)
-            privateData.remove(key);
-        else
-            privateData.put(key, value);
     }
 
     /**
@@ -226,9 +198,12 @@ public class ControllerManager {
             throw new NullPointerException("Controller cannot be null");
         
         // remove it first - which does nothing if not in the list
-        controllers.remove(controller);
+        boolean removed = controllers.remove(controller);
         // now add it to the end
         controllers.add(controller);
+        
+        if (!removed)
+            controller.addedToSystem(system);
     }
 
     /**
@@ -242,7 +217,9 @@ public class ControllerManager {
     public void removeController(Controller controller) {
         if (controller == null)
             throw new NullPointerException("Controller cannot be null");
-        controllers.remove(controller);
+        boolean removed = controllers.remove(controller);
+        if (removed)
+            controller.removedFromSystem(system);
     }
     
     /**
@@ -279,31 +256,71 @@ public class ControllerManager {
         
         switch(phase) {
         case PREPROCESS:
-            doPreProcess(dt); break;
+            firePreProcess(dt); break;
         case PROCESS:
-            doProcess(dt); break;
+            fireProcess(dt); break;
         case POSTPROCESS:
-            doPostProcess(dt); break;
+            firePostProcess(dt); break;
         case ALL:
-            // Perform all stages in one go
-            doPreProcess(dt);
-            doProcess(dt);
-            doPostProcess(dt);
+            // Perform all phases in one go
+            firePreProcess(dt);
+            fireProcess(dt);
+            firePostProcess(dt);
             break;
         }
     }
+
+    /**
+     * Invoke onEntityAdd() for all controllers.
+     * 
+     * @param e The entity being added
+     */
+    void fireEntityAdd(Entity e) {
+        for (int i = 0; i < controllers.size(); i++)
+            controllers.get(i).onEntityAdd(e);
+    }
     
-    private void doPreProcess(float dt) {
+    /**
+     * Invoke onEntityRemove() for all controllers.
+     * 
+     * @param e The entity being removed
+     */
+    void fireEntityRemove(Entity e) {
+        for (int i = 0; i < controllers.size(); i++)
+            controllers.get(i).onEntityRemove(e);
+    }
+    
+    /**
+     * Invoke onComponentAdd() for all controllers.
+     * 
+     * @param c The component being added
+     */
+    void fireComponentAdd(Component c) {
+        for (int i = 0; i < controllers.size(); i++)
+            controllers.get(i).onComponentAdd(c);
+    }
+    
+    /**
+     * Invoke onComponentRemove() for all controllers.
+     * 
+     * @param c The component being removed
+     */
+    void fireComponentRemove(Component c) {
+        for (int i = 0; i < controllers.size(); i++)
+            controllers.get(i).onComponentRemove(c);
+    }
+    
+    private void firePreProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
             controllers.get(i).preProcess(system, dt);
     }
     
-    private void doProcess(float dt) {
+    private void fireProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
             controllers.get(i).process(system, dt);
     }
     
-    private void doPostProcess(float dt) {
+    private void firePostProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
             controllers.get(i).postProcess(system, dt);
     }

@@ -28,54 +28,37 @@ package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.Component;
 import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.property.Factory;
-import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.FloatPropertyFactory;
-import com.googlecode.entreri.property.MultiParameterProperty;
-import com.googlecode.entreri.property.NoParameterProperty;
-import com.googlecode.entreri.property.Parameter;
-import com.googlecode.entreri.property.Parameters;
+import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.Unmanaged;
 
-/**
- * A Component that tests a variety of property constructors.
- * 
- * @author Michael Ludwig
- */
-public class MultiPropertyComponent extends Component {
-    @Parameters({@Parameter(type=int.class, value="2"),
-                 @Parameter(type=float.class, value="0.3")})
-    protected MultiParameterProperty multi;
+public class UnmanagedFieldComponent extends Component {
+    private transient ObjectProperty<Object> transientProperty;
     
-    protected NoParameterProperty noparams;
+    @Unmanaged
+    private transient float field;
     
-    @Factory(FloatPropertyFactory.class)
-    protected FloatProperty fromFactory;
-    
-    protected MultiPropertyComponent(EntitySystem system, int index) {
+    protected UnmanagedFieldComponent(EntitySystem system, int index) {
         super(system, index);
     }
-    
-    public void setFloat(int offset, float f) {
-        multi.setFloat(offset + getIndex() * 2, f);
-    }
-    
-    public float getFloat(int offset) {
-        return multi.getFloat(offset + getIndex() * 2);
-    }
-    
-    public NoParameterProperty getCompactProperty() {
-        return noparams;
-    }
-    
-    public void setFactoryFloat(float f) {
-        fromFactory.set(f, getIndex(), 0);
-    }
-    
-    public float getFactoryFloat() {
-        return fromFactory.get(getIndex(), 0);
-    }
-    
+
     @Override
     protected void init(Object... initParams) throws Exception {
+        
+    }
+
+    public void setObject(Object v) {
+        transientProperty.set(v, getIndex(), 0);
+    }
+    
+    public Object getObject() {
+        return transientProperty.get(getIndex(), 0);
+    }
+    
+    public float getFloat() {
+        return field;
+    }
+    
+    public void setFloat(float f) {
+        field = f;
     }
 }

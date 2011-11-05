@@ -29,6 +29,9 @@ package com.googlecode.entreri;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.googlecode.entreri.property.Property;
+import com.googlecode.entreri.property.PropertyFactory;
+
 /**
  * <p>
  * An Entity represents a collection of Components within an EntitySystem.
@@ -84,7 +87,9 @@ public final class Entity implements Iterable<Component> {
      *         has been removed
      */
     public boolean isLive() {
-        return getId() != 0;
+        // index == 0 is equivalent to getId() == 0, given the way the system
+        // manages index's, but this is faster
+        return index != 0;
     }
 
     /**
@@ -141,11 +146,21 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
+     * <p>
      * Add a Component of type T to this Entity, but clone its state from the
      * existing component of type T. The existing component must still be
      * attached to an Entity other than this entity, but it could be from a
      * different EntitySystem. If there already exists a component of type T
      * added to this entity, it is removed first, and a new one is instantiated.
+     * </p>
+     * <p>
+     * The new component is initialized by cloning the property values from
+     * <tt>toClone</tt> into the values of the new instance. This is performed
+     * by invoking {@link PropertyFactory#clone(Property, int, Property, int)}
+     * with the factory that created each property. All default property
+     * factories perform a copy by value (or copy by reference for object
+     * types).
+     * </p>
      * 
      * @param <T> The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
@@ -188,14 +203,60 @@ public final class Entity implements Iterable<Component> {
     public Iterator<Component> iterator() {
         return new ComponentIterator(system, index);
     }
-    
+
+    /**
+     * <p>
+     * Entity's hashCode() returns its entity id.
+     * </p>
+     * <p>
+     * This means you can use the entities created by a system's fast iterators
+     * to query a hash-based collections. However, you should never store fast
+     * entities into a hash-based collection because their id (and thus hash
+     * code) will change each iteration.
+     * </p>
+     * <p>
+     * Additionally, an entity's id is updated when it is removed from an system.
+     * This means it is critical to remove entities from collections before they
+     * a removed from a system. This can be done in
+     * {@link Controller#onEntityRemove(Entity)}.
+     * </p>
+     * 
+     * @throws IllegalStateException if the entity has already been removed
+     */
     @Override
     public int hashCode() {
+        if (!isLive())
+            throw new IllegalStateException("Entity is no longer alive");
         return getId();
     }
-    
+
+    /**
+     * <p>
+     * Entity's equals() returns true if the object is another entity in the
+     * same EntitySystem, with the same id.
+     * </p>
+     * <p>
+     * This means you can use the entities created by a system's fast iterators
+     * to query equals-based collections. However, you should never store fast
+     * entities into a equals-based collections because their id (and thus
+     * definition of equality) will change with each iteration.
+     * </p>
+     * <p>
+     * Additionally, an entity's index is updated when it is removed from an
+     * entity or system. This means it is critical to remove entities from
+     * collections before they are removed from the system. This can be done in
+     * {@link Controller#onEntityRemove(Entity)}.
+     * </p>
+     * 
+     * @param o The object to test equality with
+     * @return True if the two instances represent the same conceptual entity
+     * @throws IllegalStateException if the entity has already been removed
+     */
     @Override
     public boolean equals(Object o) {
+        if (!isLive())
+            throw new IllegalStateException("Entity is no longer alive");
+        
         if (!(o instanceof Entity))
             return false;
         Entity e = (Entity) o;

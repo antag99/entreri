@@ -66,7 +66,7 @@ public final class ObjectProperty<T> implements Property {
      * @return A PropertyFactory for ObjectProperty
      */
     public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize) {
-        return new PropertyFactory<ObjectProperty<T>>() {
+        return new AbstractPropertyFactory<ObjectProperty<T>>() {
             @Override
             public ObjectProperty<T> create() {
                 return new ObjectProperty<T>(elementSize);
@@ -159,6 +159,12 @@ public final class ObjectProperty<T> implements Property {
         @Override
         protected int getArrayLength(Object[] array) {
             return array.length;
+        }
+        
+        @Override
+        public void setDefault(int offset) {
+            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
+                array[i] = null;
         }
     }
 }

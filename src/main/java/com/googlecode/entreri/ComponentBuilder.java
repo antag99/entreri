@@ -39,11 +39,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.googlecode.entreri.property.AbstractPropertyFactory;
 import com.googlecode.entreri.property.Factory;
 import com.googlecode.entreri.property.Parameter;
 import com.googlecode.entreri.property.Parameters;
 import com.googlecode.entreri.property.Property;
 import com.googlecode.entreri.property.PropertyFactory;
+import com.googlecode.entreri.property.Unmanaged;
 
 /**
  * <p>
@@ -106,18 +108,18 @@ final class ComponentBuilder<T extends Component> {
     }
 
     /**
-     * Create a new map from field to property instances that can be shared by
-     * all instances of the Component type built by this builder for a single
-     * EntitySystem. It can be passed into
+     * Get the map from Fields of the component type to PropertyFactory
+     * implementations that will create valid property objects for each field.
+     * The created properties can then form a map valid with
      * {@link #newInstance(EntitySystem, int, Map)}.
      * 
-     * @return A new list of properties used to set the property fields in the
-     *         component
+     * @return A map from field to property factory for the type associated with
+     *         this builder
      */
-    public Map<Field, Property> createProperties() {
-        Map<Field, Property> props = new HashMap<Field, Property>(propertyFactories.size());
+    public Map<Field, PropertyFactory<?>> getPropertyFactories() {
+        Map<Field, PropertyFactory<?>> props = new HashMap<Field, PropertyFactory<?>>();
         for (int i = 0; i < propertyFactories.size(); i++)
-            props.put(fields.get(i), propertyFactories.get(i).create());
+            props.put(fields.get(i), propertyFactories.get(i));
         return Collections.unmodifiableMap(props);
     }
 
@@ -129,8 +131,10 @@ final class ComponentBuilder<T extends Component> {
      * is used to assign values to the declared property fields of the type.
      * </p>
      * <p>
-     * It is assumed that the map was previously returned from a call to
-     * {@link #createProperties()}.
+     * It is assumed that the map was created by the factories returned from
+     * {@link #getPropertyFactories()}. Additionally, it is assumed that
+     * {@link PropertyFactory#setValue(Property, int)} is invoked by the caller
+     * as appropriate (no initialization is performed by the builder).
      * </p>
      * 
      * @param system The owning EntitySystem
@@ -285,11 +289,11 @@ final class ComponentBuilder<T extends Component> {
             if (Modifier.isStatic(modifiers))
                 continue; // ignore static fields
             
+            if (declared[i].isAnnotationPresent(Unmanaged.class))
+                continue; // ignore the field
+            
             if (!Property.class.isAssignableFrom(declared[i].getType())) {
-                if (Modifier.isTransient(modifiers))
-                    continue; // ignore this field
-                else
-                    throw new IllegalComponentDefinitionException(type, "Component has non-Property field that is not transient: " + declared[i]);
+                throw new IllegalComponentDefinitionException(type, "Component has non-Property field that is not transient: " + declared[i]);
             }
             
             if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers))
@@ -306,7 +310,7 @@ final class ComponentBuilder<T extends Component> {
         return nonTransientFields;
     }
     
-    private static class ReflectionPropertyFactory<P extends Property> implements PropertyFactory<P> {
+    private static class ReflectionPropertyFactory<P extends Property> extends AbstractPropertyFactory<P> {
         private final Constructor<P> ctor;
         private final Object[] values;
         

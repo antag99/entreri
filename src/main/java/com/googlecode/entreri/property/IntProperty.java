@@ -64,7 +64,7 @@ public final class IntProperty implements Property {
      * @return A PropertyFactory for IntProperty
      */
     public static PropertyFactory<IntProperty> factory(final int elementSize) {
-        return new PropertyFactory<IntProperty>() {
+        return new AbstractPropertyFactory<IntProperty>() {
             @Override
             public IntProperty create() {
                 return new IntProperty(elementSize);
@@ -156,6 +156,12 @@ public final class IntProperty implements Property {
         @Override
         protected int getArrayLength(int[] array) {
             return array.length;
+        }
+        
+        @Override
+        public void setDefault(int offset) {
+            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
+                array[i] = 0;
         }
     }
 }

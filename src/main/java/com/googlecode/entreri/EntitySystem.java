@@ -424,6 +424,10 @@ public final class EntitySystem {
         entities[entityIndex] = newEntity;
         entityIds[entityIndex] = entityIdSeq++;
         
+        // invoke add-event listeners now before we invoke any listeners
+        // due to templating so events have proper sequencing
+        manager.fireEntityAdd(newEntity);
+        
         if (template != null) {
             for (Component c: template) {
                 addFromTemplate(entityIndex, c.getTypedId(), c);
@@ -572,15 +576,18 @@ public final class EntitySystem {
         
         // clear out id and canonical entity
         Entity old = entities[index];
-        entityIds[index] = 0;
-        entities[index] = null;
-        
         if (old != null) {
-            // update its index
+            // fire remove-event listener
+            manager.fireEntityRemove(old);
+            
+            entityIds[index] = 0;
+            entities[index] = null;
             old.index = 0;
+            
             return true;
-        } else
+        } else {
             return false;
+        }
     }
     
     @SuppressWarnings({ "unchecked", "rawtypes" })

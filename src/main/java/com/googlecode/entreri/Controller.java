@@ -27,11 +27,18 @@
 package com.googlecode.entreri;
 
 /**
+ * <p>
  * Controllers are functional processors of the entities and components within
  * an EntitySystem. Different Controller implementations have different
  * purposes, such as updating transforms, computing physics or AI, or rendering
  * a scene. Generally controller implementations should be as small and as
  * independent as possible to allow for reuse and easy composability.
+ * </p>
+ * <p>
+ * Controllers also have event listener method hooks so that they can be
+ * notified when they are added or removed from an EntitySystem, or when an
+ * Entity or component in a system they're attached to is added or removed.
+ * </p>
  * 
  * @author Michael Ludwig
  */
@@ -65,4 +72,16 @@ public interface Controller {
      * @param dt The elapsed time since the last processing
      */
     public void postProcess(EntitySystem system, float dt);
+    
+    public void addedToSystem(EntitySystem system);
+    
+    public void removedFromSystem(EntitySystem system);
+    
+    public void onEntityAdd(Entity e);
+    
+    public void onEntityRemove(Entity e);
+    
+    public void onComponentAdd(Component c);
+    
+    public void onComponentRemove(Component c);
 }

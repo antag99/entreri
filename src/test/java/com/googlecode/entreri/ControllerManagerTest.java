@@ -29,9 +29,9 @@ package com.googlecode.entreri;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.googlecode.entreri.Controller;
-import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.ControllerManager.Key;
 import com.googlecode.entreri.ControllerManager.Phase;
+import com.googlecode.entreri.component.IntComponent;
 
 public class ControllerManagerTest {
     @Test
@@ -120,32 +120,52 @@ public class ControllerManagerTest {
     
     @Test
     public void testControllerData() {
+        Key<Object> key = new Key<Object>();
         EntitySystem system = new EntitySystem();
         Object data = new Object();
-        system.getControllerManager().setControllerData(Key.class, data);
+        system.getControllerManager().setData(key, data);
         
-        Assert.assertEquals(data, system.getControllerManager().getControllerData(Key.class));
+        Assert.assertEquals(data, system.getControllerManager().getData(key));
         
-        system.getControllerManager().setControllerData(Key.class, null);
-        Assert.assertNull(system.getControllerManager().getControllerData(Key.class));
+        system.getControllerManager().setData(key, null);
+        Assert.assertNull(system.getControllerManager().getData(key));
     }
     
     @Test
-    public void testPrivateData() {
+    public void testControllerAddRemoveListener() {
         EntitySystem system = new EntitySystem();
-        Object data = new Object();
-        Object key = new Object();
+        ControllerImpl ctrl = new ControllerImpl();
         
-        system.getControllerManager().setPrivateData(key, data);
-        
-        Assert.assertEquals(data, system.getControllerManager().getPrivateData(key));
-        
-        system.getControllerManager().setPrivateData(key, null);
-        Assert.assertNull(system.getControllerManager().getPrivateData(key));
+        system.getControllerManager().addController(ctrl);
+        Assert.assertTrue(ctrl.added);
+        system.getControllerManager().removeController(ctrl);
+        Assert.assertTrue(ctrl.removed);
     }
     
-    private static @interface Key {
+    @Test
+    public void testEntityAddRemoveListener() {
+        EntitySystem system = new EntitySystem();
+        ControllerImpl ctrl = new ControllerImpl();
+        system.getControllerManager().addController(ctrl);
         
+        Entity e = system.addEntity();
+        Assert.assertEquals(e, ctrl.lastAddedEntity);
+        system.removeEntity(e);
+        Assert.assertTrue(e == ctrl.lastRemovedEntity);
+    }
+    
+    @Test
+    public void testComponentAddRemoveListener() {
+        EntitySystem system = new EntitySystem();
+        ControllerImpl ctrl = new ControllerImpl();
+        system.getControllerManager().addController(ctrl);
+        
+        Entity e = system.addEntity();
+        IntComponent i = e.add(Component.getTypedId(IntComponent.class));
+        
+        Assert.assertEquals(i, ctrl.lastAddedComponent);
+        e.remove(Component.getTypedId(IntComponent.class));
+        Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
     
     private static class ControllerImpl implements Controller {
@@ -154,6 +174,15 @@ public class ControllerManagerTest {
         private boolean postprocessed;
         
         private float dt;
+        
+        private boolean added;
+        private boolean removed;
+        
+        private Entity lastAddedEntity;
+        private Entity lastRemovedEntity;
+        
+        private Component lastAddedComponent;
+        private Component lastRemovedComponent;
         
         @Override
         public void preProcess(EntitySystem system, float dt) {
@@ -171,6 +200,36 @@ public class ControllerManagerTest {
         public void postProcess(EntitySystem system, float dt) {
             postprocessed = true;
             this.dt = dt;
+        }
+
+        @Override
+        public void addedToSystem(EntitySystem system) {
+            added = true;
+        }
+
+        @Override
+        public void removedFromSystem(EntitySystem system) {
+            removed = true;
+        }
+
+        @Override
+        public void onEntityAdd(Entity e) {
+            lastAddedEntity = e;
+        }
+
+        @Override
+        public void onEntityRemove(Entity e) {
+            lastRemovedEntity = e;
+        }
+
+        @Override
+        public void onComponentAdd(Component c) {
+            lastAddedComponent = c;
+        }
+
+        @Override
+        public void onComponentRemove(Component c) {
+            lastRemovedComponent = c;
         }
     }
 }

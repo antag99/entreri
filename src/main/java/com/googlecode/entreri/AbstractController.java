@@ -24,19 +24,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.property;
+package com.googlecode.entreri;
 
+/**
+ * AbstractController implements Controller by performing no action on each of
+ * Controller's process or event hooks. Subclasses can override just the methods
+ * they are interested in implementing.
+ * 
+ * @author Michael Ludwig
+ */
+public abstract class AbstractController implements Controller {
 
-public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
-    public static final float DEFAULT = 5f;
-    
     @Override
-    public FloatProperty create() {
-        return new FloatProperty(1);
+    public void preProcess(EntitySystem system, float dt) {
+        // do nothing in base class
     }
-    
+
     @Override
-    public void setValue(FloatProperty p, int index) {
-        p.set(DEFAULT, index, 0);
+    public void process(EntitySystem system, float dt) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void postProcess(EntitySystem system, float dt) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void addedToSystem(EntitySystem system) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void removedFromSystem(EntitySystem system) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void onEntityAdd(Entity e) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void onEntityRemove(Entity e) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void onComponentAdd(Component c) {
+        // do nothing in base class
+    }
+
+    @Override
+    public void onComponentRemove(Component c) {
+        // do nothing in base class
     }
 }

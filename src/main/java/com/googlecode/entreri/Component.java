@@ -30,6 +30,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.googlecode.entreri.property.IndexedDataStore;
 import com.googlecode.entreri.property.Property;
+import com.googlecode.entreri.property.PropertyFactory;
+import com.googlecode.entreri.property.Unmanaged;
 
 /**
  * <p>
@@ -109,8 +111,9 @@ public abstract class Component {
      * component in the system.
      */
     int index;
-
+    
     final ComponentIndex<?> owner;
+    
     private final TypedId<? extends Component> typedId;
 
     /**
@@ -150,7 +153,8 @@ public abstract class Component {
      * configured its declared properties. This is only called when the
      * Component is being added to an Entity. This is not called when a new
      * component instance is created for the purposes of a fast iterator
-     * (because it's just acting as a shell in that case).
+     * (because it's just acting as a shell in that case), or being cloned from
+     * a template.
      * </p>
      * <p>
      * The var-args initParams are the initial object parameters, in the same
@@ -167,6 +171,12 @@ public abstract class Component {
      * sure to call super with arguments matching its super-type's InitParams
      * annotation.
      * </p>
+     * <p>
+     * Note that in many cases the default value (usually 0 or null), assigned
+     * by the {@link PropertyFactory} that created the component's properties
+     * could be sufficient.
+     * </p>
+     * 
      * @param initParams The initial parameters for the Component
      */
     protected abstract void init(Object... initParams) throws Exception;
@@ -216,23 +226,79 @@ public abstract class Component {
     public final int getIndex() {
         return index;
     }
-    
+
+    /**
+     * @return True if this Component is still attached to an Entity, or false
+     *         if it has been removed
+     */
+    public final boolean isLive() {
+        return index != 0;
+    }
+
+    /**
+     * <p>
+     * Component's hashCode() returns the entity id of the component's owning
+     * entity. This means that any Component instance of this type that has the same index in
+     * the same EntitySystem will correctly use the same hash code.
+     * </p>
+     * <p>
+     * This means you can use the components created by a system's fast
+     * iterators to query a hash-based collections. However, you should never
+     * store fast components into a hash-based collection because their index
+     * (and thus hash code) will change each iteration.
+     * </p>
+     * <p>
+     * Additionally, a component's index is updated when it is removed from an
+     * entity or system. This means it is critical to remove components from
+     * collections before they a removed from a system. This can be done in
+     * {@link Controller#onComponentRemove(Component)}.
+     * </p>
+     * 
+     * @throws IllegalStateException if the component has already been removed
+     */
     @Override
     public int hashCode() {
-        return index;
+        if (!isLive())
+            throw new IllegalStateException("Component is not alive anymore");
+        return owner.getEntitySystem().getEntityId(owner.getEntityIndex(index));
     }
-    
+
+    /**
+     * <p>
+     * Component's equals() returns true if the object is another component of
+     * the same type, with the same owning Entity. This means that any component
+     * of this type that has the same index in the same entity system will
+     * correctly be treated as equal.
+     * </p>
+     * <p>
+     * This means you can use the components created by a system's fast
+     * iterators to query equals-based collections. However, you should never
+     * store fast components into a equals-based collections because their index
+     * (and thus definition of equality) will change with each iteration.
+     * </p>
+     * <p>
+     * Additionally, a component's index is updated when it is removed from an
+     * entity or system. This means it is critical to remove components from
+     * collections before they are removed from the system. This can be done in
+     * {@link Controller#onComponentRemove(Component)}.
+     * </p>
+     * 
+     * @param o The object to test equality with
+     * @return True if the two instances represent the same conceptual component
+     * @throws IllegalStateException if the component has already been removed
+     */
     @Override
     public boolean equals(Object o) {
+        if (!isLive())
+            throw new IllegalStateException("Component is not alive anymore");
+        
         if (!(o instanceof Component))
             return false;
         Component c = (Component) o;
-        if (c.owner == owner && c.typedId == typedId) {
-            // We can't use index because a canonical component might have it change,
-            // instead use its owning entity
-            int tei = owner.getEntitySystem().getEntityId(owner.getEntityIndex(index));
-            int cei = c.owner.getEntitySystem().getEntityId(c.owner.getEntityIndex(c.index));
-            return tei == cei;
+        if (c.owner == owner) {
+            // We use the hash code, since it is either the owner's id (unchanging)
+            // or the cached id from just before it was removed
+            return hashCode() == c.hashCode();
         } else {
             // type and owner don't match
             return false;
@@ -261,21 +327,10 @@ public abstract class Component {
      * do not have this restriction.</li>
      * <li>Any non-static fields defined in a Component (abstract or concrete)
      * must implement Property and be declared private or protected, or be
-     * transient.</li>
+     * annotated with {@link Unmanaged} (in which case the field is ignored.</li>
      * </ul>
      * Additionally, abstract Component types cannot have a TypedId assigned to
      * them.
-     * </p>
-     * <p>
-     * A note on transient fields when defining a component. Transient fields
-     * that are not properties are completely unmanaged. They are intended for
-     * caching at the level of Component instance, and not storing managed
-     * component data (i.e. the instance created for a fast iterator transient
-     * fields are different from the canonical instance). Transient fields that
-     * are Properties are still managed, and are intended for caching at the
-     * level of conceptual component. Their values are not copied when a
-     * Component is used as a template, but are otherwise like regular
-     * properties.
      * </p>
      * 
      * @param <T> The Component class type

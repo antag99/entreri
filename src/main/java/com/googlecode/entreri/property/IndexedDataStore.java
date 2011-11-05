@@ -72,4 +72,15 @@ public interface IndexedDataStore {
      *             out-of-bounds exceptions
      */
     public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset);
+
+    /**
+     * Update the values of the data store at the given component offset to
+     * reflect the default value. The default value is dependent on the
+     * IndexedDataStore (and in that sense, the Property creating the data
+     * store), but will usually be null or 0.
+     * 
+     * @param offset The component offset into the data store
+     * @throws IndexOutOfBoundsException if the offset is invalid
+     */
+    public void setDefault(int offset);
 }

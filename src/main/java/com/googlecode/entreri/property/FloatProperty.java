@@ -65,7 +65,7 @@ public final class FloatProperty implements Property {
      * @return A PropertyFactory for FloatProperty
      */
     public static PropertyFactory<FloatProperty> factory(final int elementSize) {
-        return new PropertyFactory<FloatProperty>() {
+        return new AbstractPropertyFactory<FloatProperty>() {
             @Override
             public FloatProperty create() {
                 return new FloatProperty(elementSize);
@@ -157,6 +157,12 @@ public final class FloatProperty implements Property {
         @Override
         protected int getArrayLength(float[] array) {
             return array.length;
+        }
+
+        @Override
+        public void setDefault(int offset) {
+            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
+                array[i] = 0f;
         }
     }
 }

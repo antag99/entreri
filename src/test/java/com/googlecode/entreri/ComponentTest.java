@@ -44,12 +44,13 @@ import com.googlecode.entreri.component.MultiPropertyComponent;
 import com.googlecode.entreri.component.ObjectComponent;
 import com.googlecode.entreri.component.PublicConstructorComponent;
 import com.googlecode.entreri.component.PublicPropertyComponent;
-import com.googlecode.entreri.component.TransientFieldComponent;
+import com.googlecode.entreri.component.UnmanagedFieldComponent;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.FloatPropertyFactory;
 import com.googlecode.entreri.property.MultiParameterProperty;
 import com.googlecode.entreri.property.NoParameterProperty;
 import com.googlecode.entreri.property.Property;
+import com.googlecode.entreri.property.PropertyFactory;
 
 public class ComponentTest {
     @Test
@@ -58,7 +59,7 @@ public class ComponentTest {
         doGetTypedIdTest(IntComponent.class);
         doGetTypedIdTest(ObjectComponent.class);
         doGetTypedIdTest(MultiPropertyComponent.class);
-        doGetTypedIdTest(TransientFieldComponent.class);
+        doGetTypedIdTest(UnmanagedFieldComponent.class);
     }
     
     private void doGetTypedIdTest(Class<? extends Component> type) {
@@ -85,9 +86,19 @@ public class ComponentTest {
     }
     
     @Test
+    public void testFactorySetValue() {
+        EntitySystem system = new EntitySystem();
+        MultiPropertyComponent c = system.addEntity().add(Component.getTypedId(MultiPropertyComponent.class));
+        Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
+    }
+    
+    @Test
     public void testPropertyLookup() {
         ComponentBuilder<MultiPropertyComponent> builder = Component.getBuilder(Component.getTypedId(MultiPropertyComponent.class));
-        Collection<Property> props = builder.createProperties().values();
+        Collection<Property> props = new HashSet<Property>();
+        for (PropertyFactory<?> factory: builder.getPropertyFactories().values()) {
+            props.add(factory.create());
+        }
         
         Set<Class<? extends Property>> propTypeSet = new HashSet<Class<? extends Property>>();
         for (Property p: props) {
@@ -101,8 +112,8 @@ public class ComponentTest {
     }
     
     @Test
-    public void testTransientField() {
-        TypedId<TransientFieldComponent> id = Component.getTypedId(TransientFieldComponent.class);
+    public void testUnmanagedField() {
+        TypedId<UnmanagedFieldComponent> id = Component.getTypedId(UnmanagedFieldComponent.class);
         
         EntitySystem system = new EntitySystem();
         for (int i = 0; i < 4; i++) {
@@ -110,7 +121,7 @@ public class ComponentTest {
         }
         
         int i = 0;
-        Iterator<TransientFieldComponent> it = system.iterator(id);
+        Iterator<UnmanagedFieldComponent> it = system.iterator(id);
         while(it.hasNext()) {
             float f = it.next().getFloat();
             Assert.assertEquals(i, f, .0001f);
