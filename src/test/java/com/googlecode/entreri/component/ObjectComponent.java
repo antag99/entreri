@@ -27,8 +27,8 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.ObjectProperty;
-import com.googlecode.entreri.property.Parameter;
 
 /**
  * A test component that tests the parameter constructor for ObjectProperty.

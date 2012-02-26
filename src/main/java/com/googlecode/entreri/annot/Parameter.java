@@ -24,45 +24,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri;
+package com.googlecode.entreri.annot;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
  * <p>
- * Component types can define a set of initialization parameters that they
- * require in order to complete their setup. Because of the rules that prohibit
- * Components from having a constructor other than T(EntitySystem system, int
- * index), the initialization parameters can be specified with this annotation.
+ * Parameter specifies a single argument to a constructor of a Property. If a
+ * Property has a single-argument constructor, Parameter can be used directly on
+ * the Property field. Otherwise {@link Parameters} can be used to select a
+ * multiple-argument constructor.
  * </p>
  * <p>
- * When adding a component to an Entity via
- * {@link Entity#add(TypedId, Object...)}, the var-args objects must be type
- * compatible with the classes specified in the InitParams annotation on the
- * component type.
- * </p>
- * <p>
- * Abstract component types can also define their InitParams. If subclasses do
- * not override it, the abstract type's parameters will be inherited. Otherwise,
- * the subclasses will be used. However, subclasses must be sure to call
- * {@link Component#init(Object...) super.init()}, with the arguments in the
- * order that the super-type expects.
+ * The definition of a Property must be constant for all ComponentData instances of
+ * the same type because they share a Property instance for each declared
+ * property (and access the indexed data as needed). Because of this, a
+ * Parameter can only use primitive and boxed primitive values, Strings, and
+ * Classes. The primitives and Classes are encoded in strings and are parsed
+ * when Properties are instantiated.
  * </p>
  * 
  * @author Michael Ludwig
  */
-@Inherited
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface InitParams {
+@Target(ElementType.FIELD)
+public @interface Parameter {
     /**
-     * @return The init-param types, in the expected order
+     * <p>
+     * Return the value of the parameter, converted to a string. Depending on
+     * the type of the parameter, this will be converted to its final form in
+     * different ways.
+     * </p>
+     * <p>
+     * If the type is a primitive or boxed primitive, it is parsed using the
+     * appropriate parseX() method (e.g. {@link Integer#parseInt(String)}).
+     * String parameters take the value as is; Class parameters attempt to load
+     * the Class via {@link Class#forName(String)}.
+     * </p>
+     * 
+     * @return The constant value of the parameter
      */
-    Class<?>[] value();
+    String value();
+
+    /**
+     * @return The class type of the parameter argument, must match the
+     *         parameter to the constructor of the Property
+     */
+    Class<?> type();
 }

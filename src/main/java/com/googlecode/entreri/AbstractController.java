@@ -71,12 +71,12 @@ public abstract class AbstractController implements Controller {
     }
 
     @Override
-    public void onComponentAdd(Component c) {
+    public void onComponentAdd(ComponentData c) {
         // do nothing in base class
     }
 
     @Override
-    public void onComponentRemove(Component c) {
+    public void onComponentRemove(ComponentData c) {
         // do nothing in base class
     }
 }

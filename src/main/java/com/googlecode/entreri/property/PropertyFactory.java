@@ -27,18 +27,21 @@
 package com.googlecode.entreri.property;
 
 import com.googlecode.entreri.Entity;
+import com.googlecode.entreri.annot.Factory;
+import com.googlecode.entreri.annot.Parameters;
 
 /**
  * <p>
  * A PropertyFactory is a simple factory that can be used to create Property
  * instances if the Property requires a more complicated constructor than can be
  * described by the {@link Parameters} annotation on a Property field.
- * Additionally, it is used when decorating a Component type in an EntitySystem
- * to ensure that each decoration event gets a unique property instance.
+ * Additionally, it is used when decorating a ComponentData type in an
+ * EntitySystem to ensure that each decoration event gets a unique property
+ * instance.
  * </p>
  * <p>
- * To be used with the {@link Factory} when defining a Component type, the
- * PropertyFactory must have an accessible, no-argument constructor.
+ * To be used with the {@link Factory} annotation when defining a ComponentData
+ * type, the PropertyFactory must have an accessible, no-argument constructor.
  * </p>
  * 
  * @author Michael Ludwig
@@ -64,11 +67,12 @@ public interface PropertyFactory<T extends Property> {
      */
     public void setValue(T property, int index);
 
+    // FIXME: update docs once entity is stabilized
     /**
      * Copy the value from <tt>src</tt> at component index, <tt>srcIndex</tt> to
      * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is
      * created and cloned from a template with
-     * {@link Entity#add(com.googlecode.entreri.Component)}. For many cases a
+     * {@link Entity#add(com.googlecode.entreri.ComponentData)}. For many cases a
      * plain copy-by-value or copy-by-reference is sufficient, but some
      * component types might require more complicated cloning rules.
      * 

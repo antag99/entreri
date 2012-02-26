@@ -26,9 +26,11 @@
  */
 package com.googlecode.entreri.property;
 
+import com.googlecode.entreri.annot.Parameters;
+
 /**
  * <p>
- * Property represents a generic field or property of a Component definition.
+ * Property represents a generic field or property of a ComponentData definition.
  * It's interface allows it's values and underlying data store to be packed
  * together with the corresponding property instances of all the other
  * Components of the same type in an EntitySystem.
@@ -47,7 +49,7 @@ package com.googlecode.entreri.property;
  * IndexedDataStore to access their data. This helps keep memory usage low and
  * simplifies system maintenance. The Property instances are created by using
  * the {@link Parameters} annotation on the declared fields in a type, and
- * reflection is used to assign them to a Component instance.
+ * reflection is used to assign them to a ComponentData instance.
  * </p>
  * 
  * @author Michael Ludwig
@@ -56,11 +58,11 @@ public interface Property {
     /**
      * <p>
      * Return the IndexedDataStore holding this property's values. The data
-     * store may also hold other property values if the owning Component is in
+     * store may also hold other property values if the owning ComponentData is in
      * an EntitySystem with many other components of the same type.
      * </p>
      * <p>
-     * This should not be used by Component implementations, and manipulating
+     * This should not be used by ComponentData implementations, and manipulating
      * the IndexedDataStore outside of the EntitySystem code could cause
      * unexpected behavior. Instead Property implementations should expose other
      * ways to access their data; as an example see
@@ -83,7 +85,7 @@ public interface Property {
      * </p>
      * <p>
      * This should only be called internally by the EntitySystem. Calling it
-     * within a Component implementation or otherwise will result in undefined
+     * within a ComponentData implementation or otherwise will result in undefined
      * consequences.
      * </p>
      * <p>

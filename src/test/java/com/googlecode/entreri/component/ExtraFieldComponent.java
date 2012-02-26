@@ -26,17 +26,17 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.Parameter;
 
 /**
  * A test component that defines a non-Property field.
  * 
  * @author Michael Ludwig
  */
-public class ExtraFieldComponent extends Component {
+public class ExtraFieldComponent extends ComponentData {
     @SuppressWarnings("unused")
     @Parameter(type=int.class, value="1")
     private FloatProperty property;

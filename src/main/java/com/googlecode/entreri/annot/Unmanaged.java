@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.property;
+package com.googlecode.entreri.annot;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
 import com.googlecode.entreri.IllegalComponentDefinitionException;
 
 /**
- * Unmanaged is an annotation that can be applied to fields in a Component
+ * Unmanaged is an annotation that can be applied to fields in a ComponentData
  * definition to make the field completely ignored by the EntitySystem creating
  * or managing the component. This can be used to store per-instance cached data
  * in the component without triggering

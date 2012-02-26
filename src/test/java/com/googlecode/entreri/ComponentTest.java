@@ -51,6 +51,7 @@ import com.googlecode.entreri.property.MultiParameterProperty;
 import com.googlecode.entreri.property.NoParameterProperty;
 import com.googlecode.entreri.property.Property;
 import com.googlecode.entreri.property.PropertyFactory;
+import com.googlecode.entreri.property.ReflectionComponentDataFactory;
 
 public class ComponentTest {
     @Test
@@ -62,8 +63,8 @@ public class ComponentTest {
         doGetTypedIdTest(UnmanagedFieldComponent.class);
     }
     
-    private void doGetTypedIdTest(Class<? extends Component> type) {
-        Component.getTypedId(type);
+    private void doGetTypedIdTest(Class<? extends ComponentData> type) {
+        ComponentData.getTypedId(type);
     }
     
     @Test
@@ -76,9 +77,9 @@ public class ComponentTest {
         doInvalidComponentDefinitionTest(PublicPropertyComponent.class);
     }
     
-    private void doInvalidComponentDefinitionTest(Class<? extends Component> type) {
+    private void doInvalidComponentDefinitionTest(Class<? extends ComponentData> type) {
         try {
-            Component.getTypedId(type);
+            ComponentData.getTypedId(type);
             Assert.fail("Expected IllegalComponentDefinitionException");
         } catch(IllegalComponentDefinitionException e) {
             // expected
@@ -88,13 +89,13 @@ public class ComponentTest {
     @Test
     public void testFactorySetValue() {
         EntitySystem system = new EntitySystem();
-        MultiPropertyComponent c = system.addEntity().add(Component.getTypedId(MultiPropertyComponent.class));
+        MultiPropertyComponent c = system.addEntity().add(ComponentData.getTypedId(MultiPropertyComponent.class));
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
     
     @Test
     public void testPropertyLookup() {
-        ComponentBuilder<MultiPropertyComponent> builder = Component.getBuilder(Component.getTypedId(MultiPropertyComponent.class));
+        ReflectionComponentDataFactory<MultiPropertyComponent> builder = ComponentData.getBuilder(ComponentData.getTypedId(MultiPropertyComponent.class));
         Collection<Property> props = new HashSet<Property>();
         for (PropertyFactory<?> factory: builder.getPropertyFactories().values()) {
             props.add(factory.create());
@@ -113,7 +114,7 @@ public class ComponentTest {
     
     @Test
     public void testUnmanagedField() {
-        TypedId<UnmanagedFieldComponent> id = Component.getTypedId(UnmanagedFieldComponent.class);
+        TypeId<UnmanagedFieldComponent> id = ComponentData.getTypedId(UnmanagedFieldComponent.class);
         
         EntitySystem system = new EntitySystem();
         for (int i = 0; i < 4; i++) {
@@ -139,14 +140,14 @@ public class ComponentTest {
     public void testDecorateProperty() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent c = e.add(ComponentData.getTypedId(IntComponent.class));
         
-        FloatProperty decorated = system.decorate(Component.getTypedId(IntComponent.class), new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(ComponentData.getTypedId(IntComponent.class), new FloatPropertyFactory());
         
         decorated.getIndexedData()[c.getIndex()] = 1f;
         
         int count = 0;
-        Iterator<IntComponent> it = system.fastIterator(Component.getTypedId(IntComponent.class));
+        Iterator<IntComponent> it = system.fastIterator(ComponentData.getTypedId(IntComponent.class));
         while(it.hasNext()) {
             c = it.next();
             count++;
@@ -160,17 +161,17 @@ public class ComponentTest {
     public void testDecoratePropertyAddComponent() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent c = e.add(ComponentData.getTypedId(IntComponent.class));
         
-        FloatProperty decorated = system.decorate(Component.getTypedId(IntComponent.class), new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(ComponentData.getTypedId(IntComponent.class), new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
         
         Entity e2 = system.addEntity();
-        IntComponent c2 = e2.add(Component.getTypedId(IntComponent.class));
+        IntComponent c2 = e2.add(ComponentData.getTypedId(IntComponent.class));
         decorated.getIndexedData()[c2.getIndex()] = 2f;
         
         int count = 0;
-        Iterator<IntComponent> it = system.fastIterator(Component.getTypedId(IntComponent.class));
+        Iterator<IntComponent> it = system.fastIterator(ComponentData.getTypedId(IntComponent.class));
         while(it.hasNext()) {
             IntComponent c3 = it.next();
             count++;
@@ -187,15 +188,15 @@ public class ComponentTest {
     public void testUndecorateValidProperty() {
         EntitySystem system = new EntitySystem();
         
-        FloatProperty decorated = system.decorate(Component.getTypedId(IntComponent.class), new FloatPropertyFactory());
-        system.undecorate(Component.getTypedId(IntComponent.class), decorated);
+        FloatProperty decorated = system.decorate(ComponentData.getTypedId(IntComponent.class), new FloatPropertyFactory());
+        system.undecorate(ComponentData.getTypedId(IntComponent.class), decorated);
     }
     
     @Test
     public void testUndecorateInvalidProperty() {
         FloatProperty prop = new FloatProperty(2);
         EntitySystem system = new EntitySystem();
-        system.undecorate(Component.getTypedId(IntComponent.class), prop);
+        system.undecorate(ComponentData.getTypedId(IntComponent.class), prop);
         // should not fail
     }
     
@@ -203,10 +204,10 @@ public class ComponentTest {
     public void testEquals() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent c = e.add(ComponentData.getTypedId(IntComponent.class));
         
         int count = 0;
-        Iterator<IntComponent> it = system.fastIterator(Component.getTypedId(IntComponent.class));
+        Iterator<IntComponent> it = system.fastIterator(ComponentData.getTypedId(IntComponent.class));
         while(it.hasNext()) {
             IntComponent c2 = it.next();
             count++;

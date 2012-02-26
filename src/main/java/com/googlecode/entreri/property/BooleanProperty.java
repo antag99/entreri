@@ -29,19 +29,19 @@ package com.googlecode.entreri.property;
 import com.googlecode.entreri.ComponentData;
 
 /**
- * FloatProperty is an implementation of Property that stores the property data
- * as a number of packed floats for each property. An example would be a
+ * BooleanProperty is an implementation of Property that stores the property data
+ * as a number of packed booleans for each property. An example would be a
  * three-dimensional vector, which would have an element size of 3.
  * 
  * @author Michael Ludwig
  */
-public final class FloatProperty implements Property {
-    private FloatDataStore store;
+public final class BooleanProperty implements Property {
+    private BooleanDataStore store;
     
     /**
      * Create a FloatProperty with an element size of 1.
      */
-    public FloatProperty() {
+    public BooleanProperty() {
         this(1);
     }
 
@@ -52,8 +52,8 @@ public final class FloatProperty implements Property {
      * @param elementSize The element size of the property
      * @throws IllegalArgumentException if elementSize is less than 1
      */
-    public FloatProperty(int elementSize) {
-        store = new FloatDataStore(elementSize, new float[elementSize]);
+    public BooleanProperty(int elementSize) {
+        store = new BooleanDataStore(elementSize, new boolean[elementSize]);
     }
 
     /**
@@ -64,26 +64,26 @@ public final class FloatProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for FloatProperty
      */
-    public static PropertyFactory<FloatProperty> factory(final int elementSize) {
-        return new AbstractPropertyFactory<FloatProperty>() {
+    public static PropertyFactory<BooleanProperty> factory(final int elementSize) {
+        return new AbstractPropertyFactory<BooleanProperty>() {
             @Override
-            public FloatProperty create() {
-                return new FloatProperty(elementSize);
+            public BooleanProperty create() {
+                return new BooleanProperty(elementSize);
             }
         };
     }
 
     /**
-     * Return the backing float array of this property's IndexedDataStore. The
+     * Return the backing boolean array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
      * system. Data may be looked up for a specific component by scaling the
      * {@link ComponentData#getIndex() component's index} by the element size of the
      * property.
      * 
-     * @return The float data for all packed properties that this property has
+     * @return The boolean data for all packed properties that this property has
      *         been packed with
      */
-    public float[] getIndexedData() {
+    public boolean[] getIndexedData() {
         return store.array;
     }
     
@@ -98,7 +98,7 @@ public final class FloatProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
      *             would access illegal indices
      */
-    public float get(int componentIndex, int offset) {
+    public boolean get(int componentIndex, int offset) {
         return store.array[componentIndex * store.elementSize + offset];
     }
 
@@ -113,7 +113,7 @@ public final class FloatProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
      *             would access illegal indices
      */
-    public void set(float val, int componentIndex, int offset) {
+    public void set(boolean val, int componentIndex, int offset) {
         store.array[componentIndex * store.elementSize] = val;
     }
     
@@ -126,43 +126,43 @@ public final class FloatProperty implements Property {
     public void setDataStore(IndexedDataStore store) {
         if (store == null)
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof FloatDataStore))
+        if (!(store instanceof BooleanDataStore))
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong type: " + store.getClass());
         
-        FloatDataStore newStore = (FloatDataStore) store;
+        BooleanDataStore newStore = (BooleanDataStore) store;
         if (newStore.elementSize != this.store.elementSize)
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
     }
 
-    private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {
-        private final float[] array;
+    private static class BooleanDataStore extends AbstractIndexedDataStore<boolean[]> {
+        private final boolean[] array;
         
-        public FloatDataStore(int elementSize, float[] array) {
+        public BooleanDataStore(int elementSize, boolean[] array) {
             super(elementSize);
             this.array = array;
         }
         
         @Override
-        public FloatDataStore create(int size) {
-            return new FloatDataStore(elementSize, new float[elementSize * size]);
+        public BooleanDataStore create(int size) {
+            return new BooleanDataStore(elementSize, new boolean[elementSize * size]);
         }
 
         @Override
-        protected float[] getArray() {
+        protected boolean[] getArray() {
             return array;
         }
 
         @Override
-        protected int getArrayLength(float[] array) {
+        protected int getArrayLength(boolean[] array) {
             return array.length;
         }
 
         @Override
         public void setDefault(int offset) {
             for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
-                array[i] = 0f;
+                array[i] = false;
         }
     }
 }

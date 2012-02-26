@@ -26,10 +26,10 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.Parameter;
 
 /**
  * An invalid component definition where a Property is declared as a public
@@ -37,7 +37,7 @@ import com.googlecode.entreri.property.Parameter;
  * 
  * @author Michael Ludwig
  */
-public class PublicPropertyComponent extends Component {
+public class PublicPropertyComponent extends ComponentData {
     @Parameter(type=int.class, value="1")
     public FloatProperty property;
     

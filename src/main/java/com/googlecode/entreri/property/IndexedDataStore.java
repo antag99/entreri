@@ -28,7 +28,7 @@ package com.googlecode.entreri.property;
 
 /**
  * IndexedDataStore is a generic data storage interface representing packed,
- * random-access data storage for a property of a Component. All Components of
+ * random-access data storage for a property of a ComponentData. All Components of
  * the same type in the same EntitySystem will have their properties share the
  * IndexedDataStores so that iteration will have much better cache locality, and
  * will avoid the reorganization caused by Java's garbage collector.

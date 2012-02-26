@@ -26,11 +26,11 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
+import com.googlecode.entreri.annot.Parameters;
 import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.Parameter;
-import com.googlecode.entreri.property.Parameters;
 
 /**
  * A test component that uses parameters to reference a non-existent property
@@ -38,7 +38,7 @@ import com.googlecode.entreri.property.Parameters;
  * 
  * @author Michael Ludwig
  */
-public class BadParametersComponent extends Component {
+public class BadParametersComponent extends ComponentData {
     @SuppressWarnings("unused")
     @Parameters({@Parameter(type=int.class, value="3"),
                  @Parameter(type=float.class, value="0.3")})

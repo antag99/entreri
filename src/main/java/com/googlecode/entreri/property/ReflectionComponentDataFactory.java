@@ -24,53 +24,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri;
+package com.googlecode.entreri.property;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import com.googlecode.entreri.property.AbstractPropertyFactory;
-import com.googlecode.entreri.property.Factory;
-import com.googlecode.entreri.property.Parameter;
-import com.googlecode.entreri.property.Parameters;
-import com.googlecode.entreri.property.Property;
-import com.googlecode.entreri.property.PropertyFactory;
-import com.googlecode.entreri.property.Unmanaged;
+import com.googlecode.entreri.ComponentData;
+import com.googlecode.entreri.ComponentDataFactory;
+import com.googlecode.entreri.IllegalComponentDefinitionException;
+import com.googlecode.entreri.annot.Factory;
+import com.googlecode.entreri.annot.Parameter;
+import com.googlecode.entreri.annot.Parameters;
+import com.googlecode.entreri.annot.Unmanaged;
 
 /**
  * <p>
- * ComponentBuilder is a factory for creating new instances of Components of a
+ * ReflectionComponentDataFactory is a factory for creating new instances of ComponentDatas of a
  * specific type. It is capable of using reflection to instantiate Property
- * instances for the Components declared property fields, based on the
+ * instances for the ComponentData's declared property fields, based on the
  * {@link Factory}, {@link Parameters}, and {@link Parameter} annotations.
  * </p>
- * <p>
- * ComponentBuilder is thread safe, unlike the majority of the library, because
- * a single ComponentBuilder is used for each type, across all systems.
- * </p>
+ * FIXME: Move conventions from TypeId.getTypeId() to here
  * 
  * @author Michael Ludwig
  * @param <T> The built component type
  */
-final class ComponentBuilder<T extends Component> {
-    private final List<PropertyFactory<?>> propertyFactories;
+public final class ReflectionComponentDataFactory<T extends ComponentData<T>> implements ComponentDataFactory<T> {
     private final Constructor<T> constructor;
-    private final List<Field> fields;
+    private final Map<String, PropertyFactory<?>> propertyFactories;
+    private final Map<String, Field> fields;
 
     /**
-     * Create a new ComponentBuilder for the given type of Component. This is a
-     * slower constructor with lots of reflection so builders should be cached.
-     * This constructor also validates the component definition.
+     * Create a new ReflectionComponentDataFactory for the given type of
+     * ComponentData. This is a slower constructor with lots of reflection so
+     * builders should be cached. This will throw an exception if the
+     * ComponentData type does meet the conventions required for this type of
+     * factory.
      * 
      * @param type The component type created by this builder
      * @throws IllegalArgumentException if the class is not really a component
@@ -80,93 +77,76 @@ final class ComponentBuilder<T extends Component> {
      *             or field rules for defining a component
      */
     @SuppressWarnings("unchecked")
-    public ComponentBuilder(Class<T> type) {
-        // Now we actually have to build up a new TypedId - which is sort of slow
-        if (!Component.class.isAssignableFrom(type))
-            throw new IllegalArgumentException("Type must be a subclass of Component: " + type);
+    public ReflectionComponentDataFactory(Class<T> type) {
+        // Now we actually have to build up a new TypeId - which is sort of slow
+        if (!ComponentData.class.isAssignableFrom(type))
+            throw new IllegalArgumentException("Type must be a subclass of ComponentData: " + type);
         
-        // Make sure we don't create TypedIds for abstract Component types 
+        // Make sure we don't create TypedIds for abstract ComponentData types 
         // (we don't want to try to allocate these)
         if (Modifier.isAbstract(type.getModifiers()))
-            throw new IllegalArgumentException("Component class type cannot be abstract: " + type);
+            throw new IllegalArgumentException("ComponentData class type cannot be abstract: " + type);
         
         // Accumulate all property fields and validate type hierarchy
-        fields = new ArrayList<Field>(getFields(type));
+        Map<String, Field> fields = new HashMap<String, Field>(getFields(type));
         
         Class<? super T> parent = type.getSuperclass();
-        while(!Component.class.equals(parent)) {
+        while(!ComponentData.class.equals(parent)) {
             if (!Modifier.isAbstract(parent.getModifiers()))
                 throw new IllegalComponentDefinitionException(type, "Parent class " + parent + " is not abstract");
             
             // this cast is safe since we're in the while loop
-            fields.addAll(getFields((Class<? extends Component>) parent));
+            fields.putAll(getFields((Class<? extends ComponentData<?>>) parent));
             parent = parent.getSuperclass();
         }
         
         constructor = getConstructor(type);
-        propertyFactories = getPropertyFactories(fields);
+        propertyFactories = Collections.unmodifiableMap(getPropertyFactories(fields));
+        this.fields = Collections.unmodifiableMap(fields);
     }
 
-    /**
-     * Get the map from Fields of the component type to PropertyFactory
-     * implementations that will create valid property objects for each field.
-     * The created properties can then form a map valid with
-     * {@link #newInstance(EntitySystem, int, Map)}.
-     * 
-     * @return A map from field to property factory for the type associated with
-     *         this builder
-     */
-    public Map<Field, PropertyFactory<?>> getPropertyFactories() {
-        Map<Field, PropertyFactory<?>> props = new HashMap<Field, PropertyFactory<?>>();
-        for (int i = 0; i < propertyFactories.size(); i++)
-            props.put(fields.get(i), propertyFactories.get(i));
-        return Collections.unmodifiableMap(props);
+    @Override
+    public Map<String, PropertyFactory<?>> getPropertyFactories() {
+        return propertyFactories;
     }
-
-    /**
-     * <p>
-     * Create a new instance of the Component type created by this builder, for
-     * the given system. The component will use the given index initially, but
-     * its {@link Component#init()} method is NOT called. The map of properties
-     * is used to assign values to the declared property fields of the type.
-     * </p>
-     * <p>
-     * It is assumed that the map was created by the factories returned from
-     * {@link #getPropertyFactories()}. Additionally, it is assumed that
-     * {@link PropertyFactory#setValue(Property, int)} is invoked by the caller
-     * as appropriate (no initialization is performed by the builder).
-     * </p>
-     * 
-     * @param system The owning EntitySystem
-     * @param index The index of the new component in the system
-     * @param properties The map of properties used to assign field values for
-     *            the new component
-     * @return A new component of type T
-     * @throws RuntimeException if the properties weren't compatible with the
-     *             list returned by createProperties()
-     */
-    public T newInstance(EntitySystem system, int index, Map<Field, Property> properties) {
+    
+    @Override
+    public T createInstance() {
         try {
-            T t = constructor.newInstance(system, index);
-            for (int i = 0; i < fields.size(); i++) {
-                fields.get(i).set(t, properties.get(fields.get(i)));
-            }
-            
-            return t;
+            return constructor.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to create new Component instance", e);
+            throw new RuntimeException("Unable to create ComponentData instance", e);
         }
     }
     
-    private static <T extends Component> List<PropertyFactory<?>> getPropertyFactories(List<Field> fields) {
-        List<PropertyFactory<?>> factories = new ArrayList<PropertyFactory<?>>();
-        for (int i = 0; i < fields.size(); i++) {
-            factories.add(createFactory(fields.get(i)));
+    @Override
+    public void setProperty(T instance, String key, Property property) {
+        if (instance == null || key == null || property == null)
+            throw new NullPointerException("Arguments cannot be null");
+        Field f = fields.get(key);
+        
+        // validate field now
+        if (f == null)
+            throw new IllegalArgumentException("Key is not in Map returned by getPropertyFactories(): " + key);
+        if (f.getType().isAssignableFrom(property.getClass()))
+            throw new IllegalArgumentException("Property was not created by correct PropertyFactory for key: " + key);
+        
+        try {
+            f.set(instance, property);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to inject Property", e);
+        }
+    }
+
+    private static <T extends ComponentData<?>> Map<String, PropertyFactory<?>> getPropertyFactories(Map<String, Field> fields) {
+        Map<String, PropertyFactory<?>> factories = new HashMap<String, PropertyFactory<?>>();
+        for (Entry<String, Field> f: fields.entrySet()) {
+            factories.put(f.getKey(), createFactory(f.getValue()));
         }
         return factories;
     }
     
-    private static Object parseValue(Class<?> paramType, String paramValue, Class<? extends Component> forCType) {
+    private static Object parseValue(Class<?> paramType, String paramValue, Class<? extends ComponentData<?>> forCType) {
         try {
             if (String.class.equals(paramType)) {
                 return paramValue;
@@ -198,7 +178,7 @@ final class ComponentBuilder<T extends Component> {
     private static PropertyFactory<?> createFactory(Field field) {
         Class<? extends Property> type = (Class<? extends Property>) field.getType();
         Annotation[] annots = field.getAnnotations();
-        Class<? extends Component> forCType = (Class<? extends Component>) field.getDeclaringClass();
+        Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field.getDeclaringClass();
         
         Parameter[] params = new Parameter[0];
         for (int i = 0; i < annots.length; i++) {
@@ -260,29 +240,29 @@ final class ComponentBuilder<T extends Component> {
     }
     
     @SuppressWarnings("unchecked")
-    private static <T extends Component> Constructor<T> getConstructor(Class<T> type) {
+    private static <T extends ComponentData<?>> Constructor<T> getConstructor(Class<T> type) {
         // This assumes that type is the concrete type, so it will fail if there
         // are multiple constructors or it's not private with the correct arguments
         Constructor<?>[] ctors = type.getDeclaredConstructors();
         if (ctors.length != 1)
-            throw new IllegalComponentDefinitionException(type, "Component type must only define a single constructor");
+            throw new IllegalComponentDefinitionException(type, "ComponentData type must only define a single constructor");
         
         Constructor<T> ctor = (Constructor<T>) ctors[0];
         if (!Modifier.isPrivate(ctor.getModifiers()) && !Modifier.isProtected(ctor.getModifiers()))
-            throw new IllegalComponentDefinitionException(type, "Component constructor must be private or protected");
+            throw new IllegalComponentDefinitionException(type, "ComponentData constructor must be private or protected");
         
         Class<?>[] args = ctor.getParameterTypes();
-        if (args.length != 2 || !EntitySystem.class.equals(args[0]) || !int.class.equals(args[1]))
-            throw new IllegalComponentDefinitionException(type, "Component constructor does not have proper signature of (ComponentIndex<T>, int, ...)");
+        if (args.length != 0)
+            throw new IllegalComponentDefinitionException(type, "ComponentData constructor does not have a default constructor");
         
         // Found it, now make it accessible (which might throw a SecurityException)
         ctor.setAccessible(true);
         return ctor;
     }
     
-    private static List<Field> getFields(Class<? extends Component> type) {
+    private static Map<String, Field> getFields(Class<? extends ComponentData<?>> type) {
         Field[] declared = type.getDeclaredFields();
-        List<Field> nonTransientFields = new ArrayList<Field>(declared.length);
+        Map<String, Field> nonTransientFields = new HashMap<String, Field>(declared.length);
 
         for (int i = 0; i < declared.length; i++) {
             int modifiers = declared[i].getModifiers();
@@ -293,19 +273,18 @@ final class ComponentBuilder<T extends Component> {
                 continue; // ignore the field
             
             if (!Property.class.isAssignableFrom(declared[i].getType())) {
-                throw new IllegalComponentDefinitionException(type, "Component has non-Property field that is not transient: " + declared[i]);
+                throw new IllegalComponentDefinitionException(type, "ComponentData has non-Property field that is not unmanaged: " + declared[i]);
             }
             
             if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers))
                 throw new IllegalComponentDefinitionException(type, "Field must be private or protected: " + declared[i]);
             
-            nonTransientFields.add(declared[i]);
+            nonTransientFields.put(declared[i].getName(), declared[i]);
         }
         
         // Make sure all fields are accessible so we can assign them
-        AccessibleObject[] access = new AccessibleObject[nonTransientFields.size()];
-        for (int i = 0; i < access.length; i++)
-            access[i] = nonTransientFields.get(i);
+        Field[] access = new Field[nonTransientFields.size()];
+        nonTransientFields.values().toArray(access);
         Field.setAccessible(access, true);
         return nonTransientFields;
     }

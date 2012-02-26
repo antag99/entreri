@@ -24,54 +24,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.property;
+package com.googlecode.entreri.annot;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.googlecode.entreri.property.PropertyFactory;
+
 /**
- * <p>
- * Parameter specifies a single argument to a constructor of a Property. If a
- * Property has a single-argument constructor, Parameter can be used directly on
- * the Property field. Otherwise {@link Parameters} can be used to select a
- * multiple-argument constructor.
- * </p>
- * <p>
- * The definition of a Property must be constant for all Component instances of
- * the same type because they share a Property instance for each declared
- * property (and access the indexed data as needed). Because of this, a
- * Parameter can only use primitive and boxed primitive values, Strings, and
- * Classes. The primitives and Classes are encoded in strings and are parsed
- * when Properties are instantiated.
- * </p>
+ * The Factory annotation can be declared on a Property field in a ComponentData
+ * definition to specify the type of PropertyFactory to use when creating
+ * instances of the Property for the component. The factory type must have a
+ * no-argument constructor in order to be instantiated correctly. This
+ * annotation can be used in place of the {@link Parameters} or
+ * {@link Parameter} annotations.
  * 
  * @author Michael Ludwig
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Parameter {
+public @interface Factory {
     /**
-     * <p>
-     * Return the value of the parameter, converted to a string. Depending on
-     * the type of the parameter, this will be converted to its final form in
-     * different ways.
-     * </p>
-     * <p>
-     * If the type is a primitive or boxed primitive, it is parsed using the
-     * appropriate parseX() method (e.g. {@link Integer#parseInt(String)}).
-     * String parameters take the value as is; Class parameters attempt to load
-     * the Class via {@link Class#forName(String)}.
-     * </p>
-     * 
-     * @return The constant value of the parameter
+     * @return Class of the PropertyFactory to instantiate, must have an
+     *         accessible no-argument constructor
      */
-    String value();
-
-    /**
-     * @return The class type of the parameter argument, must match the
-     *         parameter to the constructor of the Property
-     */
-    Class<?> type();
+    Class<? extends PropertyFactory<?>> value();
 }

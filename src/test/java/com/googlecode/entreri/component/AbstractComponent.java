@@ -26,17 +26,17 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.ObjectProperty;
-import com.googlecode.entreri.property.Parameter;
 
 /**
  * A test component that is abstract to test valid class hierarchies.
  * 
  * @author Michael Ludwig
  */
-public abstract class AbstractComponent extends Component {
+public abstract class AbstractComponent extends ComponentData {
     @Parameter(type=int.class, value="1")
     private ObjectProperty<Object> property;
     

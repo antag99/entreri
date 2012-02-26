@@ -24,17 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.property;
+package com.googlecode.entreri.annot;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.googlecode.entreri.property.PropertyFactory;
+
 /**
  * <p>
  * The Parameters annotation is used to specify a multi-argument constructor
- * when instantiating a Property for a Component type in an EntitySystem, and to
+ * when instantiating a Property for a ComponentData type in an EntitySystem, and to
  * provide the constant values for the constructor.
  * </p>
  * <p>

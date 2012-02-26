@@ -26,12 +26,12 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Unmanaged;
 import com.googlecode.entreri.property.ObjectProperty;
-import com.googlecode.entreri.property.Unmanaged;
 
-public class UnmanagedFieldComponent extends Component {
+public class UnmanagedFieldComponent extends ComponentData {
     private transient ObjectProperty<Object> transientProperty;
     
     @Unmanaged

@@ -39,15 +39,17 @@ import com.googlecode.entreri.property.PropertyFactory;
  * similar function that takes another Entity as a template.
  * </p>
  * <p>
- * Like {@link Component}, a given instance of Entity might change its true
+ * Like {@link ComponentData}, a given instance of Entity might change its true
  * identity by having its index into the system changed. An Entity's identity is
  * determined by its id, which can be found with {@link #getId()}.
  * </p>
  * 
  * @author Michael Ludwig
  */
-public final class Entity implements Iterable<Component> {
+public final class Entity implements Iterable<Component<?>> {
     private final EntitySystem system;
+    private final int id;
+    
     int index;
 
     /**
@@ -56,8 +58,9 @@ public final class Entity implements Iterable<Component> {
      * 
      * @param system The owning system
      * @param index The index into the system
+     * @param id The unique id of the entity in the system
      */
-    Entity(EntitySystem system, int index) {
+    Entity(EntitySystem system, int index, int id) {
         if (system == null)
             throw new NullPointerException("System cannot be null");
         if (index < 0)
@@ -65,6 +68,14 @@ public final class Entity implements Iterable<Component> {
         
         this.system = system;
         this.index = index;
+        this.id = id;
+    }
+    
+    /**
+     * @return The unique (in the scope of the entity system) id of this entity
+     */
+    public int getId() {
+        return id;
     }
     
     /**
@@ -75,89 +86,130 @@ public final class Entity implements Iterable<Component> {
     }
 
     /**
-     * @return The unique id of this Entity, or 0 if the entity has been removed
-     *         from its system
-     */
-    public int getId() {
-        return system.getEntityId(index);
-    }
-
-    /**
      * @return True if this Entity is still in its EntitySystem, or false if it
      *         has been removed
      */
     public boolean isLive() {
-        // index == 0 is equivalent to getId() == 0, given the way the system
-        // manages index's, but this is faster
         return index != 0;
     }
 
     /**
+     * <p>
      * Get the Component instance of the given type that's attached to this
      * Entity. A null value is returned if the component type has not been
-     * attached to the entity. The same Component instance is returned for a
-     * given type until that component has been removed, meaning that the
-     * component can be safely stored in collections.
+     * attached to the entity, or if the component is disabled.
+     * </p>
+     * <p>
+     * If the entity has a component of the given type, but it has been marked
+     * as disabled, this will return null. Use {@link #get(TypeId, boolean)} to
+     * override this behavior and return disabled components.
+     * </p>
      * 
-     * @param <T> The parameterized type of Component being fetched
-     * @param componentId The TypedId representing the given type
-     * @return The current Component of type T attached to this container
+     * @param <T> The parameterized type of ComponentData of the component
+     * @param componentId The TypeId representing the given type
+     * @return The current Component of type T attached to this entity
      * @throws NullPointerException if id is null
      */
-    public <T extends Component> T get(TypedId<T> componentId) {
+    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId) {
+        return get(componentId, false);
+    }
+
+    /**
+     * Get the Component instance of the given type that's attached to this
+     * entity. If <tt>ignoreEnable</tt> is true, then disabled components will
+     * be returned as well.
+     * 
+     * @param <T> The parameterized type of ComponentData of the component
+     * @param componentId The TypeId representing the data type
+     * @param ignoreEnable True if disabled components should be returned as
+     *            well
+     * @return The current Component of type T attached to this entity
+     * @throws NullPointerException if id is null
+     */
+    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId, boolean ignoreEnable) {
         ComponentIndex<T> ci = system.getIndex(componentId);
-        return ci.getComponent(index);
+        Component<T> c = ci.getComponent(ci.getComponentIndex(index));
+        
+        if (c == null || ignoreEnable || c.isEnabled())
+            return c;
+        else
+            return null;
     }
 
     /**
      * <p>
-     * Attach a Component of type T to this Entity. If the Entity already has
+     * Get the component of type T attached to this entity, but setting the
+     * given data's reference. This will return true if the data instance has
+     * been set to a valid component and that component is enabled. This is a
+     * shortcut for:
+     * 
+     * <pre>
+     * Component&lt;T&gt; c = entity.get(TypeId.get(T.class));
+     * if (c != null &amp;&amp; c.isEnabled()) {
+     *     if (data.set(c)) {
+     *         // process c via data
+     *     }
+     * }
+     * </pre>
+     * 
+     * </p>
+     * <p>
+     * Note that there is no equivalent {@link #get(TypeId, boolean)} that takes
+     * a ComponentData. This is because the data instance will always be set to
+     * a valid component, even if that component is disabled. It is possible to
+     * identify this case if get() returns false but isValid() returns true.
+     * </p>
+     * 
+     * @param <T> The component data type
+     * @param data An instance of the data that will be set to this entity's
+     *            component
+     * @return True if the data now references a valid and enabled component,
+     *         and false if the component is invalid or if the component is
+     *         disabled
+     * @throws NullPointerException if data is null
+     * @throws IllegalArgumentException if the data was created by another
+     *             entity system
+     */
+    public <T extends ComponentData<T>> boolean get(T data) {
+        if (data.owner.getEntitySystem() != getEntitySystem())
+            throw new IllegalArgumentException("ComponentData was not created by expected EntitySystem");
+        
+        ComponentIndex<T> ci = data.owner;
+        int componentIndex = ci.getComponentIndex(index);
+        return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
+    }
+
+    /**
+     * <p>
+     * Add a new Component with a data type T to this Entity. If the Entity already has
      * component of type T attached, that component is removed and a new one is
      * created. Otherwise, a new instance is created with its default values and
-     * added to the system. The returned instance will be the canonical
-     * component for the given type (until its removed) and can be safely stored
-     * in collections.
-     * </p>
-     * <p>
-     * Some Component types may require arguments to be properly initialized. If
-     * they do, they will have been defined with the {@link InitParams}
-     * annotation that describes their required arguments. If present, instances
-     * of the declared types must be passed in in the var-args
-     * <tt>initParams</tt>, in the order they were declared by the type. An
-     * exception will be thrown if the arguments are incorrect, or if the type's
-     * own validation rules fails (such as not allowing null's, etc).
-     * </p>
-     * <p>
-     * A Component that does not require init parameters can have a 0-length or
-     * null var-args passed in.
+     * added to the system. 
      * </p>
      * 
      * @param <T> The parameterized type of component being added
-     * @param componentId The TypedId of the component type
-     * @param initParams The initialization parameters required for the
-     *            component type
+     * @param componentId The TypeId of the component type
      * @return A new component of type T
      * @throws NullPointerException if componentId is null
-     * @throws IllegalArgumentException if any of the init params are invalid
      */
-    public <T extends Component> T add(TypedId<T> componentId, Object... initParams) {
+    public <T extends ComponentData<T>> Component<T> add(TypeId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
-        return ci.addComponent(index, initParams);
+        return ci.addComponent(index);
     }
 
     /**
      * <p>
-     * Add a Component of type T to this Entity, but clone its state from the
-     * existing component of type T. The existing component must still be
-     * attached to an Entity other than this entity, but it could be from a
-     * different EntitySystem. If there already exists a component of type T
-     * added to this entity, it is removed first, and a new one is instantiated.
+     * Add a new Component with a data of type T to this Entity, but the new
+     * component's state will be cloned from the given Component instance. The
+     * <tt>toClone</tt> instance must still be live. If there already exists a
+     * component of type T in this entity, it is removed first, and a new one is
+     * instantiated.
      * </p>
      * <p>
      * The new component is initialized by cloning the property values from
-     * <tt>toClone</tt> into the values of the new instance. This is performed
+     * <tt>toClone</tt> into the values of the new component. This is performed
      * by invoking {@link PropertyFactory#clone(Property, int, Property, int)}
-     * with the factory that created each property. All default property
+     * with the factories that created each property. All default property
      * factories perform a copy by value (or copy by reference for object
      * types).
      * </p>
@@ -166,117 +218,82 @@ public final class Entity implements Iterable<Component> {
      * @param toClone The existing T to clone when attaching to this component
      * @return A new component of type T
      * @throws NullPointerException if toClone is null
+     * @throws IllegalArgumentException if toClone is not from the same system
+     *             as this entity
+     * @throws IllegalStateException if toClone is not a live component instance
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <T extends Component> T add(T toClone) {
+    public <T extends ComponentData<T>> Component<T> add(Component<T> toClone) {
         if (toClone == null)
-            throw new NullPointerException("Component template, toClone, cannot be null");
-        ComponentIndex ci = system.getIndex(toClone.getTypedId());
-        return (T) ci.addComponent(index, toClone);
+            throw new NullPointerException("ComponentData template, toClone, cannot be null");
+        ComponentIndex ci = system.getIndex(toClone.getTypeId());
+        return ci.addComponent(index, toClone);
     }
 
     /**
-     * Remove any attached Component of the given type, T, from this Entity.
+     * Remove any attached Component with the data type, T, from this Entity.
      * True is returned if a component was removed, and false otherwise. If a
      * component is removed, the component should no longer be used and it will
-     * return null from {@link Component#getEntity()}.
+     * return false from {@link Component#isLive()}. This will remove the
+     * component even if the component has been disabled.
      * 
      * @param <T> The parameterized type of component to remove
-     * @param componentId The TypedId of the component type
+     * @param componentId The TypeId of the component type
      * @return True if a component was removed
      * @throws NullPointerException if componentId is null
      */
-    public <T extends Component> boolean remove(TypedId<T> componentId) {
+    public <T extends ComponentData<T>> boolean remove(TypeId<T> componentId) {
         ComponentIndex<T> ci = system.getIndex(componentId);
         return ci.removeComponent(index);
     }
 
     /**
+     * <p>
      * Return an iterator over the components currently attached to the Entity.
      * The iterator supports the remove operation and will detach the component
-     * from the entity. The returned components are the canonical component
-     * instances for the entity and can be safely held in collections.
+     * from the entity.
+     * </p>
+     * <p>
+     * This will not report disabled components. Use {@link #iterator(boolean)}
+     * to override this behavior.
+     * </p>
      * 
      * @return An iterator over the entity's components
      */
     @Override
-    public Iterator<Component> iterator() {
-        return new ComponentIterator(system, index);
+    public Iterator<Component<?>> iterator() {
+        return iterator(false);
     }
 
     /**
-     * <p>
-     * Entity's hashCode() returns its entity id.
-     * </p>
-     * <p>
-     * This means you can use the entities created by a system's fast iterators
-     * to query a hash-based collections. However, you should never store fast
-     * entities into a hash-based collection because their id (and thus hash
-     * code) will change each iteration.
-     * </p>
-     * <p>
-     * Additionally, an entity's id is updated when it is removed from an system.
-     * This means it is critical to remove entities from collections before they
-     * a removed from a system. This can be done in
-     * {@link Controller#onEntityRemove(Entity)}.
-     * </p>
+     * Return an iterator over the components attached to this entity. If
+     * <tt>ignoreEnabled</tt> is true, disabled components will be included in
+     * the iterator's results. If it is false, disabled components are not
+     * returned.
      * 
-     * @throws IllegalStateException if the entity has already been removed
+     * @param ignoreEnabled True if disabled components are returned
+     * @return An iterator over the entity's components
      */
-    @Override
-    public int hashCode() {
-        if (!isLive())
-            throw new IllegalStateException("Entity is no longer alive");
-        return getId();
+    public Iterator<Component<?>> iterator(boolean ignoreEnabled) {
+        return new ComponentIterator(system, index, ignoreEnabled);
     }
 
-    /**
-     * <p>
-     * Entity's equals() returns true if the object is another entity in the
-     * same EntitySystem, with the same id.
-     * </p>
-     * <p>
-     * This means you can use the entities created by a system's fast iterators
-     * to query equals-based collections. However, you should never store fast
-     * entities into a equals-based collections because their id (and thus
-     * definition of equality) will change with each iteration.
-     * </p>
-     * <p>
-     * Additionally, an entity's index is updated when it is removed from an
-     * entity or system. This means it is critical to remove entities from
-     * collections before they are removed from the system. This can be done in
-     * {@link Controller#onEntityRemove(Entity)}.
-     * </p>
-     * 
-     * @param o The object to test equality with
-     * @return True if the two instances represent the same conceptual entity
-     * @throws IllegalStateException if the entity has already been removed
-     */
-    @Override
-    public boolean equals(Object o) {
-        if (!isLive())
-            throw new IllegalStateException("Entity is no longer alive");
-        
-        if (!(o instanceof Entity))
-            return false;
-        Entity e = (Entity) o;
-        return e.system == system && e.getId() == getId();
-    }
-    
     /*
      * Iterator implementation that iterates over the components
      * attached to an entity, based on entity index rather than reference
      */
-    private static class ComponentIterator implements Iterator<Component> {
+    private static class ComponentIterator implements Iterator<Component<?>> {
         private final int entityIndex;
         private final Iterator<ComponentIndex<?>> indices;
+        private final boolean ignoreEnable;
         
         private ComponentIndex<?> currentIndex;
         private ComponentIndex<?> nextIndex;
         
-        public ComponentIterator(EntitySystem system, int entityIndex) {
+        public ComponentIterator(EntitySystem system, int entityIndex, boolean ignoreEnable) {
             this.entityIndex = entityIndex;
-            indices = system.iterateComponentIndices();
+            this.ignoreEnable = ignoreEnable;
+            indices = system.indexIterator();
         }
         
         @Override
@@ -287,13 +304,13 @@ public final class Entity implements Iterable<Component> {
         }
 
         @Override
-        public Component next() {
+        public Component<?> next() {
             if (!hasNext())
                 throw new NoSuchElementException();
             
             currentIndex = nextIndex;
             nextIndex = null;
-            return currentIndex.getComponent(entityIndex);
+            return currentIndex.getComponent(currentIndex.getComponentIndex(entityIndex));
         }
 
         @Override
@@ -310,7 +327,9 @@ public final class Entity implements Iterable<Component> {
         private void advance() {
             while(indices.hasNext()) {
                 nextIndex = indices.next();
-                if (nextIndex.getComponentIndex(entityIndex) != 0)
+                
+                int index = nextIndex.getComponentIndex(entityIndex);
+                if (index != 0 && (ignoreEnable || nextIndex.isEnabled(index)))
                     break;
                 else
                     nextIndex = null; // must set to null if this was last element

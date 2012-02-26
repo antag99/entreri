@@ -26,7 +26,7 @@
  */
 package com.googlecode.entreri.property;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 
 /**
  * ObjectProperty is an implementation of Property that stores the property data
@@ -78,7 +78,7 @@ public final class ObjectProperty<T> implements Property {
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
      * system. Data may be looked up for a specific component by scaling the
-     * {@link Component#getIndex() component's index} by the element size of the
+     * {@link ComponentData#getIndex() component's index} by the element size of the
      * property.
      * 
      * @return The Object data for all packed properties that this property has

@@ -161,10 +161,10 @@ public class ControllerManagerTest {
         system.getControllerManager().addController(ctrl);
         
         Entity e = system.addEntity();
-        IntComponent i = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent i = e.add(ComponentData.getTypedId(IntComponent.class));
         
         Assert.assertEquals(i, ctrl.lastAddedComponent);
-        e.remove(Component.getTypedId(IntComponent.class));
+        e.remove(ComponentData.getTypedId(IntComponent.class));
         Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
     
@@ -181,8 +181,8 @@ public class ControllerManagerTest {
         private Entity lastAddedEntity;
         private Entity lastRemovedEntity;
         
-        private Component lastAddedComponent;
-        private Component lastRemovedComponent;
+        private ComponentData lastAddedComponent;
+        private ComponentData lastRemovedComponent;
         
         @Override
         public void preProcess(EntitySystem system, float dt) {
@@ -223,12 +223,12 @@ public class ControllerManagerTest {
         }
 
         @Override
-        public void onComponentAdd(Component c) {
+        public void onComponentAdd(ComponentData c) {
             lastAddedComponent = c;
         }
 
         @Override
-        public void onComponentRemove(Component c) {
+        public void onComponentRemove(ComponentData c) {
             lastRemovedComponent = c;
         }
     }

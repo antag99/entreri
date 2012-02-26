@@ -34,11 +34,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.IndexedComponentMap;
-import com.googlecode.entreri.TypedId;
+import com.googlecode.entreri.TypeId;
 import com.googlecode.entreri.component.FloatComponent;
 import com.googlecode.entreri.component.ObjectComponent;
 
@@ -57,13 +57,13 @@ public class IteratorTest {
     private int countWithFloat;
     private int countWithBoth;
     
-    private TypedId<ObjectComponent> objId;
-    private TypedId<FloatComponent> floatId;
+    private TypeId<ObjectComponent> objId;
+    private TypeId<FloatComponent> floatId;
     
     @Before
     public void setup() {
-        objId = Component.getTypedId(ObjectComponent.class);
-        floatId = Component.getTypedId(FloatComponent.class);
+        objId = ComponentData.getTypedId(ObjectComponent.class);
+        floatId = ComponentData.getTypedId(FloatComponent.class);
         
         
         entityIds = new ArrayList<Integer>();

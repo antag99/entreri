@@ -26,14 +26,14 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.InitParams;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.ObjectProperty;
 
 @InitParams({float.class, Object.class})
-public class InitParamsComponent extends Component {
+public class InitParamsComponent extends ComponentData {
     private FloatProperty floatData;
     private ObjectProperty<Object> objectData;
     

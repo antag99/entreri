@@ -26,22 +26,22 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.property.Factory;
+import com.googlecode.entreri.annot.Factory;
+import com.googlecode.entreri.annot.Parameter;
+import com.googlecode.entreri.annot.Parameters;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.FloatPropertyFactory;
 import com.googlecode.entreri.property.MultiParameterProperty;
 import com.googlecode.entreri.property.NoParameterProperty;
-import com.googlecode.entreri.property.Parameter;
-import com.googlecode.entreri.property.Parameters;
 
 /**
- * A Component that tests a variety of property constructors.
+ * A ComponentData that tests a variety of property constructors.
  * 
  * @author Michael Ludwig
  */
-public class MultiPropertyComponent extends Component {
+public class MultiPropertyComponent extends ComponentData {
     @Parameters({@Parameter(type=int.class, value="2"),
                  @Parameter(type=float.class, value="0.3")})
     protected MultiParameterProperty multi;

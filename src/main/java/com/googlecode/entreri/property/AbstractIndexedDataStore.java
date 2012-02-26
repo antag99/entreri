@@ -44,7 +44,7 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
 
     /**
      * Create an AbstractIndexedDataStore that will use <var>elementSize</var>
-     * array elements per Component in the data store. This does not create a
+     * array elements per ComponentData in the data store. This does not create a
      * backing array, so concrete classes must allocate an initial array.
      * 
      * @param elementSize The number of array elements per property instance

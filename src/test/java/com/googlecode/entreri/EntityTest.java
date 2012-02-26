@@ -31,7 +31,7 @@ import java.util.Iterator;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.component.FloatComponent;
@@ -49,7 +49,7 @@ public class EntityTest {
     
     @Test
     public void testValidInitParams() {
-        TypedId<InitParamsComponent> id = Component.getTypedId(InitParamsComponent.class);
+        TypeId<InitParamsComponent> id = ComponentData.getTypedId(InitParamsComponent.class);
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
         
@@ -63,18 +63,18 @@ public class EntityTest {
     @Test
     public void testBadInitParams() {
         // empty args when expected some
-        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[0], new Object[] {4f, new Object()});
+        doTestBadInitParams(ComponentData.getTypedId(InitParamsComponent.class), new Object[0], new Object[] {4f, new Object()});
         // not enough args when expected some
-        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {5f}, new Object[] {4f, new Object()});
+        doTestBadInitParams(ComponentData.getTypedId(InitParamsComponent.class), new Object[] {5f}, new Object[] {4f, new Object()});
         // swapped type list
-        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {new Object(), 5f}, new Object[] {4f, new Object()});
+        doTestBadInitParams(ComponentData.getTypedId(InitParamsComponent.class), new Object[] {new Object(), 5f}, new Object[] {4f, new Object()});
         // bad type list
-        doTestBadInitParams(Component.getTypedId(InitParamsComponent.class), new Object[] {"", 2}, new Object[] {4f, new Object()});
+        doTestBadInitParams(ComponentData.getTypedId(InitParamsComponent.class), new Object[] {"", 2}, new Object[] {4f, new Object()});
         // parameters when none are expected
-        doTestBadInitParams(Component.getTypedId(FloatComponent.class), new Object[] { 4f, 3f }, new Object[0]);
+        doTestBadInitParams(ComponentData.getTypedId(FloatComponent.class), new Object[] { 4f, 3f }, new Object[0]);
     }
     
-    private void doTestBadInitParams(TypedId<? extends Component> id, Object[] use, Object[] valid) {
+    private void doTestBadInitParams(TypeId<? extends ComponentData> id, Object[] use, Object[] valid) {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
         
@@ -86,8 +86,8 @@ public class EntityTest {
         }
         
         // verify that this still works
-        Component c = e.add(id, valid);
-        Iterator<? extends Component> it = system.iterator(id);
+        ComponentData c = e.add(id, valid);
+        Iterator<? extends ComponentData> it = system.iterator(id);
         while(it.hasNext()) {
             Assert.assertEquals(c, it.next());
             break;
@@ -100,18 +100,18 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
         
-        IntComponent c = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent c = e.add(ComponentData.getTypedId(IntComponent.class));
         
         c.setInt(0, 1);
         Assert.assertEquals(1, c.getInt(0));
         
-        Assert.assertEquals(c, e.get(Component.getTypedId(IntComponent.class)));
-        Assert.assertEquals(1, e.get(Component.getTypedId(IntComponent.class)).getInt(0));
+        Assert.assertEquals(c, e.get(ComponentData.getTypedId(IntComponent.class)));
+        Assert.assertEquals(1, e.get(ComponentData.getTypedId(IntComponent.class)).getInt(0));
         
-        e.remove(Component.getTypedId(IntComponent.class));
+        e.remove(ComponentData.getTypedId(IntComponent.class));
         
-        Assert.assertNull(e.get(Component.getTypedId(IntComponent.class)));
-        Assert.assertNull(e.get(Component.getTypedId(FloatComponent.class)));
+        Assert.assertNull(e.get(ComponentData.getTypedId(IntComponent.class)));
+        Assert.assertNull(e.get(ComponentData.getTypedId(FloatComponent.class)));
     }
     
     @Test
@@ -119,14 +119,14 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
         
-        IntComponent c = e.add(Component.getTypedId(IntComponent.class));
+        IntComponent c = e.add(ComponentData.getTypedId(IntComponent.class));
         c.setInt(0, 2);
         
         int count = 0;
         Iterator<Entity> it = system.fastIterator();
         while(it.hasNext()) {
             Entity e2 = it.next();
-            Assert.assertEquals(2, e2.get(Component.getTypedId(IntComponent.class)).getInt(0));
+            Assert.assertEquals(2, e2.get(ComponentData.getTypedId(IntComponent.class)).getInt(0));
             count++;
         }
         
@@ -140,39 +140,39 @@ public class EntityTest {
         
         Iterator<Entity> it = system.fastIterator();
         while(it.hasNext()) {
-            IntComponent c = it.next().add(Component.getTypedId(IntComponent.class));
+            IntComponent c = it.next().add(ComponentData.getTypedId(IntComponent.class));
             c.setInt(0, 3);
         }
         
-        Assert.assertEquals(3, e.get(Component.getTypedId(IntComponent.class)).getInt(0));
+        Assert.assertEquals(3, e.get(ComponentData.getTypedId(IntComponent.class)).getInt(0));
     }
     
     @Test
     public void testRemoveComponentFastEntity() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        e.add(Component.getTypedId(IntComponent.class));
+        e.add(ComponentData.getTypedId(IntComponent.class));
 
         
         Iterator<Entity> it = system.fastIterator();
         while(it.hasNext()) {
             Entity e2 = it.next();
-            Assert.assertNotNull(e2.get(Component.getTypedId(IntComponent.class)));
-            e2.remove(Component.getTypedId(IntComponent.class));
+            Assert.assertNotNull(e2.get(ComponentData.getTypedId(IntComponent.class)));
+            e2.remove(ComponentData.getTypedId(IntComponent.class));
         }
         
-        Assert.assertNull(e.get(Component.getTypedId(IntComponent.class)));
+        Assert.assertNull(e.get(ComponentData.getTypedId(IntComponent.class)));
     }
     
     @Test
     public void testIterateComponents() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        e.add(Component.getTypedId(IntComponent.class));
-        e.add(Component.getTypedId(FloatComponent.class));
+        e.add(ComponentData.getTypedId(IntComponent.class));
+        e.add(ComponentData.getTypedId(FloatComponent.class));
         
         boolean intFound = false;
-        for(Component c: e) {
+        for(ComponentData c: e) {
             if (intFound) {
                 Assert.assertTrue(c instanceof FloatComponent);
             } else {
@@ -189,12 +189,12 @@ public class EntityTest {
     public void testIterateRemoveComponent() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        e.add(Component.getTypedId(IntComponent.class));
-        e.add(Component.getTypedId(FloatComponent.class));
+        e.add(ComponentData.getTypedId(IntComponent.class));
+        e.add(ComponentData.getTypedId(FloatComponent.class));
         
-        Iterator<Component> it = e.iterator();
+        Iterator<ComponentData> it = e.iterator();
         while(it.hasNext()) {
-            Component c = it.next();
+            ComponentData c = it.next();
             if (c instanceof IntComponent) {
                 it.remove();
                 
@@ -203,7 +203,7 @@ public class EntityTest {
             }
         }
         
-        Assert.assertNull(e.get(Component.getTypedId(IntComponent.class)));
-        Assert.assertNotNull(e.get(Component.getTypedId(FloatComponent.class)));
+        Assert.assertNull(e.get(ComponentData.getTypedId(IntComponent.class)));
+        Assert.assertNotNull(e.get(ComponentData.getTypedId(FloatComponent.class)));
     }
 }

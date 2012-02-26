@@ -26,17 +26,17 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.IntProperty;
-import com.googlecode.entreri.property.Parameter;
 
 /**
  * A test component that tests the parameter constructor for IntProperty.
  * 
  * @author Michael Ludwig
  */
-public class IntComponent extends Component {
+public class IntComponent extends ComponentData {
     @Parameter(type=int.class, value="3")
     private IntProperty property;
     

@@ -26,16 +26,16 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.EntitySystem;
 
 /**
  * A test component that has an illegal constructor so it should fail to get a
- * TypedId.
+ * TypeId.
  * 
  * @author Michael Ludwig
  */
-public class BadConstructorComponent extends Component {
+public class BadConstructorComponent extends ComponentData {
     protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {
         super(system, index);
     }

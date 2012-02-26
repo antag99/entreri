@@ -295,7 +295,7 @@ public class ControllerManager {
      * 
      * @param c The component being added
      */
-    void fireComponentAdd(Component c) {
+    void fireComponentAdd(Component<?> c) {
         for (int i = 0; i < controllers.size(); i++)
             controllers.get(i).onComponentAdd(c);
     }
@@ -305,7 +305,7 @@ public class ControllerManager {
      * 
      * @param c The component being removed
      */
-    void fireComponentRemove(Component c) {
+    void fireComponentRemove(Component<?> c) {
         for (int i = 0; i < controllers.size(); i++)
             controllers.get(i).onComponentRemove(c);
     }

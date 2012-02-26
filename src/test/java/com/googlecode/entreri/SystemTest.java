@@ -33,7 +33,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.googlecode.entreri.Component;
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.component.FloatComponent;
@@ -49,7 +49,7 @@ public class SystemTest {
         Entity e = system.addEntity();
         
         int componentCount = 0;
-        for (@SuppressWarnings("unused") Component c: e) {
+        for (@SuppressWarnings("unused") ComponentData c: e) {
             componentCount++;
         }
         
@@ -63,14 +63,14 @@ public class SystemTest {
         EntitySystem system = new EntitySystem();
         Entity template = system.addEntity();
         
-        IntComponent tc1 = template.add(Component.getTypedId(IntComponent.class));
+        IntComponent tc1 = template.add(ComponentData.getTypedId(IntComponent.class));
         tc1.setInt(0, 2);
-        FloatComponent tc2 = template.add(Component.getTypedId(FloatComponent.class));
+        FloatComponent tc2 = template.add(ComponentData.getTypedId(FloatComponent.class));
         tc2.setFloat(0, 3f);
         
         Entity fromTemplate = system.addEntity(template);
-        IntComponent c1 = fromTemplate.get(Component.getTypedId(IntComponent.class));
-        FloatComponent c2 = fromTemplate.get(Component.getTypedId(FloatComponent.class));
+        IntComponent c1 = fromTemplate.get(ComponentData.getTypedId(IntComponent.class));
+        FloatComponent c2 = fromTemplate.get(ComponentData.getTypedId(FloatComponent.class));
         
         Assert.assertEquals(2, c1.getInt(0));
         Assert.assertEquals(3f, c2.getFloat(0), .0001f);
@@ -82,15 +82,15 @@ public class SystemTest {
         EntitySystem systemTemplate = new EntitySystem();
         Entity template = systemTemplate.addEntity();
         
-        IntComponent tc1 = template.add(Component.getTypedId(IntComponent.class));
+        IntComponent tc1 = template.add(ComponentData.getTypedId(IntComponent.class));
         tc1.setInt(0, 2);
-        FloatComponent tc2 = template.add(Component.getTypedId(FloatComponent.class));
+        FloatComponent tc2 = template.add(ComponentData.getTypedId(FloatComponent.class));
         tc2.setFloat(0, 3f);
         
         EntitySystem system = new EntitySystem();
         Entity fromTemplate = system.addEntity(template);
-        IntComponent c1 = fromTemplate.get(Component.getTypedId(IntComponent.class));
-        FloatComponent c2 = fromTemplate.get(Component.getTypedId(FloatComponent.class));
+        IntComponent c1 = fromTemplate.get(ComponentData.getTypedId(IntComponent.class));
+        FloatComponent c2 = fromTemplate.get(ComponentData.getTypedId(FloatComponent.class));
         
         Assert.assertEquals(2, c1.getInt(0));
         Assert.assertEquals(3f, c2.getFloat(0), .0001f);
@@ -132,7 +132,7 @@ public class SystemTest {
     public void testCompactNoOp() {
         EntitySystem system = new EntitySystem();
         for (int i = 0; i < 5; i++) 
-            system.addEntity().add(Component.getTypedId(MultiPropertyComponent.class));
+            system.addEntity().add(ComponentData.getTypedId(MultiPropertyComponent.class));
         
         system.compact();
         
@@ -140,7 +140,7 @@ public class SystemTest {
         Iterator<Entity> it = system.iterator();
         while(it.hasNext()) {
             Entity e = it.next();
-            MultiPropertyComponent m = e.get(Component.getTypedId(MultiPropertyComponent.class));
+            MultiPropertyComponent m = e.get(ComponentData.getTypedId(MultiPropertyComponent.class));
             Assert.assertTrue(m.getCompactProperty().wasCompacted());
             count++;
         }
@@ -155,7 +155,7 @@ public class SystemTest {
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
             es.add(system.addEntity());
-            MultiPropertyComponent c = es.get(es.size() - 1).add(Component.getTypedId(MultiPropertyComponent.class));
+            MultiPropertyComponent c = es.get(es.size() - 1).add(ComponentData.getTypedId(MultiPropertyComponent.class));
             float f = (float) Math.random();
             float f2 = (float) Math.random();
             c.setFloat(0, f);
@@ -191,8 +191,8 @@ public class SystemTest {
         while(it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next().floatValue(), e.get(Component.getTypedId(MultiPropertyComponent.class)).getFloat(0), .0001f);
-            Assert.assertEquals(ft.next().floatValue(), e.get(Component.getTypedId(MultiPropertyComponent.class)).getFloat(1), .0001f);
+            Assert.assertEquals(ft.next().floatValue(), e.get(ComponentData.getTypedId(MultiPropertyComponent.class)).getFloat(0), .0001f);
+            Assert.assertEquals(ft.next().floatValue(), e.get(ComponentData.getTypedId(MultiPropertyComponent.class)).getFloat(1), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());
@@ -205,7 +205,7 @@ public class SystemTest {
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
             es.add(system.addEntity());
-            MultiPropertyComponent c = es.get(es.size() - 1).add(Component.getTypedId(MultiPropertyComponent.class));
+            MultiPropertyComponent c = es.get(es.size() - 1).add(ComponentData.getTypedId(MultiPropertyComponent.class));
             float f = (float) Math.random();
             float f2 = (float) Math.random();
             c.setFloat(0, f);
@@ -222,7 +222,7 @@ public class SystemTest {
         while(it.hasNext()) {
             Entity e = it.next();
             if (i % 2 == 0) {
-                e.remove(Component.getTypedId(MultiPropertyComponent.class));
+                e.remove(ComponentData.getTypedId(MultiPropertyComponent.class));
             } 
             i++;
         }
@@ -233,13 +233,13 @@ public class SystemTest {
         Iterator<Float> ft = cs.iterator();
         while(it.hasNext()) {
             Entity e = it.next();
-            MultiPropertyComponent c = e.get(Component.getTypedId(MultiPropertyComponent.class));
+            MultiPropertyComponent c = e.get(ComponentData.getTypedId(MultiPropertyComponent.class));
             
             float f = ft.next();
             float f2 = ft.next();
             
             if (c == null) {
-                c = e.add(Component.getTypedId(MultiPropertyComponent.class));
+                c = e.add(ComponentData.getTypedId(MultiPropertyComponent.class));
                 c.setFloat(0, f);
                 c.setFloat(1, f2);
             }
@@ -254,8 +254,8 @@ public class SystemTest {
         while(it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next().floatValue(), e.get(Component.getTypedId(MultiPropertyComponent.class)).getFloat(0), .0001f);
-            Assert.assertEquals(ft.next().floatValue(), e.get(Component.getTypedId(MultiPropertyComponent.class)).getFloat(1), .0001f);
+            Assert.assertEquals(ft.next().floatValue(), e.get(ComponentData.getTypedId(MultiPropertyComponent.class)).getFloat(0), .0001f);
+            Assert.assertEquals(ft.next().floatValue(), e.get(ComponentData.getTypedId(MultiPropertyComponent.class)).getFloat(1), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());

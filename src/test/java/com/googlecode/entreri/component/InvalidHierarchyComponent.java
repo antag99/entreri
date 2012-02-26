@@ -29,7 +29,7 @@ package com.googlecode.entreri.component;
 import com.googlecode.entreri.EntitySystem;
 
 /**
- * A test Component that extends a non-abstract component so it should fail.
+ * A test ComponentData that extends a non-abstract component so it should fail.
  * 
  * @author Michael Ludwig
  */

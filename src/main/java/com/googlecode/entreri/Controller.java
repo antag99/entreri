@@ -81,7 +81,22 @@ public interface Controller {
     
     public void onEntityRemove(Entity e);
     
-    public void onComponentAdd(Component c);
+    public void onComponentAdd(Component<?> c);
     
-    public void onComponentRemove(Component c);
+    public void onComponentRemove(Component<?> c);
+    
+    // FIXME: these interfaces are going to have to be changed, I would like to
+    // ensure that a controller is limited to a single system.  This might 
+    // require having Controller be an abstract class with some setSystem() logic, etc.
+    
+    // FIXME: part of this is because the amount of work to store system specific
+    // data into the CM's data store is super tedious if a plain field would work.
+    
+    // THe CM's data sharing works fine across controllers, although I will have to
+    // update the scene system to store things as collections instead of as certain
+    // components.
+    
+    // FIXME: adding profiling would be pretty cool too.
+    
+    // FIXME: REVIEW: Do we want to keep the phases for controllers? Is it valuable, useful?
 }
