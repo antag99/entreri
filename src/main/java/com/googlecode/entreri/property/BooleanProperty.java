@@ -57,18 +57,36 @@ public final class BooleanProperty implements Property {
     }
 
     /**
-     * Return a PropertyFactory that creates FloatProperties with the given
+     * Return a PropertyFactory that creates BooleanProperties with the given
      * element size. If it is less than 1, the factory's create() method will
-     * fail.
+     * fail. The default value is false.
      * 
      * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for FloatProperty
+     * @return A PropertyFactory for BooleanProperty
      */
     public static PropertyFactory<BooleanProperty> factory(final int elementSize) {
+        return factory(elementSize, false);
+    }
+
+    /**
+     * Return a PropertyFactory that creates IntProperties with the given
+     * element size and default value.
+     * 
+     * @param elementSize The element size of the created properties
+     * @param dflt The default value assigned to each component and element
+     * @return A PropertyFactory for IntProperty
+     */
+    public static PropertyFactory<BooleanProperty> factory(final int elementSize, final boolean dflt) {
         return new AbstractPropertyFactory<BooleanProperty>() {
             @Override
             public BooleanProperty create() {
                 return new BooleanProperty(elementSize);
+            }
+          
+            @Override
+            public void setDefaultValue(BooleanProperty p, int index) {
+                for (int i = 0; i < elementSize; i++)
+                    p.set(dflt, index, i);
             }
         };
     }
@@ -157,12 +175,6 @@ public final class BooleanProperty implements Property {
         @Override
         protected int getArrayLength(boolean[] array) {
             return array.length;
-        }
-
-        @Override
-        public void setDefault(int offset) {
-            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
-                array[i] = false;
         }
     }
 }

@@ -85,18 +85,16 @@ public interface Controller {
     
     public void onComponentRemove(Component<?> c);
     
-    // FIXME: these interfaces are going to have to be changed, I would like to
-    // ensure that a controller is limited to a single system.  This might 
-    // require having Controller be an abstract class with some setSystem() logic, etc.
-    
-    // FIXME: part of this is because the amount of work to store system specific
-    // data into the CM's data store is super tedious if a plain field would work.
-    
-    // THe CM's data sharing works fine across controllers, although I will have to
-    // update the scene system to store things as collections instead of as certain
-    // components.
-    
-    // FIXME: adding profiling would be pretty cool too.
-    
-    // FIXME: REVIEW: Do we want to keep the phases for controllers? Is it valuable, useful?
+    // FIXME: TODO:
+    // Final solution: This is an interface, with a DefaultController or abstract, etc.
+    // that implements all of the methods as no-ops, except for init and destroy
+    // Part of the API is getEntitySystem(), which is used to validate by the controller-manager.
+    // rename addedToSystem, etc. to init(System) and destroy().
+    // I will keep the phases, since I can imagine a health controller that subtracts
+    // health during processing, and on post process removes everything that is dead
+    // TODO: I think I will add some Scheduler interface or type that is used to
+    // control the ordering and execution of controllers during a process request,
+    // theoretically this could do MTing, or dependency ordering. ATM it will do
+    // by-add ordering.
+
 }

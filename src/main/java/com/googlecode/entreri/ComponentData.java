@@ -55,13 +55,12 @@ import com.googlecode.entreri.property.ReflectionComponentDataFactory;
  * @param <T> The self-referencing type of the ComponentData
  */
 public abstract class ComponentData<T extends ComponentData<T>> {
-    private Component<T> ref;
-    private int version;
+    private int id;
     private int index;
     
-    // this should be considered final, but is assigned in ComponentIndex
+    // this should be considered final, but is assigned in ComponentRepository
     // to simplify implementation constructor requirements.
-    ComponentIndex<T> owner;
+    ComponentRepository<T> owner;
     
     protected ComponentData() { }
     
@@ -111,7 +110,9 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      *         that is still live
      */
     public final boolean isValid() {
-        return ref != null && ref.getVersion() == version && index != 0;
+        // we have to check the index of the ComponentData because the ComponentRepository
+        // does not make sure the data's indices stay within bounds of the repository arrays
+        return index != 0 && index < owner.getSizeEstimate() && owner.getId(index) == id;
     }
 
     /**
@@ -171,34 +172,24 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      *             entity system
      */
     public final boolean set(Component<T> component) {
-        if (component.getEntitySystem() != owner.getEntitySystem())
+        // we check repository since it is guaranteed type safe
+        if (component.getRepository() == owner)
             throw new IllegalArgumentException("Component not created by expected EntitySystem");
         
-        this.ref = component;
-        if (ref != null) {
-            // if ref is not live, it's index should have been updated to 0
-            // so the component data will appear invalid as well
-            index = ref.getIndex();
-            version = ref.getVersion();
-        } else {
-            index = 0;
-            version = 0;
-        }
-        
-        return index != 0;
+        return setFast(component.index);
     }
 
     /**
      * A slightly faster method that requires only an index to a component, and
-     * performs no validation.
+     * performs no validation. It also does not look up the component reference
+     * since it assumes it's valid. These are lazily done when needed.
      * 
      * @param componentIndex The index of the component
      * @return True if the index is not 0
      */
     boolean setFast(int componentIndex) {
-        ref = owner.getComponent(componentIndex);
         index = componentIndex;
-        version = (ref == null ? 0 : ref.getVersion());
+        id = owner.getId(index);
         return index != 0;
     }
 }

@@ -68,7 +68,7 @@ import com.googlecode.entreri.property.ReflectionComponentDataFactory;
  * @author Michael Ludwig
  */
 public final class EntitySystem {
-    private ComponentIndex<?>[] componentIndices;
+    private ComponentRepository<?>[] componentIndices;
     
     private Entity[] entities;
     
@@ -83,14 +83,14 @@ public final class EntitySystem {
     public EntitySystem() {
         manager = new ControllerManager(this);
         entities = new Entity[1];
-        componentIndices = new ComponentIndex[0];
+        componentIndices = new ComponentRepository[0];
         
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
     }
     
     public <T extends ComponentData<T>> void setFactory(TypeId<T> id, ComponentDataFactory<T> factory) {
-        // FIXME: setting a factory will create the ComponentIndex, it cannot assign
+        // FIXME: setting a factory will create the ComponentRepository, it cannot assign
         // the factory if the index already exists
         // any other action that requires an index for a type will create the index
         // with the reflection default
@@ -138,8 +138,8 @@ public final class EntitySystem {
 //        int minIndex = -1;
 //        int minSize = Integer.MAX_VALUE;
 //        
-//        ComponentIndex index;
-//        ComponentIndex[] rawIndices = new ComponentIndex[ids.length];
+//        ComponentRepository index;
+//        ComponentRepository[] rawIndices = new ComponentRepository[ids.length];
 //        
 //        for (int i = 0; i < ids.length; i++) {
 //            if (ids[i] == null)
@@ -347,7 +347,7 @@ public final class EntitySystem {
      * @throws NullPointerException if type or factory are null
      */
     public <T extends ComponentData<T>, P extends Property> P decorate(TypeId<T> type, PropertyFactory<P> factory) {
-        ComponentIndex<?> index = getIndex(type);
+        ComponentRepository<?> index = getIndex(type);
         return index.decorate(factory);
     }
 
@@ -362,37 +362,41 @@ public final class EntitySystem {
      * @throws NullPointerException if type is null
      */
     public <T extends ComponentData<T>> void undecorate(TypeId<T> type, Property p) {
-        ComponentIndex<?> index = getIndex(type);
+        ComponentRepository<?> index = getIndex(type);
         index.undecorate(p);
     }
 
     /**
-     * Return the ComponentIndex associated with the given type. Fails if the
+     * Return the ComponentRepository associated with the given type. Fails if the
      * type is not registered
      * 
      * @param <T> The ComponentData type
      * @param id The id for the component type
-     * @return The ComponentIndex for the type
+     * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
-    <T extends ComponentData<T>> ComponentIndex<T> getIndex(TypeId<T> id) {
+    <T extends ComponentData<T>> ComponentRepository<T> getIndex(TypeId<T> id) {
         int index = id.getId();
         if (index >= componentIndices.length) {
             // make sure it's the correct size
             componentIndices = Arrays.copyOf(componentIndices, index + 1);
         }
         
-        ComponentIndex<T> i = (ComponentIndex<T>) componentIndices[index];
+        ComponentRepository<T> i = (ComponentRepository<T>) componentIndices[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
-            i = new ComponentIndex<T>(this, id, createDefaultFactory(id));
+            i = new ComponentRepository<T>(this, id, createDefaultFactory(id));
             i.expandEntityIndex(entities.length);
             componentIndices[index] = i;
         }
         
         return i;
     }
-    
+
+    /*
+     * Create a new ComponentDataFactory for the given id, using the default
+     * annotation if available.
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T extends ComponentData<T>> ComponentDataFactory<T> createDefaultFactory(TypeId<T> id) {
         DefaultFactory factoryAnnot = id.getType().getAnnotation(DefaultFactory.class);
@@ -413,7 +417,11 @@ public final class EntitySystem {
             return new ReflectionComponentDataFactory<T>(id.getType());
         }
     }
-    
+
+    /*
+     * Look for a constructor that takes the given params and use it. Returns
+     * null if any exception is thrown.
+     */
     private <T> T attemptInstantiation(Class<T> type, Object... params) {
         Class<?>[] argTypes = new Class<?>[params.length];
         Constructor<T> constructor;
@@ -429,8 +437,8 @@ public final class EntitySystem {
     /**
      * @return Return an iterator over the registered component indices
      */
-    Iterator<ComponentIndex<?>> indexIterator() {
-        return new ComponentIndexIterator();
+    Iterator<ComponentRepository<?>> indexIterator() {
+        return new ComponentRepositoryIterator();
     }
 
     /**
@@ -446,13 +454,13 @@ public final class EntitySystem {
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, TypeId typeId, Component<T> c) {
-        ComponentIndex index = getIndex(typeId);
+        ComponentRepository index = getIndex(typeId);
         index.addComponent(entityIndex, c);
     }
     
 //    @SuppressWarnings({ "unchecked", "rawtypes" })
 //    private class BulkComponentIterator implements Iterator<IndexedComponentMap> {
-//        private final ComponentIndex[] indices;
+//        private final ComponentRepository[] indices;
 //        private final int minIndex;
 //        private final Iterator<ComponentData> minComponentIterator;
 //        private final ComponentData[] result;
@@ -462,7 +470,7 @@ public final class EntitySystem {
 //        private boolean hasAdvanced;
 //        private boolean resultValid;
 //        
-//        public BulkComponentIterator(ComponentIndex[] indices, int minIndex) {
+//        public BulkComponentIterator(ComponentRepository[] indices, int minIndex) {
 //            this.indices = indices;
 //            this.minIndex = minIndex;
 //            
@@ -532,7 +540,7 @@ public final class EntitySystem {
 //    
 //    @SuppressWarnings({ "unchecked", "rawtypes" })
 //    private class FastBulkComponentIterator implements Iterator<IndexedComponentMap> {
-//        private final ComponentIndex[] indices;
+//        private final ComponentRepository[] indices;
 //        private final int minIndex;
 //        private final Iterator<ComponentData> minComponentIterator;
 //        private final ComponentData[] result;
@@ -541,7 +549,7 @@ public final class EntitySystem {
 //        private boolean hasAdvanced;
 //        private boolean resultValid;
 //        
-//        public FastBulkComponentIterator(ComponentIndex[] indices, int minIndex) {
+//        public FastBulkComponentIterator(ComponentRepository[] indices, int minIndex) {
 //            this.indices = indices;
 //            this.minIndex = minIndex;
 //            
@@ -602,7 +610,7 @@ public final class EntitySystem {
 //                    if (i == minIndex)
 //                        continue;
 //                    
-//                    ci = indices[i].getComponentIndex(entityIndex);
+//                    ci = indices[i].getComponentRepository(entityIndex);
 //                    if (ci == 0) {
 //                        foundAll = false;
 //                        break;
@@ -619,11 +627,11 @@ public final class EntitySystem {
 //        }
 //    }
     
-    private class ComponentIndexIterator implements Iterator<ComponentIndex<?>> {
+    private class ComponentRepositoryIterator implements Iterator<ComponentRepository<?>> {
         private int index;
         private boolean advanced;
         
-        public ComponentIndexIterator() {
+        public ComponentRepositoryIterator() {
             index = -1;
             advanced = false;
         }
@@ -636,7 +644,7 @@ public final class EntitySystem {
         }
 
         @Override
-        public ComponentIndex<?> next() {
+        public ComponentRepository<?> next() {
             if (!hasNext())
                 throw new NoSuchElementException();
             advanced = false;

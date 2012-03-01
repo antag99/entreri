@@ -54,20 +54,38 @@ public final class IntProperty implements Property {
     public IntProperty(int elementSize) {
         store = new IntDataStore(elementSize, new int[elementSize]);
     }
-    
+
     /**
      * Return a PropertyFactory that creates IntProperties with the given
      * element size. If it is less than 1, the factory's create() method will
-     * fail.
+     * fail. The default value is 0.
      * 
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for IntProperty
      */
     public static PropertyFactory<IntProperty> factory(final int elementSize) {
+        return factory(elementSize, 0);
+    }
+
+    /**
+     * Return a PropertyFactory that creates IntProperties with the given
+     * element size and default value.
+     * 
+     * @param elementSize The element size of the created properties
+     * @param dflt The default value assigned to each component and element
+     * @return A PropertyFactory for IntProperty
+     */
+    public static PropertyFactory<IntProperty> factory(final int elementSize, final int dflt) {
         return new AbstractPropertyFactory<IntProperty>() {
             @Override
             public IntProperty create() {
                 return new IntProperty(elementSize);
+            }
+          
+            @Override
+            public void setDefaultValue(IntProperty p, int index) {
+                for (int i = 0; i < elementSize; i++)
+                    p.set(dflt, index, i);
             }
         };
     }
@@ -156,12 +174,6 @@ public final class IntProperty implements Property {
         @Override
         protected int getArrayLength(int[] array) {
             return array.length;
-        }
-        
-        @Override
-        public void setDefault(int offset) {
-            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
-                array[i] = 0;
         }
     }
 }

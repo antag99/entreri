@@ -28,9 +28,7 @@ package com.googlecode.entreri.property;
 
 /**
  * AbstractPropertyFactory is an abstract PropertyFactory implementation that
- * implements {@link #setValue(Property, int)} in terms of
- * {@link IndexedDataStore#setDefault(int)} and implements
- * {@link #clone(Property, int, Property, int)} in terms of
+ * implements {@link #clone(Property, int, Property, int)} in terms of
  * {@link IndexedDataStore#copy(int, int, IndexedDataStore, int)}. In many cases
  * this is sufficient for most PropertyFactories.
  * 
@@ -38,11 +36,6 @@ package com.googlecode.entreri.property;
  * @param <P>
  */
 public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
-    @Override
-    public void setValue(P property, int index) {
-        property.getDataStore().setDefault(index);
-    }
-
     @Override
     public void clone(P src, int srcIndex, P dst, int dstIndex) {
         src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);

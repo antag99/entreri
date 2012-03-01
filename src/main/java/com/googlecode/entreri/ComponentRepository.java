@@ -38,11 +38,12 @@ import java.util.NoSuchElementException;
 import com.googlecode.entreri.property.BooleanProperty;
 import com.googlecode.entreri.property.CompactAwareProperty;
 import com.googlecode.entreri.property.IndexedDataStore;
+import com.googlecode.entreri.property.IntProperty;
 import com.googlecode.entreri.property.Property;
 import com.googlecode.entreri.property.PropertyFactory;
 
 /**
- * ComponentIndex manages storing all the componentDatas of a specific type for an
+ * ComponentRepository manages storing all the componentDatas of a specific type for an
  * EntitySystem. It also controls the IndexedDataStore's for the type's set of
  * properties. It is package-private because its details are low-level and
  * complex.
@@ -50,7 +51,7 @@ import com.googlecode.entreri.property.PropertyFactory;
  * @author Michael Ludwig
  * @param <T> The type of component stored by the index
  */
-final class ComponentIndex<T extends ComponentData<T>> {
+final class ComponentRepository<T extends ComponentData<T>> {
     private final EntitySystem system;
     private final TypeId<T> type;
 
@@ -59,7 +60,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
     // These three arrays have a special value of 0 or null stored in the 0th
     // index, which allows us to lookup componentDatas or entities when they
     // normally aren't attached.
-    private int[] entityIndexToComponentIndex;
+    private int[] entityIndexToComponentRepository;
     private int[] componentIndexToEntityIndex;
     private Component<T>[] components;
     private int componentInsert;
@@ -68,9 +69,11 @@ final class ComponentIndex<T extends ComponentData<T>> {
     private final List<PropertyStore<?>> decoratedProperties;
     
     private final BooleanProperty enabledProperty; // this is also contained in decoratedProperties
+    private final IntProperty componentIdProperty; // this is contained in decoratedProperties
+    private int idSeq;
      
     /**
-     * Create a ComponentIndex for the given system, that will store Components
+     * Create a ComponentRepository for the given system, that will store Components
      * of the given type.
      * 
      * @param system The owning system
@@ -78,7 +81,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
      * @throws NullPointerException if system or type are null
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public ComponentIndex(EntitySystem system, TypeId<T> type, ComponentDataFactory<T> factory) {
+    public ComponentRepository(EntitySystem system, TypeId<T> type, ComponentDataFactory<T> factory) {
         if (system == null || type == null)
             throw new NullPointerException("Arguments cannot be null");
         
@@ -95,7 +98,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
             declaredProperties.add(store);
         }
         
-        entityIndexToComponentIndex = new int[1]; // holds default 0 value in 0th index
+        entityIndexToComponentRepository = new int[1]; // holds default 0 value in 0th index
         componentIndexToEntityIndex = new int[1]; // holds default 0 value in 0th index
         components = new Component[1]; // holds default null value in 0th index
         
@@ -105,7 +108,9 @@ final class ComponentIndex<T extends ComponentData<T>> {
         resizePropertyStores(declaredProperties, 1);
         
         // decorate the component data with a boolean property to track enabled status
-        enabledProperty = decorate(BooleanProperty.factory(1));
+        enabledProperty = decorate(BooleanProperty.factory(1, true));
+        componentIdProperty = decorate(IntProperty.factory(1)); // we'll not assign a default value, since we change the id each time
+        idSeq = 1; // start at 1, just like entity id sequences
     }
     
     /**
@@ -145,7 +150,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
 
     /**
      * Given the index of an entity (e.g. {@link Entity#index}), return the
-     * index of the attached component of this ComponentIndex's type. The
+     * index of the attached component of this ComponentRepository's type. The
      * returned component index can be used in {@link #getComponent(int)} and
      * related methods.
      * 
@@ -153,19 +158,19 @@ final class ComponentIndex<T extends ComponentData<T>> {
      * @return The index of the attached component, or 0 if the entity does not
      *         have a component of this type attached
      */
-    public int getComponentIndex(int entityIndex) {
-        return entityIndexToComponentIndex[entityIndex];
+    public int getComponentRepository(int entityIndex) {
+        return entityIndexToComponentRepository[entityIndex];
     }
 
     /**
-     * Ensure that this ComponentIndex has enough internal space to hold its
+     * Ensure that this ComponentRepository has enough internal space to hold its
      * entity-to-component mapping for the given number of entities.
      * 
      * @param numEntities The new number of entities
      */
     public void expandEntityIndex(int numEntities) {
-        if (entityIndexToComponentIndex.length < numEntities) {
-            entityIndexToComponentIndex = Arrays.copyOf(entityIndexToComponentIndex, (int) (numEntities * 1.5f) + 1);
+        if (entityIndexToComponentRepository.length < numEntities) {
+            entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository, (int) (numEntities * 1.5f) + 1);
         }
     }
 
@@ -187,11 +192,15 @@ final class ComponentIndex<T extends ComponentData<T>> {
         enabledProperty.set(enabled, componentIndex, 0);
     }
     
+    public int getId(int componentIndex) {
+        return componentIdProperty.get(componentIndex, 0);
+    }
+    
     /*
      * As expandEntityIndex() but expands all related component data and arrays
      * to hold the number of components.
      */
-    private void expandComponentIndex(int numComponents) {
+    private void expandComponentRepository(int numComponents) {
         if (numComponents < components.length)
             return;
 
@@ -255,7 +264,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
         Component<T> instance = addComponent(entityIndex);
         for (int i = 0; i < declaredProperties.size(); i++) {
             PropertyStore store = declaredProperties.get(i);
-            store.clone(fromTemplate.getIndex(), store.property, instance.getIndex());
+            store.clone(fromTemplate.index, store.property, instance.index);
         }
         
         // fire add-event listener after cloning is completed
@@ -286,17 +295,17 @@ final class ComponentIndex<T extends ComponentData<T>> {
      * Allocate and store a new component, but don't initialize it yet.
      */
     private Component<T> allocateComponent(int entityIndex) {
-        if (entityIndexToComponentIndex[entityIndex] != 0)
+        if (entityIndexToComponentRepository[entityIndex] != 0)
             removeComponent(entityIndex);
         
         int componentIndex = componentInsert++;
         if (componentIndex >= components.length)
-            expandComponentIndex(componentIndex + 1);
+            expandComponentRepository(componentIndex + 1);
 
         Component<T> instance = new Component<T>(this, componentIndex);
         components[componentIndex] = instance;
         componentIndexToEntityIndex[componentIndex] = entityIndex;
-        entityIndexToComponentIndex[entityIndex] = componentIndex;
+        entityIndexToComponentRepository[entityIndex] = componentIndex;
 
         // Set default value for declared and decorated properties,
         // this is needed because we might be overwriting a previously removed
@@ -308,6 +317,10 @@ final class ComponentIndex<T extends ComponentData<T>> {
         for (int i = 0; i < decoratedProperties.size(); i++) {
             decoratedProperties.get(i).setValue(componentIndex);
         }
+        
+        // although there could be a custom PropertyFactory for setting the id,
+        // it's easier to assign a new id here
+        componentIdProperty.set(idSeq++, componentIndex, 0);
         
         return instance;
     }
@@ -345,18 +358,18 @@ final class ComponentIndex<T extends ComponentData<T>> {
      * @return True if a component was removed
      */
     public boolean removeComponent(int entityIndex) {
-        int componentIndex = entityIndexToComponentIndex[entityIndex];
+        int componentIndex = entityIndexToComponentRepository[entityIndex];
 
         // This code works even if componentIndex is 0
         Component<T> oldComponent = components[componentIndex];
         if (oldComponent != null) {
             // perform component clean up before data is invalidated
             system.getControllerManager().fireComponentRemove(oldComponent);
-            oldComponent.setIndex(0);
+            oldComponent.index = 0;
         }
 
         components[componentIndex] = null;
-        entityIndexToComponentIndex[entityIndex] = 0; // entity does not have component
+        entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
         
         return oldComponent != null;
@@ -397,7 +410,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
                 break;
             }
             
-            if (newToOldMap[i].getIndex() != lastIndex + 1) {
+            if (newToOldMap[i].index != lastIndex + 1) {
                 // we are not in a contiguous section
                 if (copyIndexOld >= 0) {
                     // we have to copy over the last section
@@ -406,9 +419,9 @@ final class ComponentIndex<T extends ComponentData<T>> {
                 
                 // set the copy indices
                 copyIndexNew = i;
-                copyIndexOld = newToOldMap[i].getIndex();
+                copyIndexOld = newToOldMap[i].index;
             }
-            lastIndex = newToOldMap[i].getIndex();
+            lastIndex = newToOldMap[i].index;
         }
         
         if (copyIndexOld >= 0) {
@@ -430,7 +443,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
 
     /**
      * <p>
-     * Compact the data of this ComponentIndex to account for removals and
+     * Compact the data of this ComponentRepository to account for removals and
      * additions to the index. This will ensure that all active componentDatas are
      * packed into the underlying arrays, and that they will be accessed in the
      * same order as iterating over the entities directly.
@@ -449,7 +462,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
             @Override
             public int compare(Component<T> o1, Component<T> o2) {
                 if (o1 != null && o2 != null)
-                    return componentIndexToEntityIndex[o1.getIndex()] - componentIndexToEntityIndex[o2.getIndex()];
+                    return componentIndexToEntityIndex[o1.index] - componentIndexToEntityIndex[o2.index];
                 else if (o1 != null)
                     return -1; // push null o2 to end of array
                 else if (o2 != null)
@@ -465,15 +478,15 @@ final class ComponentIndex<T extends ComponentData<T>> {
         
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
-        int[] newComponentIndex = new int[components.length];
+        int[] newComponentRepository = new int[components.length];
         for (int i = 1; i < components.length; i++) {
             if (components[i] != null) {
-                newComponentIndex[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].getIndex()]];
-                components[i].setIndex(i);
+                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].index]];
+                components[i].index = i;
                 componentInsert = i + 1;
             }
         }
-        componentIndexToEntityIndex = newComponentIndex;
+        componentIndexToEntityIndex = newComponentRepository;
         
         // Possibly compact the component data
         if (componentInsert < .6f * components.length) {
@@ -484,15 +497,15 @@ final class ComponentIndex<T extends ComponentData<T>> {
             resizePropertyStores(decoratedProperties, newSize);
         }
         
-        // Repair entityIndexToComponentIndex - and possible shrink the index
+        // Repair entityIndexToComponentRepository - and possible shrink the index
         // based on the number of packed entities
-        if (numEntities < .6f * entityIndexToComponentIndex.length)
-            entityIndexToComponentIndex = new int[(int) (1.2f * numEntities) + 1];
+        if (numEntities < .6f * entityIndexToComponentRepository.length)
+            entityIndexToComponentRepository = new int[(int) (1.2f * numEntities) + 1];
         else
-            Arrays.fill(entityIndexToComponentIndex, 0);
+            Arrays.fill(entityIndexToComponentRepository, 0);
         
         for (int i = 1; i < componentInsert; i++)
-            entityIndexToComponentIndex[componentIndexToEntityIndex[i]] = i;
+            entityIndexToComponentRepository[componentIndexToEntityIndex[i]] = i;
         
         notifyCompactAwareProperties(declaredProperties);
         notifyCompactAwareProperties(decoratedProperties);
@@ -507,7 +520,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
     }
 
     /**
-     * Decorate the type information of this ComponentIndex to add a property
+     * Decorate the type information of this ComponentRepository to add a property
      * created by the given factory. The returned property will have default
      * data assigned for each current Component in the index, and will have the
      * default value assigned for each new Component. Decorators can then access
@@ -619,7 +632,7 @@ final class ComponentIndex<T extends ComponentData<T>> {
         }
         
         private void setValue(int index) {
-            creator.setValue(property, index);
+            creator.setDefaultValue(property, index);
         }
     }
 }

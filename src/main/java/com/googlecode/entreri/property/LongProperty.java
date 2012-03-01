@@ -29,71 +29,67 @@ package com.googlecode.entreri.property;
 import com.googlecode.entreri.ComponentData;
 
 /**
- * ObjectProperty is an implementation of Property that stores the property data
- * as a number of packed Object references for each property. Because it is not
- * primitive data, cache locality will suffer compared to the primitive property
- * types, but it will allow you to store arbitrary objects.
+ * LongProperty is an implementation of Property that stores the property data
+ * as a number of packed ints for each property.
  * 
  * @author Michael Ludwig
  */
-public final class ObjectProperty<T> implements Property {
-    private ObjectDataStore store;
+public final class LongProperty implements Property {
+    private LongDataStore store;
     
     /**
-     * Create an ObjectProperty with an element size of 1.
+     * Create an LongProperty with an element size of 1.
      */
-    public ObjectProperty() {
+    public LongProperty() {
         this(1);
     }
     
     /**
-     * Create a new ObjectProperty where each property will have
+     * Create a new LongProperty where each property will have
      * <tt>elementSize</tt> array elements together.
      * 
      * @param elementSize The element size of the property
      * @throws IllegalArgumentException if elementSize is less than 1
      */
-    public ObjectProperty(int elementSize) {
-        store = new ObjectDataStore(elementSize, new Object[elementSize]);
+    public LongProperty(int elementSize) {
+        store = new LongDataStore(elementSize, new long[elementSize]);
     }
 
     /**
-     * Return a PropertyFactory that creates ObjectProperties with the given
+     * Return a PropertyFactory that creates IntProperties with the given
      * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is null.
+     * fail. The default value is 0.
      * 
-     * @param <T>
      * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for ObjectProperty
+     * @return A PropertyFactory for LongProperty
      */
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize) {
-        return factory(elementSize, null);
+    public static PropertyFactory<LongProperty> factory(final int elementSize) {
+        return factory(elementSize, 0);
     }
 
     /**
-     * Return a PropertyFactory that creates ObjectProperties with the given
+     * Return a PropertyFactory that creates IntProperties with the given
      * element size and default value.
      * 
-     * @param <T>
      * @param elementSize The element size of the created properties
      * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for ObjectProperty
+     * @return A PropertyFactory for LongProperty
      */
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize, final T dflt) {
-        return new AbstractPropertyFactory<ObjectProperty<T>>() {
+    public static PropertyFactory<LongProperty> factory(final int elementSize, final long dflt) {
+        return new AbstractPropertyFactory<LongProperty>() {
             @Override
-            public ObjectProperty<T> create() {
-                return new ObjectProperty<T>(elementSize);
+            public LongProperty create() {
+                return new LongProperty(elementSize);
             }
           
             @Override
-            public void setDefaultValue(ObjectProperty<T> p, int index) {
+            public void setDefaultValue(LongProperty p, int index) {
                 for (int i = 0; i < elementSize; i++)
                     p.set(dflt, index, i);
             }
         };
     }
-    
+
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
@@ -101,13 +97,13 @@ public final class ObjectProperty<T> implements Property {
      * {@link ComponentData#getIndex() component's index} by the element size of the
      * property.
      * 
-     * @return The Object data for all packed properties that this property has
+     * @return The long data for all packed properties that this property has
      *         been packed with
      */
-    public Object[] getIndexedData() {
+    public long[] getIndexedData() {
         return store.array;
     }
-
+    
     /**
      * Get the value stored in this property for the given component index, and
      * offset. Offset is measured from 0 to 1 minus the element size the
@@ -119,9 +115,8 @@ public final class ObjectProperty<T> implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
      *             would access illegal indices
      */
-    @SuppressWarnings("unchecked")
-    public T get(int componentIndex, int offset) {
-        return (T) store.array[componentIndex * store.elementSize + offset];
+    public long get(int componentIndex, int offset) {
+        return store.array[componentIndex * store.elementSize + offset];
     }
 
     /**
@@ -135,7 +130,7 @@ public final class ObjectProperty<T> implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
      *             would access illegal indices
      */
-    public void set(T val, int componentIndex, int offset) {
+    public void set(long val, int componentIndex, int offset) {
         store.array[componentIndex * store.elementSize] = val;
     }
     
@@ -148,36 +143,36 @@ public final class ObjectProperty<T> implements Property {
     public void setDataStore(IndexedDataStore store) {
         if (store == null)
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof ObjectDataStore))
-            throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong type: " + store.getClass());
+        if (!(store instanceof LongDataStore))
+            throw new IllegalArgumentException("Store not compatible with LongProperty, wrong type: " + store.getClass());
         
-        ObjectDataStore newStore = (ObjectDataStore) store;
+        LongDataStore newStore = (LongDataStore) store;
         if (newStore.elementSize != this.store.elementSize)
-            throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException("Store not compatible with LongProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
     }
 
-    private static class ObjectDataStore extends AbstractIndexedDataStore<Object[]> {
-        private final Object[] array;
+    private static class LongDataStore extends AbstractIndexedDataStore<long[]> {
+        private final long[] array;
         
-        public ObjectDataStore(int elementSize, Object[] array) {
+        public LongDataStore(int elementSize, long[] array) {
             super(elementSize);
             this.array = array;
         }
         
         @Override
-        public ObjectDataStore create(int size) {
-            return new ObjectDataStore(elementSize, new Object[elementSize * size]);
+        public LongDataStore create(int size) {
+            return new LongDataStore(elementSize, new long[elementSize * size]);
         }
 
         @Override
-        protected Object[] getArray() {
+        protected long[] getArray() {
             return array;
         }
 
         @Override
-        protected int getArrayLength(Object[] array) {
+        protected int getArrayLength(long[] array) {
             return array.length;
         }
     }

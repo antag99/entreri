@@ -37,9 +37,8 @@ package com.googlecode.entreri.property;
  */
 public interface IndexedDataStore {
     /**
-     * Resize the internal data store of this IndexedDataStore so that it holds
-     * enough space for the given number of Properties that will use this data
-     * store.
+     * Create a new data store with the same behavior as this IndexedDataStore
+     * except, that it holds enough space for <tt>size</tt> Properties.
      * 
      * @param size The size, in number of properties
      */
@@ -72,15 +71,4 @@ public interface IndexedDataStore {
      *             out-of-bounds exceptions
      */
     public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset);
-
-    /**
-     * Update the values of the data store at the given component offset to
-     * reflect the default value. The default value is dependent on the
-     * IndexedDataStore (and in that sense, the Property creating the data
-     * store), but will usually be null or 0.
-     * 
-     * @param offset The component offset into the data store
-     * @throws IndexOutOfBoundsException if the offset is invalid
-     */
-    public void setDefault(int offset);
 }

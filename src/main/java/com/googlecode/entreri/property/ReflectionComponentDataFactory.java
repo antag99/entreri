@@ -26,12 +26,10 @@
  */
 package com.googlecode.entreri.property;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,18 +38,15 @@ import java.util.Map.Entry;
 import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.ComponentDataFactory;
 import com.googlecode.entreri.IllegalComponentDefinitionException;
+import com.googlecode.entreri.annot.DefaultValue;
+import com.googlecode.entreri.annot.ElementSize;
 import com.googlecode.entreri.annot.Factory;
-import com.googlecode.entreri.annot.Parameter;
-import com.googlecode.entreri.annot.Parameters;
 import com.googlecode.entreri.annot.Unmanaged;
 
 /**
  * <p>
  * ReflectionComponentDataFactory is a factory for creating new instances of ComponentDatas of a
- * specific type. It is capable of using reflection to instantiate Property
- * instances for the ComponentData's declared property fields, based on the
- * {@link Factory}, {@link Parameters}, and {@link Parameter} annotations.
- * </p>
+ * specific type. 
  * FIXME: Move conventions from TypeId.getTypeId() to here
  * 
  * @author Michael Ludwig
@@ -146,97 +141,134 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         return factories;
     }
     
-    private static Object parseValue(Class<?> paramType, String paramValue, Class<? extends ComponentData<?>> forCType) {
-        try {
-            if (String.class.equals(paramType)) {
-                return paramValue;
-            } else if (Class.class.equals(paramType)) {
-                return Class.forName(paramValue);
-            } else if (int.class.equals(paramType) || Integer.class.equals(paramType)) {
-                return Integer.parseInt(paramValue);
-            } else if (float.class.equals(paramType) || Float.class.equals(paramType)) {
-                return Float.parseFloat(paramValue);
-            } else if (double.class.equals(paramType) || Double.class.equals(paramType)) {
-                return Double.parseDouble(paramValue);
-            } else if (long.class.equals(paramType) || Long.class.equals(paramType)) {
-                return Long.parseLong(paramValue);
-            } else if (short.class.equals(paramType) || Short.class.equals(paramType)) {
-                return Short.parseShort(paramValue);
-            } else if (byte.class.equals(paramType) || Byte.class.equals(paramType)) {
-                return Byte.parseByte(paramValue);
-            } else if (char.class.equals(paramType) || Character.class.equals(paramType)) {
-                return paramValue.charAt(0);
-            }
-        } catch(Exception e) {
-            throw new IllegalComponentDefinitionException(forCType, "Cannot convert parameter value, " + paramValue + ", to type: " + paramType);
-        }
-        
-        throw new IllegalComponentDefinitionException(forCType, "Unsupported parameter value type: " + paramType + ", it must be a String, Class, or (boxed) primitive");
-    }
-    
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings("unchecked")
     private static PropertyFactory<?> createFactory(Field field) {
         Class<? extends Property> type = (Class<? extends Property>) field.getType();
-        Annotation[] annots = field.getAnnotations();
         Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field.getDeclaringClass();
         
-        Parameter[] params = new Parameter[0];
-        for (int i = 0; i < annots.length; i++) {
-            if (annots[i] instanceof Parameters) {
-                // take params array from the @Parameters annotation
-                params = ((Parameters) annots[i]).value();
-                break;
-            } else if (annots[i] instanceof Parameter) {
-                // take @Parameter annotation as single-arg constructor
-                params = new Parameter[] { (Parameter) annots[i] };
-                break;
-            } else if (annots[i] instanceof Factory) {
-                // use the declared PropertyFactory from the @Factory annotation
-                Factory fa = (Factory) annots[i];
-                
-                // verify that the PropertyFactory actually creates the right type
-                Method create;
-                try {
-                    create = fa.value().getMethod("create");
-                } catch (Exception e) {
-                    // should not happen
-                    throw new RuntimeException("Unable to inspect PropertyFactory create() method", e);
-                }
-                
+        // Check to use the explicit factory
+        Factory factoryAnnot = field.getAnnotation(Factory.class);
+        if (factoryAnnot != null) {
+            // verify that the PropertyFactory actually creates the right type
+            try {
+                Method create = factoryAnnot.value().getMethod("create");
                 if (!type.isAssignableFrom(create.getReturnType()))
-                    throw new IllegalComponentDefinitionException(forCType, "@Factory for " + fa.value() + " creates incorrect Property type for property type: " + type);
-                
-                PropertyFactory<?> factory;
-                try {
-                    factory = fa.value().newInstance();
-                } catch (Exception e) {
-                    throw new IllegalComponentDefinitionException(forCType, "Cannot create PropertyFactory from @Factory annotation: " + fa.value());
+                    throw new IllegalComponentDefinitionException(forCType, "@Factory for " + factoryAnnot.value() + " creates incorrect Property type for property type: " + type);
+            } catch (Exception e) {
+                // should not happen
+                throw new RuntimeException("Unable to inspect PropertyFactory create() method", e);
+            }
+            
+            try {
+                return factoryAnnot.value().newInstance();
+            } catch (Exception e) {
+                throw new IllegalComponentDefinitionException(forCType, "Cannot create PropertyFactory from @Factory annotation: " + factoryAnnot.value());
+            }
+        }
+        
+        // we'll fall back to using these annotations (and their defaults) to create a factory
+        // if there is a static factory() method present on the Property
+        DefaultValue dfltValue = field.getAnnotation(DefaultValue.class);
+        ElementSize elementSize = field.getAnnotation(ElementSize.class);
+        int actualElementSize = (elementSize == null ? 1 : elementSize.value());
+        
+        if (dfltValue != null) {
+            // look for factory methods of the different primitive types
+            try {
+                { // boolean
+                    Method fm = getFactoryMethod(type, true, boolean.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultBoolean());
                 }
+                { // char
+                    Method fm = getFactoryMethod(type, true, char.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultChar());
+                }
+                { // byte
+                    Method fm = getFactoryMethod(type, true, byte.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultByte());
+                }
+                { // short
+                    Method fm = getFactoryMethod(type, true, short.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultShort());
+                }
+                { // int
+                    Method fm = getFactoryMethod(type, true, int.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultInt());
+                }
+                { // long
+                    Method fm = getFactoryMethod(type, true, long.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultLong());
+                }
+                { // float
+                    Method fm = getFactoryMethod(type, true, float.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultFloat());
+                }
+                { // double
+                    Method fm = getFactoryMethod(type, true, double.class);
+                    if (fm != null)
+                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultDouble());
+                }
+            } catch(Exception e) {
+                throw new RuntimeException("Unable to call static factory method on Property type: " + type + " on field " + field);
+            }
+        } else {
+            // we don't have a default type to use, so first look for one that
+            // takes an element size
+            try {
+                Method fm = getFactoryMethod(type, true, null);
+                if (fm != null)
+                    return (PropertyFactory<?>) fm.invoke(null, actualElementSize);
+                // fall back to a factory method with no arguments
+                fm = getFactoryMethod(type, false, null);
+                if (fm != null)
+                    return (PropertyFactory<?>) fm.invoke(null);
+            } catch(Exception e) {
                 
-                return factory;
-            } // else unknown annotation so ignore it
+            }
+        }
+
+        // unable to create a PropertyFactory
+        throw new IllegalComponentDefinitionException(forCType, "Unable to create PropertyFactory for " + field);
+    }
+        
+    private static Method getFactoryMethod(Class<? extends Property> type, boolean elementSize, Class<?> dfltType) {
+        Method[] methods = type.getDeclaredMethods();
+        
+        for (Method m: methods) {
+            // check if it is a static method that creates a PropertyFactory
+            if (PropertyFactory.class.isAssignableFrom(m.getReturnType())
+                && Modifier.isStatic(m.getModifiers())) {
+                // now validate parameter types
+                Class<?>[] params = m.getParameterTypes();
+                if (!elementSize) {
+                    // we assume that dfltType is also null and we accept the method
+                    // if it has no arguments
+                    if (params.length == 0)
+                        return m;
+                } else {
+                    if (dfltType == null) {
+                        // we accept it if the first type is an int
+                        if (params.length == 1 && int.class.equals(params[0]))
+                            return m;
+                    } else {
+                        // we accept it if the first type is an int and 
+                        // the second type equals dfltType
+                        if (params.length == 2 && int.class.equals(params[0]) && dfltType.equals(params[1]))
+                            return m;
+                    }
+                }
+            }
         }
         
-        // At this point we need to be able to instantiate the Property with reflection
-        // so make sure it's not an abstract type (below we'll make sure we have a ctor)
-        if (Modifier.isAbstract(type.getModifiers()))
-            throw new IllegalComponentDefinitionException(forCType, "Property cannot be instantiated because its type is abstract: " + field);
-        
-        Class<?>[] ctorTypes = new Class<?>[params.length];
-        Object[] paramValues = new Object[params.length];
-        for (int i = 0; i < params.length; i++) {
-            ctorTypes[i] = params[i].type();
-            paramValues[i] = parseValue(ctorTypes[i], params[i].value(), forCType);
-        }
-        
-        try {
-            Constructor<?> ctor = type.getDeclaredConstructor(ctorTypes);
-            ctor.setAccessible(true); // just in case
-            return new ReflectionPropertyFactory(ctor, paramValues);
-        } catch(NoSuchMethodException e) {
-            // parameterized constructor does not exist
-            throw new IllegalComponentDefinitionException(forCType, "Property does not have a constructor matching: " + Arrays.toString(ctorTypes) + " for property " + field);
-        }
+        // no suitable factory method was found
+        return null;
     }
     
     @SuppressWarnings("unchecked")
@@ -287,24 +319,5 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         nonTransientFields.values().toArray(access);
         Field.setAccessible(access, true);
         return nonTransientFields;
-    }
-    
-    private static class ReflectionPropertyFactory<P extends Property> extends AbstractPropertyFactory<P> {
-        private final Constructor<P> ctor;
-        private final Object[] values;
-        
-        public ReflectionPropertyFactory(Constructor<P> ctor, Object[] values) {
-            this.ctor = ctor;
-            this.values = values;
-        }
-        
-        @Override
-        public P create() {
-            try {
-                return ctor.newInstance(values);
-            } catch (Exception e) {
-                throw new RuntimeException("Unexpected exception when creating Property, with constructor " + ctor);
-            }
-        }
     }
 }

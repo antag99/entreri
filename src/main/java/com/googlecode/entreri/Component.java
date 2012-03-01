@@ -1,83 +1,49 @@
 package com.googlecode.entreri;
 
-import com.googlecode.entreri.property.IndexedDataStore;
-import com.googlecode.entreri.property.Property;
-
 /**
  * <p>
- * ComponentData represents a grouping of reusable and related states that are added
- * to an {@link Entity}. Components are intended to be data storage objects, so
- * their definition should not contain methods for processing or updating (that
- * is the responsibility of a {@link Controller}). Some Components may be
- * defined with an {@link InitParams} annotation, which defines their required
- * arguments when adding a new component to an Entity.
+ * Component represents a grouping of reusable and related states that are added
+ * to an {@link Entity}. The specific state of a component is stored and defined
+ * in {@link ComponentData} implementations. This separation is to support fast
+ * iteration using local memory. All of the component data is packed into
+ * buffers or arrays for cache locality.
  * </p>
  * <p>
- * The behavior or purpose of a ComponentData should be well defined, including its
- * behavior with respect to other Components attached to the same Entity. It may
- * be that to function correctly or--more likely--usefully, related Components
- * will have to be used as well. An example of this might be a transform
- * component and a shape component for rendering.
+ * Component instances represent the identity of the conceptual components,
+ * while instances of ComponentData can be configured to read and write to
+ * specific components. ComponentData's can change which component they
+ * reference multiple times throughout their life time.
  * </p>
- * <p>
- * Each ComponentData class gets a {@link TypeId}, which can be looked up with
- * {@link #getTypedId(Class)}, passing in the desired class type. Because the
- * entity-component design pattern does not follow common object-oriented
- * principles, certain rules are followed when handling ComponentData types in a
- * class hierarchy:
- * <ol>
- * <li>Any abstract type extending ComponentData cannot get a TypeId</li>
- * <li>All concrete classes extending ComponentData get separate TypedIds, even if
- * they extend from the same intermediate classes beneath ComponentData.</li>
- * <li>All intermediate classes in a ComponentData type's hierarchy must be abstract
- * or runtime exceptions will be thrown.</li>
- * </ol>
- * As an example, an abstract component could be Light, with concrete subclasses
- * SpotLight and DirectionLight. SpotLight and DirectionLight would be separate
- * component types as determined by TypeId. Light would not have any TypeId
- * and only serves to consolidate property definition among related component
- * types.
- * </p>
- * <p>
- * Implementations of Components must follow certain rules with respect to their
- * declared fields. For performance reasons, an EntitySystem packs all
- * components of the same type into the same region of memory using the
- * {@link Property} and {@link IndexedDataStore} API. To ensure that Components
- * behave correctly, a type can only declare private or protected Property
- * fields. These fields should be considered "final" from the Components point
- * of view and will be assigned by the EntitySystem. The can be declared final
- * but any assigned value will be overwritten.
- * </p>
- * <p>
- * They can declare any methods they wish to expose the data these properties
- * represent. It is strongly recommended to not expose the Property objects
- * themselves. See {@link #getTypedId(Class)} for the complete contract.
- * </p>
- * <p>
- * ComponentData instances are tied to an index into the IndexedDataStores used by
- * their properties. The index can be fetched by calling {@link #getIndex()}. An
- * instance of ComponentData may have its index changed, effectively changing it to
- * a different "instance". This is most common when using the fast iterators.
- * Because of this, reference equality may not work, instead you should rely on
- * {@link #equals(Object)}.
- * </p>
- * <p>
- * Compone
  * 
  * @author Michael Ludwig
  */
 public final class Component<T extends ComponentData<T>> {
-    private final ComponentIndex<T> owner;
+    private final ComponentRepository<T> owner;
     
-    private int index;
-    private int version;
-    
-    Component(ComponentIndex<T> owner, int index) {
+    int index;
+
+    /**
+     * Create a new Component stored in the given ComponentRepository, at the given
+     * array position within the ComponentRepository.
+     * 
+     * @param owner The ComponentRepository owner
+     * @param index The index within the owner
+     */
+    Component(ComponentRepository<T> owner, int index) {
         this.owner = owner;
         this.index = index;
-        this.version = 0;
     }
-    
+
+    /**
+     * Get a ComponentData instance that can be used to manipulate the state of
+     * this component. This is a convenience for allocating a new ComponentData
+     * instance and assigning it to this component. For tight loops, it is
+     * better to allocate a single ComponentData instance and use its
+     * {@link ComponentData#set(Component) set} method.
+     * 
+     * @return A ComponentData to access this component's state, or null if the
+     *         component is not live
+     */
     public T getData() {
         T data = getEntitySystem().createDataInstance(getTypeId());
         if (data.set(this))
@@ -85,23 +51,53 @@ public final class Component<T extends ComponentData<T>> {
         else
             return null; 
     }
-    
+
+    /**
+     * @return True if the component is still attached to an entity in the
+     *         entity system, or false if it or its entity has been removed
+     */
     public boolean isLive() {
         return index != 0;
     }
-    
+
+    /**
+     * @return True if this component is enabled, or false if it is disabled and
+     *         will appear as though it doesn't exist under default behavior
+     */
     public boolean isEnabled() {
         // if isLive() returns false, index references the 0th index, which
         // just contains garbage
         return owner.isEnabled(index);
     }
-    
+
+    /**
+     * <p>
+     * Set whether or not this component is enabled. If a component is disabled,
+     * default usage will cause it to appear as the component has been removed.
+     * It will not be returned from {@link Entity#get(TypeId)} or be included in
+     * iterator results using {@link ComponentIterator}.
+     * </p>
+     * <p>
+     * Disabling and enabling components can be a more efficient way to simulate
+     * the adding and removing of components, because it does not remove or
+     * require the allocation of new data.
+     * </p>
+     * 
+     * @param enable True if the component is to be enabled
+     */
     public void setEnabled(boolean enable) {
         // if isLive() returns false, index references the 0th index, which
         // just contains garbage so this setter is safe
         owner.setEnabled(index, enable);
     }
-    
+
+    /**
+     * Get the entity that this component is attached to. If the component has
+     * been removed from the entity, or is otherwise not live, this will return
+     * null.
+     * 
+     * @return The owning entity, or null
+     */
     public Entity getEntity() {
         // if isLive() returns false, then the entity index will also be 0,
         // so getEntityByIndex() returns null, which is expected
@@ -109,24 +105,24 @@ public final class Component<T extends ComponentData<T>> {
         return owner.getEntitySystem().getEntityByIndex(entityIndex);
     }
     
+    /**
+     * @return The EntitySystem that created this component
+     */
     public EntitySystem getEntitySystem() {
         return owner.getEntitySystem();
     }
     
+    /**
+     * @return The TypeId of the ComponentData for this Component
+     */
     public TypeId<T> getTypeId() {
         return owner.getTypeId();
     }
     
-    void setIndex(int index) {
-        this.index = index;
-        version++;
-    }
-    
-    int getIndex() {
-        return index;
-    }
-    
-    int getVersion() {
-        return version;
+    /**
+     * @return The ComponentRepository owning this Component
+     */
+    ComponentRepository<T> getRepository() {
+        return owner;
     }
 }

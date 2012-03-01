@@ -26,13 +26,13 @@
  */
 package com.googlecode.entreri.property;
 
-import com.googlecode.entreri.annot.Parameters;
+import com.googlecode.entreri.ComponentDataFactory;
 
 /**
  * <p>
- * Property represents a generic field or property of a ComponentData definition.
- * It's interface allows it's values and underlying data store to be packed
- * together with the corresponding property instances of all the other
+ * Property represents a generic field or property of a ComponentData
+ * definition. It's interface allows it's values and underlying data store to be
+ * packed together with the corresponding property instances of all the other
  * Components of the same type in an EntitySystem.
  * </p>
  * <p>
@@ -47,11 +47,16 @@ import com.googlecode.entreri.annot.Parameters;
  * only one property instance per defined property in a component type for a
  * system. Every component of that type uses their index into the property's
  * IndexedDataStore to access their data. This helps keep memory usage low and
- * simplifies system maintenance. The Property instances are created by using
- * the {@link Parameters} annotation on the declared fields in a type, and
- * reflection is used to assign them to a ComponentData instance.
+ * simplifies system maintenance.
+ * </p>
+ * <p>
+ * Property instances are created by {@link PropertyFactory PropertyFactories},
+ * which are created by {@link ComponentDataFactory ComponentDataFactories}.
+ * ComponentDataFactory implementations define how property factories are
+ * declared.
  * </p>
  * 
+ * @see ReflectionComponentDataFactory
  * @author Michael Ludwig
  */
 public interface Property {

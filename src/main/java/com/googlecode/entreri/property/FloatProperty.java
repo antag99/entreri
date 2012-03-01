@@ -59,16 +59,34 @@ public final class FloatProperty implements Property {
     /**
      * Return a PropertyFactory that creates FloatProperties with the given
      * element size. If it is less than 1, the factory's create() method will
-     * fail.
+     * fail. The default value is 0.
      * 
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for FloatProperty
      */
     public static PropertyFactory<FloatProperty> factory(final int elementSize) {
+        return factory(elementSize, 0f);
+    }
+
+    /**
+     * Return a PropertyFactory that creates FloatProperties with the given
+     * element size and default value.
+     * 
+     * @param elementSize The element size of the created properties
+     * @param dflt The default value assigned to each component and element
+     * @return A PropertyFactory for FloatProperty
+     */
+    public static PropertyFactory<FloatProperty> factory(final int elementSize, final float dflt) {
         return new AbstractPropertyFactory<FloatProperty>() {
             @Override
             public FloatProperty create() {
                 return new FloatProperty(elementSize);
+            }
+          
+            @Override
+            public void setDefaultValue(FloatProperty p, int index) {
+                for (int i = 0; i < elementSize; i++)
+                    p.set(dflt, index, i);
             }
         };
     }
@@ -157,12 +175,6 @@ public final class FloatProperty implements Property {
         @Override
         protected int getArrayLength(float[] array) {
             return array.length;
-        }
-
-        @Override
-        public void setDefault(int offset) {
-            for (int i = offset * elementSize; i < (offset + 1) * elementSize; i++)
-                array[i] = 0f;
         }
     }
 }

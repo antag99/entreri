@@ -28,15 +28,12 @@ package com.googlecode.entreri.property;
 
 import com.googlecode.entreri.Entity;
 import com.googlecode.entreri.annot.Factory;
-import com.googlecode.entreri.annot.Parameters;
 
 /**
  * <p>
  * A PropertyFactory is a simple factory that can be used to create Property
- * instances if the Property requires a more complicated constructor than can be
- * described by the {@link Parameters} annotation on a Property field.
- * Additionally, it is used when decorating a ComponentData type in an
- * EntitySystem to ensure that each decoration event gets a unique property
+ * instances. Additionally, it is used when decorating a ComponentData type in
+ * an EntitySystem to ensure that each decoration event gets a unique property
  * instance.
  * </p>
  * <p>
@@ -65,7 +62,7 @@ public interface PropertyFactory<T extends Property> {
      * @param property The property whose value will be updated
      * @param index The component index to be updated
      */
-    public void setValue(T property, int index);
+    public void setDefaultValue(T property, int index);
 
     // FIXME: update docs once entity is stabilized
     /**

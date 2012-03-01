@@ -32,15 +32,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.googlecode.entreri.property.PropertyFactory;
+import com.googlecode.entreri.property.ReflectionComponentDataFactory;
 
 /**
  * The Factory annotation can be declared on a Property field in a ComponentData
  * definition to specify the type of PropertyFactory to use when creating
  * instances of the Property for the component. The factory type must have a
  * no-argument constructor in order to be instantiated correctly. This
- * annotation can be used in place of the {@link Parameters} or
- * {@link Parameter} annotations.
+ * annotation should be used if {@link ElementSize} and {@link DefaultValue} are
+ * not sufficient.
  * 
+ * @see ReflectionComponentDataFactory
  * @author Michael Ludwig
  */
 @Retention(RetentionPolicy.RUNTIME)
