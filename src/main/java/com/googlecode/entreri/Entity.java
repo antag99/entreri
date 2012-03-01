@@ -128,7 +128,7 @@ public final class Entity implements Iterable<Component<?>> {
      */
     public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId, boolean ignoreEnable) {
         ComponentRepository<T> ci = system.getIndex(componentId);
-        Component<T> c = ci.getComponent(ci.getComponentRepository(index));
+        Component<T> c = ci.getComponent(ci.getComponentIndex(index));
         
         if (c == null || ignoreEnable || c.isEnabled())
             return c;
@@ -175,7 +175,7 @@ public final class Entity implements Iterable<Component<?>> {
             throw new IllegalArgumentException("ComponentData was not created by expected EntitySystem");
         
         ComponentRepository<T> ci = data.owner;
-        int componentIndex = ci.getComponentRepository(index);
+        int componentIndex = ci.getComponentIndex(index);
         return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
     }
 
@@ -310,7 +310,7 @@ public final class Entity implements Iterable<Component<?>> {
             
             currentIndex = nextIndex;
             nextIndex = null;
-            return currentIndex.getComponent(currentIndex.getComponentRepository(entityIndex));
+            return currentIndex.getComponent(currentIndex.getComponentIndex(entityIndex));
         }
 
         @Override
@@ -328,7 +328,7 @@ public final class Entity implements Iterable<Component<?>> {
             while(indices.hasNext()) {
                 nextIndex = indices.next();
                 
-                int index = nextIndex.getComponentRepository(entityIndex);
+                int index = nextIndex.getComponentIndex(entityIndex);
                 if (index != 0 && (ignoreEnable || nextIndex.isEnabled(index)))
                     break;
                 else

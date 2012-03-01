@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
 
 import com.googlecode.entreri.property.BooleanProperty;
 import com.googlecode.entreri.property.CompactAwareProperty;
@@ -158,7 +157,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return The index of the attached component, or 0 if the entity does not
      *         have a component of this type attached
      */
-    public int getComponentRepository(int entityIndex) {
+    public int getComponentIndex(int entityIndex) {
         return entityIndexToComponentRepository[entityIndex];
     }
 
@@ -512,14 +511,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * @return An iterator over the components in the index. The iterator's
-     *         remove() detaches the component from the entity
-     */
-    public Iterator<Component<T>> iterator() {
-        return new ComponentIterator();
-    }
-
-    /**
      * Decorate the type information of this ComponentRepository to add a property
      * created by the given factory. The returned property will have default
      * data assigned for each current Component in the index, and will have the
@@ -565,51 +556,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         }
     }
     
-    /*
-     * An iterator implementation over the canonical componentDatas of the index.
-     */
-    private class ComponentIterator implements Iterator<Component<T>> {
-        private int index;
-        private boolean advanced;
-        
-        public ComponentIterator() {
-            index = 0;
-            advanced = false;
-        }
-        
-        @Override
-        public boolean hasNext() {
-            if (!advanced)
-                advance();
-            return index < componentInsert;
-        }
-
-        @Override
-        public Component<T> next() {
-            if (!hasNext())
-                throw new NoSuchElementException();
-            advanced = false;
-            return components[index];
-        }
-
-        @Override
-        public void remove() {
-            if (advanced || index == 0)
-                throw new IllegalStateException("Must call next() before remove()");
-            if (componentIndexToEntityIndex[index] == 0)
-                throw new IllegalStateException("ComponentData already removed");
-            removeComponent(componentIndexToEntityIndex[index]);
-        }
-        
-        private void advance() {
-            index++; // always advance at least 1
-            while(index < components.length && componentIndexToEntityIndex[index] == 0) {
-                index++;
-            }
-            advanced = true;
-        }
-    }
-
     /*
      * Type wrapping a key, property, and factory, as well as an auxiliary data
      * store for compaction.

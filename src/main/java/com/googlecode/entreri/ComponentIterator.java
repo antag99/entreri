@@ -1,54 +1,109 @@
 package com.googlecode.entreri;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class ComponentIterator {
-    private final List<ComponentData<?>> required;
-    private final List<ComponentData<?>> optional;
-    
     private final EntitySystem system;
     
-    // FIXME: to avoid pulling in the Entity objects that this iterates over,
-    // I think it would be best if we had an index into each component store.
-    // We can then validate quickly the CDs by checking the componentToEntity index.
     private int index;
-    // FIXME: do we also store the shortest component type?
-    // FIXME: should I just use the iterator's over component type?
-    // FIXME: if not, can I remove them?
     
-    // For some time I had thought that it might be faster to walk over all component types
-    // at the same time, but that actually won't work because each type's index
-    // will not have the same sorted order (unless a compact() is performed).
-    // Since we can't assume that, we have to use the method where the shortest
-    // component type is used and the entity-component-index is checked for all
-    // other types
+    private ComponentData<?>[] required; // all required except primary
+    private ComponentData<?>[] optional;
+    
+    private ComponentData<?> primary;
     
     public ComponentIterator(EntitySystem system) {
         if (system == null)
             throw new NullPointerException("System cannot be null");
         this.system = system;
-        required = new ArrayList<ComponentData<?>>();
-        optional = new ArrayList<ComponentData<?>>();
+        required = new ComponentData<?>[0];
+        optional = new ComponentData<?>[0];
+        primary = null;
+        index = 0;
     }
 
     public ComponentIterator addRequired(ComponentData<?> data) {
-        return add(data, required);
+        if (data == null)
+            throw new NullPointerException("ComponentData cannot be null");
+        if (data.owner.getEntitySystem() != system)
+            throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
+        
+        // check to see if the data should be the new primary
+        if (primary == null) {
+            // no other required components, so just set it
+            primary = data;
+        } else {
+            // check if the new data is shorter, but we will definitely
+            // putting one data into the required array
+            required = Arrays.copyOf(required, required.length + 1);
+
+            if (data.owner.getSizeEstimate() < primary.owner.getSizeEstimate()) {
+                // new primary
+                required[required.length - 1] = primary;
+                primary = data;
+            } else {
+                // not short enough so store it in the array
+                required[required.length - 1] = data;
+            }
+        }
+        
+        return this;
     }
     
     public ComponentIterator addOptional(ComponentData<?> data) {
-        return add(data, optional);
-    }
-    
-    private ComponentIterator add(ComponentData<?> data, List<ComponentData<?>> list) {
+        if (data == null)
+            throw new NullPointerException("ComponentData cannot be null");
+        if (data.owner.getEntitySystem() != system)
+            throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
+
+        // add the data to the optional array
+        optional = Arrays.copyOf(optional, optional.length + 1);
+        optional[optional.length - 1] = data;
         
+        return this;
     }
     
     public boolean next() {
+        if (primary == null)
+            return false;
         
+        boolean found;
+        int entity;
+        int component;
+        int count = primary.owner.getSizeEstimate();
+        while(index < count) {
+            found = true;
+            entity = primary.owner.getEntityIndex(index);
+            if (entity != 0) {
+                // we have a possible entity candidate
+                primary.setFast(index);
+                for (int i = 0; i < required.length; i++) {
+                    component = required[i].owner.getComponentIndex(entity);
+                    if (!required[i].setFast(component)) {
+                        found = false;
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    // we have satisfied all required components,
+                    // so now set all optional requirements as well
+                    for (int i = 0; i < optional.length; i++) {
+                        component = optional[i].owner.getComponentIndex(entity);
+                        optional[i].setFast(component); // we don't care if this is valid or not
+                    }
+                    
+                    return true;
+                }
+            }
+            
+            index++;
+        }
+        
+        return false;
     }
     
     public void reset() {
-        
+        index = 0;
     }
 }
