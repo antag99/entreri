@@ -27,8 +27,7 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.annot.Parameter;
+import com.googlecode.entreri.annot.ElementSize;
 import com.googlecode.entreri.property.IntProperty;
 
 /**
@@ -36,13 +35,9 @@ import com.googlecode.entreri.property.IntProperty;
  * 
  * @author Michael Ludwig
  */
-public class IntComponent extends ComponentData {
-    @Parameter(type=int.class, value="3")
+public class IntComponent extends ComponentData<IntComponent> {
+    @ElementSize(3)
     private IntProperty property;
-    
-    protected IntComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
     
     public int getInt(int offset) {
         int index = getIndex() * 3 + offset;
@@ -52,9 +47,5 @@ public class IntComponent extends ComponentData {
     public void setInt(int offset, int value) {
         int index = getIndex() * 3 + offset;
         property.getIndexedData()[index] = value;
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
     }
 }

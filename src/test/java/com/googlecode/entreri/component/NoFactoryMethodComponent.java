@@ -26,28 +26,18 @@
  */
 package com.googlecode.entreri.component;
 
+import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.annot.ElementSize;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.TwoParameterProperty;
 
 /**
- * A test component that tests the parameter constructor for ObjectProperty.
+ * A test component that specifies invalid or incorrect factories for
+ * its properties.
  * 
  * @author Michael Ludwig
  */
-public class ObjectComponent extends AbstractComponent<ObjectComponent> {
-    @ElementSize(3)
-    private ObjectProperty<Object> property;
-    
-    protected ObjectComponent() {
-    }
-    
-    public Object getObject(int offset) {
-        int index = getIndex() * 3 + offset;
-        return property.getIndexedData()[index];
-    }
-    
-    public void setObject(int offset, Object value) {
-        int index = getIndex() * 3 + offset;
-        property.getIndexedData()[index] = value;
-    }
+public class NoFactoryMethodComponent extends ComponentData<NoFactoryMethodComponent> {
+    // TwoParameterProperty also requires a default value, which is not provided
+    @ElementSize(2)
+    protected TwoParameterProperty prop;
 }

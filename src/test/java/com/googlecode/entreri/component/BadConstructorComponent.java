@@ -35,12 +35,7 @@ import com.googlecode.entreri.EntitySystem;
  * 
  * @author Michael Ludwig
  */
-public class BadConstructorComponent extends ComponentData {
+public class BadConstructorComponent extends ComponentData<BadConstructorComponent> {
     protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {
-        super(system, index);
-    }
-
-    @Override
-    protected void init(Object... initParams) throws Exception {
     }
 }

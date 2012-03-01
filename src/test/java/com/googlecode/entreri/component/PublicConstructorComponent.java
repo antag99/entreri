@@ -27,20 +27,13 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
 
 /**
  * A ComponentData definition with a public constructor.
  * 
  * @author Michael Ludwig
  */
-public class PublicConstructorComponent extends ComponentData {
+public class PublicConstructorComponent extends ComponentData<PublicConstructorComponent> {
 
-    public PublicConstructorComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
-    }
+    public PublicConstructorComponent() { }
 }

@@ -24,36 +24,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.component;
+package com.googlecode.entreri.property;
 
-import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.InitParams;
-import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.CompactAwareProperty;
+import com.googlecode.entreri.property.IndexedDataStore;
+import com.googlecode.entreri.property.IntProperty;
 
-@InitParams({float.class, Object.class})
-public class InitParamsComponent extends ComponentData {
-    private FloatProperty floatData;
-    private ObjectProperty<Object> objectData;
+public class NoFactoryProperty implements CompactAwareProperty {
+    private final IntProperty property;
     
-    private InitParamsComponent(EntitySystem system, int index) {
-        super(system, index);
+    private boolean compacted;
+    
+    public NoFactoryProperty(int size) {
+        property = new IntProperty(size);
     }
     
-    protected void init(Object... initParams) throws Exception {
-        if (initParams[0] == null)
-            throw new NullPointerException("Invalid");
-        
-        floatData.set((Float) initParams[0], getIndex(), 0);
-        objectData.set(initParams[1], getIndex(), 0);
+    // add a 3rd arg so this does not match the method checked
+    public static PropertyFactory<NoFactoryProperty> createFactory(final int size, final int dflt, Object extraArg) {
+        return new AbstractPropertyFactory<NoFactoryProperty>() {
+            @Override
+            public void setDefaultValue(NoFactoryProperty property, int index) {
+                property.property.set(dflt, index, 0);
+            }
+            
+            @Override
+            public NoFactoryProperty create() {
+                return new NoFactoryProperty(size);
+            }
+        };
     }
     
-    public float getFloat() {
-        return floatData.get(getIndex(), 0);
+    @Override
+    public IndexedDataStore getDataStore() {
+        return property.getDataStore();
+    }
+
+    @Override
+    public void setDataStore(IndexedDataStore store) {
+        property.setDataStore(store);
+    }
+
+    @Override
+    public void onCompactComplete() {
+        compacted = true;
     }
     
-    public Object getObject() {
-        return objectData.get(getIndex(), 0);
+    public boolean wasCompacted() {
+        return compacted;
     }
 }

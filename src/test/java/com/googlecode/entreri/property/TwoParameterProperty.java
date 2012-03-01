@@ -24,30 +24,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.component;
+package com.googlecode.entreri.property;
 
-import com.googlecode.entreri.annot.ElementSize;
-import com.googlecode.entreri.property.ObjectProperty;
+import com.googlecode.entreri.property.CompactAwareProperty;
+import com.googlecode.entreri.property.IndexedDataStore;
+import com.googlecode.entreri.property.IntProperty;
 
-/**
- * A test component that tests the parameter constructor for ObjectProperty.
- * 
- * @author Michael Ludwig
- */
-public class ObjectComponent extends AbstractComponent<ObjectComponent> {
-    @ElementSize(3)
-    private ObjectProperty<Object> property;
+public class TwoParameterProperty implements CompactAwareProperty {
+    private final IntProperty property;
     
-    protected ObjectComponent() {
+    private boolean compacted;
+    
+    public TwoParameterProperty(int size) {
+        property = new IntProperty(size);
     }
     
-    public Object getObject(int offset) {
-        int index = getIndex() * 3 + offset;
-        return property.getIndexedData()[index];
+    public static PropertyFactory<TwoParameterProperty> createFactory(final int size, final int dflt) {
+        return new AbstractPropertyFactory<TwoParameterProperty>() {
+            @Override
+            public void setDefaultValue(TwoParameterProperty property, int index) {
+                property.property.set(dflt, index, 0);
+            }
+            
+            @Override
+            public TwoParameterProperty create() {
+                return new TwoParameterProperty(size);
+            }
+        };
     }
     
-    public void setObject(int offset, Object value) {
-        int index = getIndex() * 3 + offset;
-        property.getIndexedData()[index] = value;
+    @Override
+    public IndexedDataStore getDataStore() {
+        return property.getDataStore();
+    }
+
+    @Override
+    public void setDataStore(IndexedDataStore store) {
+        property.setDataStore(store);
+    }
+
+    @Override
+    public void onCompactComplete() {
+        compacted = true;
+    }
+    
+    public boolean wasCompacted() {
+        return compacted;
     }
 }

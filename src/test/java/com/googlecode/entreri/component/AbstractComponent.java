@@ -27,8 +27,6 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.ObjectProperty;
 
 /**
@@ -36,13 +34,9 @@ import com.googlecode.entreri.property.ObjectProperty;
  * 
  * @author Michael Ludwig
  */
-public abstract class AbstractComponent extends ComponentData {
-    @Parameter(type=int.class, value="1")
+public abstract class AbstractComponent<T extends AbstractComponent<T>> extends ComponentData<T> {
     private ObjectProperty<Object> property;
     
-    protected AbstractComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
     
     public Object getUserData() {
         return property.getIndexedData()[getIndex()];

@@ -26,7 +26,6 @@
  */
 package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.EntitySystem;
 
 /**
  * A test ComponentData that extends a non-abstract component so it should fail.
@@ -34,7 +33,5 @@ import com.googlecode.entreri.EntitySystem;
  * @author Michael Ludwig
  */
 public class InvalidHierarchyComponent extends FloatComponent {
-    protected InvalidHierarchyComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
+   
 }

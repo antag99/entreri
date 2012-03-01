@@ -27,24 +27,14 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
 import com.googlecode.entreri.annot.Unmanaged;
 import com.googlecode.entreri.property.ObjectProperty;
 
-public class UnmanagedFieldComponent extends ComponentData {
+public class UnmanagedFieldComponent extends ComponentData<UnmanagedFieldComponent> {
     private transient ObjectProperty<Object> transientProperty;
     
     @Unmanaged
     private transient float field;
-    
-    protected UnmanagedFieldComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
-
-    @Override
-    protected void init(Object... initParams) throws Exception {
-        
-    }
 
     public void setObject(Object v) {
         transientProperty.set(v, getIndex(), 0);

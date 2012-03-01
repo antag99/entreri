@@ -27,28 +27,15 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.annot.Parameter;
-import com.googlecode.entreri.annot.Parameters;
-import com.googlecode.entreri.property.FloatProperty;
+import com.googlecode.entreri.property.NoFactoryProperty;
 
 /**
- * A test component that uses parameters to reference a non-existent property
- * constructor.
+ * A test component that specifies invalid or incorrect factories for
+ * its properties.
  * 
  * @author Michael Ludwig
  */
-public class BadParametersComponent extends ComponentData {
-    @SuppressWarnings("unused")
-    @Parameters({@Parameter(type=int.class, value="3"),
-                 @Parameter(type=float.class, value="0.3")})
-    private FloatProperty property;
-    
-    protected BadParametersComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
-    }
+public class InvalidFactoryMethodComponent extends ComponentData<InvalidFactoryMethodComponent> {
+    // NoFactoryProperty has no available factory method
+    protected NoFactoryProperty prop;
 }

@@ -27,13 +27,13 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
+import com.googlecode.entreri.annot.DefaultValue;
+import com.googlecode.entreri.annot.ElementSize;
 import com.googlecode.entreri.annot.Factory;
-import com.googlecode.entreri.annot.Parameter;
-import com.googlecode.entreri.annot.Parameters;
 import com.googlecode.entreri.property.FloatProperty;
 import com.googlecode.entreri.property.FloatPropertyFactory;
-import com.googlecode.entreri.property.MultiParameterProperty;
+import com.googlecode.entreri.property.IntProperty;
+import com.googlecode.entreri.property.LongProperty;
 import com.googlecode.entreri.property.NoParameterProperty;
 
 /**
@@ -41,26 +41,50 @@ import com.googlecode.entreri.property.NoParameterProperty;
  * 
  * @author Michael Ludwig
  */
-public class MultiPropertyComponent extends ComponentData {
-    @Parameters({@Parameter(type=int.class, value="2"),
-                 @Parameter(type=float.class, value="0.3")})
-    protected MultiParameterProperty multi;
+public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent> {
+    @DefaultValue(defaultLong=Long.MAX_VALUE)
+    @ElementSize(3)
+    protected LongProperty longProp; // should use factory(int, long)
     
-    protected NoParameterProperty noparams;
+    @DefaultValue(defaultFloat=0.5f)
+    protected FloatProperty floatProp; // should use factory(1, float)
+    
+    @ElementSize(2)
+    protected IntProperty intProp; // should use factory(int)
     
     @Factory(FloatPropertyFactory.class)
-    protected FloatProperty fromFactory;
+    protected FloatProperty fromFactory; // should create a new FloatPropertyFactory
     
-    protected MultiPropertyComponent(EntitySystem system, int index) {
-        super(system, index);
+    // this should find the createFactory() method
+    protected NoParameterProperty noparams;
+    
+    public void setLong(long i1, long i2, long i3) {
+        longProp.set(i1, getIndex(), 0);
+        longProp.set(i2, getIndex(), 1);
+        longProp.set(i3, getIndex(), 2);
     }
     
-    public void setFloat(int offset, float f) {
-        multi.setFloat(offset + getIndex() * 2, f);
+    public long[] getLong() {
+        long[] v = new long[] { longProp.get(getIndex(), 0), longProp.get(getIndex(), 1), longProp.get(getIndex(), 2) };
+        return v;
+    }
+    
+    public void setInt(int i1, int i2) {
+        intProp.set(i1, getIndex(), 0);
+        intProp.set(i2, getIndex(), 1);
+    }
+    
+    public int[] getInt() {
+        int[] v = new int[] { intProp.get(getIndex(), 0), intProp.get(getIndex(), 1) };
+        return v;
+    }
+    
+    public void setFloat(float f) {
+        floatProp.set(f, getIndex(), 0);
     }
     
     public float getFloat(int offset) {
-        return multi.getFloat(offset + getIndex() * 2);
+        return floatProp.get(getIndex(), 0);
     }
     
     public NoParameterProperty getCompactProperty() {
@@ -73,9 +97,5 @@ public class MultiPropertyComponent extends ComponentData {
     
     public float getFactoryFloat() {
         return fromFactory.get(getIndex(), 0);
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
     }
 }

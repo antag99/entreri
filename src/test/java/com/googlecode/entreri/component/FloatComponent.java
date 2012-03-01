@@ -27,8 +27,7 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.annot.Parameter;
+import com.googlecode.entreri.annot.ElementSize;
 import com.googlecode.entreri.property.FloatProperty;
 
 /**
@@ -36,13 +35,9 @@ import com.googlecode.entreri.property.FloatProperty;
  * 
  * @author Michael Ludwig
  */
-public class FloatComponent extends ComponentData {
-    @Parameter(type=int.class, value="3")
+public class FloatComponent extends ComponentData<FloatComponent> {
+    @ElementSize(3)
     private FloatProperty property;
-    
-    protected FloatComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
     
     public float getFloat(int offset) {
         int index = getIndex() * 3 + offset;
@@ -52,9 +47,5 @@ public class FloatComponent extends ComponentData {
     public void setFloat(int offset, float value) {
         int index = getIndex() * 3 + offset;
         property.getIndexedData()[index] = value;
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
     }
 }

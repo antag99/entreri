@@ -39,6 +39,20 @@ public class NoParameterProperty implements CompactAwareProperty {
         property = new IntProperty(1);
     }
     
+    public static PropertyFactory<NoParameterProperty> createFactory() {
+        return new AbstractPropertyFactory<NoParameterProperty>() {
+            @Override
+            public void setDefaultValue(NoParameterProperty property, int index) {
+                property.property.set(0, index, 0);
+            }
+            
+            @Override
+            public NoParameterProperty create() {
+                return new NoParameterProperty();
+            }
+        };
+    }
+    
     @Override
     public IndexedDataStore getDataStore() {
         return property.getDataStore();

@@ -27,8 +27,6 @@
 package com.googlecode.entreri.component;
 
 import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.annot.Parameter;
 import com.googlecode.entreri.property.FloatProperty;
 
 /**
@@ -36,19 +34,10 @@ import com.googlecode.entreri.property.FloatProperty;
  * 
  * @author Michael Ludwig
  */
-public class ExtraFieldComponent extends ComponentData {
+public class ExtraFieldComponent extends ComponentData<ExtraFieldComponent> {
     @SuppressWarnings("unused")
-    @Parameter(type=int.class, value="1")
     private FloatProperty property;
     
     @SuppressWarnings("unused")
     private Object otherField;
-    
-    protected ExtraFieldComponent(EntitySystem system, int index) {
-        super(system, index);
-    }
-    
-    @Override
-    protected void init(Object... initParams) throws Exception {
-    }
 }

@@ -24,34 +24,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.googlecode.entreri.property;
+package com.googlecode.entreri.component;
 
-import com.googlecode.entreri.property.FloatProperty;
-import com.googlecode.entreri.property.IndexedDataStore;
-import com.googlecode.entreri.property.Property;
+import com.googlecode.entreri.ComponentData;
+import com.googlecode.entreri.annot.Factory;
+import com.googlecode.entreri.property.FloatPropertyFactory;
+import com.googlecode.entreri.property.IntProperty;
 
-public class MultiParameterProperty implements Property {
-    private final FloatProperty property;
-    
-    public MultiParameterProperty(int elementCount, float unused) {
-        property = new FloatProperty(elementCount);
-    }
-    
-    @Override
-    public IndexedDataStore getDataStore() {
-        return property.getDataStore();
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        property.setDataStore(store);
-    }
-    
-    public float getFloat(int offset) {
-        return property.getIndexedData()[offset];
-    }
-    
-    public void setFloat(int offset, float f) {
-        property.getIndexedData()[offset] = f;
-    }
+/**
+ * A test component that mis-configures a component so it can't find
+ * the necessary factory() method.
+ * 
+ * @author Michael Ludwig
+ */
+public class InvalidFactoryComponent extends ComponentData<InvalidFactoryComponent> {
+    // use a FloatPropertyFactory for the wrong property type
+    @Factory(FloatPropertyFactory.class)
+    protected IntProperty prop;
 }
