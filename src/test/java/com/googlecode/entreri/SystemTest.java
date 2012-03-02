@@ -33,11 +33,37 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.googlecode.entreri.component.CustomFactoryComponent;
+import com.googlecode.entreri.component.CustomFactoryComponent.CustomFactory;
+import com.googlecode.entreri.component.DefaultFactoryComponent;
 import com.googlecode.entreri.component.FloatComponent;
 import com.googlecode.entreri.component.IntComponent;
 import com.googlecode.entreri.component.MultiPropertyComponent;
 
 public class SystemTest {
+    @Test
+    public void testCustomFactory() {
+        EntitySystem system = new EntitySystem();
+        system.setFactory(TypeId.get(CustomFactoryComponent.class), new CustomFactory());
+        
+        // the default reflection factory will fail to create an instance
+        // because the property is public. If it is created, and it's not null
+        // we know the custom factory worked
+        CustomFactoryComponent cd = system.createDataInstance(TypeId.get(CustomFactoryComponent.class));
+        Assert.assertNotNull(cd.prop);
+    }
+    
+    @Test
+    public void testDefaultFactoryOverride() {
+        EntitySystem system = new EntitySystem();
+        
+        // the default reflection factory will fail to create an instance
+        // because the property is public. If it is created, and it's not null
+        // we know the custom factory worked
+        DefaultFactoryComponent cd = system.createDataInstance(TypeId.get(DefaultFactoryComponent.class));
+        Assert.assertNotNull(cd.prop);
+    }
+    
     @Test
     public void testAddEntity() {
         // There really isn't much to test with this one, everything else

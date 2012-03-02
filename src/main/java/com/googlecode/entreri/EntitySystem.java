@@ -89,11 +89,29 @@ public final class EntitySystem implements Iterable<Entity> {
         entityInsert = 1;
     }
     
+    @SuppressWarnings("unchecked")
     public <T extends ComponentData<T>> void setFactory(TypeId<T> id, ComponentDataFactory<T> factory) {
-        // FIXME: setting a factory will create the ComponentRepository, it cannot assign
-        // the factory if the index already exists
-        // any other action that requires an index for a type will create the index
-        // with the reflection default
+        int index = id.getId();
+        if (index >= componentIndices.length) {
+            // make sure it's the correct size
+            componentIndices = Arrays.copyOf(componentIndices, index + 1);
+        }
+        
+        ComponentRepository<T> i = (ComponentRepository<T>) componentIndices[index];
+        if (i != null) {
+            // a factory is already defined
+            throw new IllegalStateException("A ComponentDataFactory is already assigned to the type: " + id);
+        }
+        
+        // verify that the factory creates the proper instances
+        T data = factory.createInstance();
+        if (!id.getType().isInstance(data)) {
+            throw new IllegalArgumentException("ComponentDataFactory does not create instances of type: " + id);
+        }
+        
+        i = new ComponentRepository<T>(this, id, factory);
+        i.expandEntityIndex(entities.length);
+        componentIndices[index] = i;
     }
     
     public <T extends ComponentData<T>> T createDataInstance(TypeId<T> id) {
