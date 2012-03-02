@@ -34,16 +34,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.googlecode.entreri.ComponentData;
-import com.googlecode.entreri.Entity;
-import com.googlecode.entreri.EntitySystem;
-import com.googlecode.entreri.IndexedComponentMap;
-import com.googlecode.entreri.TypeId;
 import com.googlecode.entreri.component.FloatComponent;
 import com.googlecode.entreri.component.ObjectComponent;
 
 public class IteratorTest {
-    private static final int ENTITY_COUNT = 10000;
+    private static final int ENTITY_COUNT = 5;
     
     private EntitySystem system;
     private List<Integer> entityIds;
@@ -60,11 +55,13 @@ public class IteratorTest {
     private TypeId<ObjectComponent> objId;
     private TypeId<FloatComponent> floatId;
     
+    private ObjectComponent objData;
+    private FloatComponent floatData;
+    
     @Before
     public void setup() {
-        objId = ComponentData.getTypedId(ObjectComponent.class);
-        floatId = ComponentData.getTypedId(FloatComponent.class);
-        
+        objId = TypeId.get(ObjectComponent.class);
+        floatId = TypeId.get(FloatComponent.class);
         
         entityIds = new ArrayList<Integer>();
         entityObjValues = new ArrayList<Object>();
@@ -74,6 +71,9 @@ public class IteratorTest {
         
         system = new EntitySystem();
         
+        objData = system.createDataInstance(objId);
+        floatData = system.createDataInstance(floatId);
+        
         for (int i = 0; i < ENTITY_COUNT; i++) {
             Entity e = system.addEntity();
             
@@ -82,35 +82,35 @@ public class IteratorTest {
             double c = Math.random();
             if (c > .8) {
                 // both components to add
-                ObjectComponent o = e.add(objId);
+                objData.set(e.add(objId));
                 Object v = new Object();
                 entityObjValues.add(v);
                 entityCombinedObjValues.add(v);
-                o.setObject(0, v);
+                objData.setObject(0, v);
                 
-                FloatComponent f = e.add(floatId);
+                floatData.set(e.add(floatId));
                 Float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 entityCombinedFloatValues.add(fv);
-                f.setFloat(0, fv);
+                floatData.setFloat(0, fv);
                 
                 countWithBoth++;
                 countWithObj++;
                 countWithFloat++;
             } else if (c > .4) {
                 // just float component
-                FloatComponent f = e.add(floatId);
+                floatData.set(e.add(floatId));
                 Float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
-                f.setFloat(0, fv);
+                floatData.setFloat(0, fv);
                 
                 countWithFloat++;
             } else {
                 // just object component
-                ObjectComponent o = e.add(objId);
+                objData.set(e.add(objId));
                 Object v = new Object();
                 entityObjValues.add(v);
-                o.setObject(0, v);
+                objData.setObject(0, v);
                 
                 countWithObj++;
             }
@@ -127,34 +127,34 @@ public class IteratorTest {
         Assert.assertEquals(entityIds.size(), i);
     }
     
-    private void doTestObjectComponentIterator(Iterator<ObjectComponent> it) {
+    // assumes it has objData in it
+    private void doTestObjectComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.hasNext()) {
-            Assert.assertEquals(entityObjValues.get(i), it.next().getObject(0));
+        while(it.next()) {
+            Assert.assertEquals(entityObjValues.get(i), objData.getObject(0));
             i++;
         }
         
         Assert.assertEquals(countWithObj, i);
     }
     
-    private void doTestFloatComponentIterator(Iterator<FloatComponent> it) {
+    // assumes it has floatData in it
+    private void doTestFloatComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.hasNext()) {
-            Assert.assertEquals(entityFloatValues.get(i).floatValue(), it.next().getFloat(0), .0001f);
+        while(it.next()) {
+            Assert.assertEquals(entityFloatValues.get(i).floatValue(), floatData.getFloat(0), .0001f);
             i++;
         }
         
         Assert.assertEquals(countWithFloat, i);
     }
     
-    private void doTestBulkComponentIterator(Iterator<IndexedComponentMap> it) {
+    // assumes it has floatData and objData as required
+    private void doTestBulkComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.hasNext()) {
-            IndexedComponentMap map = it.next();
-            Assert.assertEquals(entityCombinedObjValues.get(i), map.get(objId, 0).getObject(0));
-            Assert.assertEquals(entityCombinedObjValues.get(i), map.get(objId).getObject(0));
-            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), map.get(floatId, 1).getFloat(0), .0001f);
-            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), map.get(floatId).getFloat(0), .0001f);
+        while(it.next()) {
+            Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject(0));
+            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), floatData.getFloat(0), .0001f);
             i++;
         }
         
@@ -179,137 +179,41 @@ public class IteratorTest {
         // this invalidates all of the value lists, but that is okay
     }
     
-    private void doIteratorObjectComponentRemove(Iterator<ObjectComponent> it) {
-        int i = 0;
-        Iterator<Object> vs = entityObjValues.iterator();
-        while(it.hasNext()) {
-            it.next();
-            vs.next();
-            if (i > countWithObj / 2) {
-                it.remove();
-                vs.remove();
-                countWithObj--;
-            }
-            
-            i++;
-        }
-        
-        // this invalidates the combined value lists, but that is okay
-    }
-    
-    private void doIteratorFloatComponentRemove(Iterator<FloatComponent> it) {
-        int i = 0;
-        Iterator<Float> fs = entityFloatValues.iterator();
-        while(it.hasNext()) {
-            it.next();
-            fs.next();
-            if (i > countWithFloat / 2) {
-                it.remove();
-                fs.remove();
-                countWithFloat--;
-            }
-            
-            i++;
-        }
-        
-        // this invalidates the combined value lists, but that is okay
-    }
-    
     @Test
     public void testEntityIterator() {
         doTestIterator(system.iterator());
     }
     
     @Test
-    public void testFastEntityIterator() {
-        doTestIterator(system.fastIterator());
-    }
-    
-    @Test
     public void testComponentIterator() {
-        doTestObjectComponentIterator(system.iterator(objId));
-        doTestFloatComponentIterator(system.iterator(floatId));
-    }
-    
-    @Test
-    public void testFastComponentIterator() {
-        doTestObjectComponentIterator(system.fastIterator(objId));
-        doTestFloatComponentIterator(system.fastIterator(floatId));
+        ComponentIterator ft = new ComponentIterator(system);
+        ft.addRequired(floatData);
+        ComponentIterator it = new ComponentIterator(system);
+        it.addRequired(objData);
+        
+        doTestObjectComponentIterator(it);
+        it.reset();
+        doTestObjectComponentIterator(it);
+        
+        doTestFloatComponentIterator(ft);
+        ft.reset();
+        doTestFloatComponentIterator(ft);
     }
     
     @Test
     public void testBulkComponentIterator() {
-        doTestBulkComponentIterator(system.iterator(objId, floatId));
-    }
-    
-    @Test
-    public void testFastBulkComponentIterator() {
-        doTestBulkComponentIterator(system.fastIterator(objId, floatId));
+        ComponentIterator it = new ComponentIterator(system);
+        it.addRequired(floatData);
+        it.addRequired(objData);
+        
+        doTestBulkComponentIterator(it);
+        it.reset();
+        doTestBulkComponentIterator(it);
     }
     
     @Test
     public void testEntityIteratorRemove() {
         doIteratorRemove(system.iterator());
         doTestIterator(system.iterator());
-    }
-    
-    @Test
-    public void testFastEntityIteratorRemove() {
-        doIteratorRemove(system.fastIterator());
-        doTestIterator(system.fastIterator());
-    }
-    
-    @Test
-    public void testComponentIteratorRemove() {
-        doIteratorObjectComponentRemove(system.iterator(objId));
-        doIteratorFloatComponentRemove(system.iterator(floatId));
-        
-        doTestObjectComponentIterator(system.iterator(objId));
-        doTestFloatComponentIterator(system.iterator(floatId));
-        
-        // make sure no entities were removed
-        doTestIterator(system.iterator());
-    }
-    
-    @Test
-    public void testFastComponentIteratorRemove() {
-        doIteratorObjectComponentRemove(system.fastIterator(objId));
-        doIteratorFloatComponentRemove(system.fastIterator(floatId));
-        
-        doTestObjectComponentIterator(system.fastIterator(objId));
-        doTestFloatComponentIterator(system.fastIterator(floatId));
-        
-        // make sure no entities were removed
-        doTestIterator(system.fastIterator());
-    }
-    
-    @Test
-    public void testBulkComponentIteratorRemove() {
-        Iterator<IndexedComponentMap> it = system.iterator(objId, floatId);
-        while(it.hasNext()) {
-            it.next();
-            try {
-                it.remove();
-                Assert.fail();
-            } catch(UnsupportedOperationException e) {
-                // expected
-                break;
-            }
-        }
-    }
-    
-    @Test
-    public void testFastBulkComponentIteratorRemove() {
-        Iterator<IndexedComponentMap> it = system.fastIterator(objId, floatId);
-        while(it.hasNext()) {
-            it.next();
-            try {
-                it.remove();
-                Assert.fail();
-            } catch(UnsupportedOperationException e) {
-                // expected
-                break;
-            }
-        }
     }
 }

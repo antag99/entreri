@@ -40,4 +40,6 @@ public class ExtraFieldComponent extends ComponentData<ExtraFieldComponent> {
     
     @SuppressWarnings("unused")
     private Object otherField;
+    
+    protected ExtraFieldComponent() { }
 }

@@ -46,24 +46,6 @@ import com.googlecode.entreri.annot.Unmanaged;
  * @author Michael Ludwig
  * @param <T> The identified type
  */
-// FIXME: I need an API for assigning the ComponentDataFactory to use
-// Is this a per type basis? Can I override it? Or should it only be possible
-// via an annotation configuration?
-// - I think that is probably best since we need this to be a consistent global
-//   state
-// - That being said, it's probably possible to declare a customizable default type
-//   that could be used instead of the reflection impl.
-// - Perhaps the factory can be specified before the TypeId is loaded?
-
-// What is the downside to allowing it to change in the future?
-//  - technically different property factories and properties,
-//    it wouldn't work on another system.
-// - However, we could say that they can be configured to the scope of a system,
-//   since we're already locking a CD to a system.
-//   Then it can fail if it's already been coerced into using a different factory.
-// - This makes me think that the system should be have newInstance(TypeId) instead
-//   of TypeId.newInstance(system).
-//   - This makes for a better design since it re-inforces the ownership
 public class TypeId<T extends ComponentData<T>> {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.

@@ -37,4 +37,6 @@ import com.googlecode.entreri.property.FloatProperty;
  */
 public class PublicPropertyComponent extends ComponentData<PublicPropertyComponent> {
     public FloatProperty property;
+    
+    protected PublicPropertyComponent() {}
 }

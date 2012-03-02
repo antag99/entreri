@@ -118,13 +118,12 @@ final class ComponentRepository<T extends ComponentData<T>> {
     public TypeId<T> getTypeId() {
         return type;
     }
-    
+
     /**
-     * @return An estimate on the number of components in the index, will not be
-     *         less than the true size
+     * @return The upper bound (exclusive) for component index values
      */
-    public int getSizeEstimate() {
-        return componentInsert + 1;
+    public int getMaxComponentIndex() {
+        return componentInsert;
     }
     
     /**
@@ -144,6 +143,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
      *         if the component is not attached
      */
     public int getEntityIndex(int componentIndex) {
+        if (componentIndex >= componentIndexToEntityIndex.length) {
+            System.out.println("problem!");
+        }
         return componentIndexToEntityIndex[componentIndex];
     }
 
@@ -255,7 +257,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     public Component<T> addComponent(int entityIndex, Component<T> fromTemplate) {
         if (fromTemplate.getEntitySystem() != getEntitySystem())
             throw new IllegalArgumentException("Component not owned by expected EntitySystem");
-        if (fromTemplate.getTypeId().equals(type))
+        if (!fromTemplate.getTypeId().equals(type))
             throw new IllegalArgumentException("Component not of expected type, expected: " + type + ", but was: " + type);
         if (!fromTemplate.isLive())
             throw new IllegalStateException("Template component is not live");
@@ -488,20 +490,20 @@ final class ComponentRepository<T extends ComponentData<T>> {
         componentIndexToEntityIndex = newComponentRepository;
         
         // Possibly compact the component data
-        if (componentInsert < .6f * components.length) {
+        /*if (componentInsert < .6f * components.length) {
             int newSize = (int) (1.2f * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
             componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
             resizePropertyStores(declaredProperties, newSize);
             resizePropertyStores(decoratedProperties, newSize);
-        }
+        }*/
         
         // Repair entityIndexToComponentRepository - and possible shrink the index
         // based on the number of packed entities
-        if (numEntities < .6f * entityIndexToComponentRepository.length)
+        /*if (numEntities < .6f * entityIndexToComponentRepository.length)
             entityIndexToComponentRepository = new int[(int) (1.2f * numEntities) + 1];
         else
-            Arrays.fill(entityIndexToComponentRepository, 0);
+            Arrays.fill(entityIndexToComponentRepository, 0);*/
         
         for (int i = 1; i < componentInsert; i++)
             entityIndexToComponentRepository[componentIndexToEntityIndex[i]] = i;
@@ -565,7 +567,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         final P property;
         final PropertyFactory<P> creator;
         IndexedDataStore swap; // may be null
-        
         
         public PropertyStore(PropertyFactory<P> creator, String key) {
             this.creator = creator;

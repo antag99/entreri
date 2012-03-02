@@ -40,4 +40,6 @@ public class NoFactoryMethodComponent extends ComponentData<NoFactoryMethodCompo
     // TwoParameterProperty also requires a default value, which is not provided
     @ElementSize(2)
     protected TwoParameterProperty prop;
+    
+    protected NoFactoryMethodComponent() { }
 }

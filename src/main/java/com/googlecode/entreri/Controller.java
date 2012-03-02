@@ -51,7 +51,7 @@ public interface Controller {
      * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
-    public void preProcess(EntitySystem system, float dt);
+    public void preProcess(float dt);
 
     /**
      * Invoke controller specific operations to process the EntitySystem. All
@@ -62,7 +62,7 @@ public interface Controller {
      * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
-    public void process(EntitySystem system, float dt);
+    public void process(float dt);
 
     /**
      * Invoked at the end of a processing phase after all controllers in a
@@ -71,11 +71,11 @@ public interface Controller {
      * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
-    public void postProcess(EntitySystem system, float dt);
+    public void postProcess(float dt);
     
-    public void addedToSystem(EntitySystem system);
+    public void init(EntitySystem system);
     
-    public void removedFromSystem(EntitySystem system);
+    public void destroy();
     
     public void onEntityAdd(Entity e);
     
@@ -85,16 +85,5 @@ public interface Controller {
     
     public void onComponentRemove(Component<?> c);
     
-    // FIXME: TODO:
-    // Final solution: This is an interface, with a DefaultController or abstract, etc.
-    // that implements all of the methods as no-ops, except for init and destroy
-    // Part of the API is getEntitySystem(), which is used to validate by the controller-manager.
-    // rename addedToSystem, etc. to init(System) and destroy().
-    // I will keep the phases, since I can imagine a health controller that subtracts
-    // health during processing, and on post process removes everything that is dead
-    // TODO: I think I will add some Scheduler interface or type that is used to
-    // control the ordering and execution of controllers during a process request,
-    // theoretically this could do MTing, or dependency ordering. ATM it will do
-    // by-add ordering.
-
+    public EntitySystem getEntitySystem();
 }

@@ -31,10 +31,12 @@ import com.googlecode.entreri.annot.Unmanaged;
 import com.googlecode.entreri.property.ObjectProperty;
 
 public class UnmanagedFieldComponent extends ComponentData<UnmanagedFieldComponent> {
-    private transient ObjectProperty<Object> transientProperty;
+    private ObjectProperty<Object> transientProperty;
     
     @Unmanaged
-    private transient float field;
+    private float field;
+    
+    protected UnmanagedFieldComponent() {}
 
     public void setObject(Object v) {
         transientProperty.set(v, getIndex(), 0);

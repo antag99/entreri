@@ -27,37 +27,40 @@
 package com.googlecode.entreri;
 
 /**
- * AbstractController implements Controller by performing no action on each of
+ * SimpleController implements Controller by performing no action on each of
  * Controller's process or event hooks. Subclasses can override just the methods
  * they are interested in implementing.
  * 
  * @author Michael Ludwig
  */
-public abstract class AbstractController implements Controller {
-
+public class SimpleController implements Controller {
+    private EntitySystem system;
+    
     @Override
-    public void preProcess(EntitySystem system, float dt) {
+    public void preProcess(float dt) {
         // do nothing in base class
     }
 
     @Override
-    public void process(EntitySystem system, float dt) {
+    public void process(float dt) {
         // do nothing in base class
     }
 
     @Override
-    public void postProcess(EntitySystem system, float dt) {
+    public void postProcess(float dt) {
         // do nothing in base class
     }
 
     @Override
-    public void addedToSystem(EntitySystem system) {
-        // do nothing in base class
+    public void init(EntitySystem system) {
+        if (this.system != null)
+            throw new IllegalStateException("Controller is already used in another EntitySystem");
+        this.system = system;
     }
-
+    
     @Override
-    public void removedFromSystem(EntitySystem system) {
-        // do nothing in base class
+    public void destroy() {
+        system = null; 
     }
 
     @Override
@@ -71,12 +74,17 @@ public abstract class AbstractController implements Controller {
     }
 
     @Override
-    public void onComponentAdd(ComponentData c) {
+    public void onComponentAdd(Component<?> c) {
         // do nothing in base class
     }
 
     @Override
-    public void onComponentRemove(ComponentData c) {
+    public void onComponentRemove(Component<?> c) {
         // do nothing in base class
+    }
+
+    @Override
+    public EntitySystem getEntitySystem() {
+        return system;
     }
 }

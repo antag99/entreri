@@ -131,7 +131,7 @@ public final class DoubleProperty implements Property {
      *             would access illegal indices
      */
     public void set(double val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize] = val;
+        store.array[componentIndex * store.elementSize + offset] = val;
     }
     
     @Override

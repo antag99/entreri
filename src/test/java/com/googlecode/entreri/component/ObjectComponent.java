@@ -36,18 +36,17 @@ import com.googlecode.entreri.property.ObjectProperty;
  */
 public class ObjectComponent extends AbstractComponent<ObjectComponent> {
     @ElementSize(3)
-    private ObjectProperty<Object> property;
+    private ObjectProperty<Object> property2;
     
-    protected ObjectComponent() {
-    }
+    protected ObjectComponent() { }
     
     public Object getObject(int offset) {
         int index = getIndex() * 3 + offset;
-        return property.getIndexedData()[index];
+        return property2.getIndexedData()[index];
     }
     
     public void setObject(int offset, Object value) {
         int index = getIndex() * 3 + offset;
-        property.getIndexedData()[index] = value;
+        property2.getIndexedData()[index] = value;
     }
 }

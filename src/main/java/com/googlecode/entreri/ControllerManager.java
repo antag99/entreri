@@ -203,7 +203,7 @@ public class ControllerManager {
         controllers.add(controller);
         
         if (!removed)
-            controller.addedToSystem(system);
+            controller.init(system);
     }
 
     /**
@@ -219,7 +219,7 @@ public class ControllerManager {
             throw new NullPointerException("Controller cannot be null");
         boolean removed = controllers.remove(controller);
         if (removed)
-            controller.removedFromSystem(system);
+            controller.destroy();
     }
     
     /**
@@ -312,16 +312,16 @@ public class ControllerManager {
     
     private void firePreProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
-            controllers.get(i).preProcess(system, dt);
+            controllers.get(i).preProcess(dt);
     }
     
     private void fireProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
-            controllers.get(i).process(system, dt);
+            controllers.get(i).process(dt);
     }
     
     private void firePostProcess(float dt) {
         for (int i = 0; i < controllers.size(); i++)
-            controllers.get(i).postProcess(system, dt);
+            controllers.get(i).postProcess(dt);
     }
 }

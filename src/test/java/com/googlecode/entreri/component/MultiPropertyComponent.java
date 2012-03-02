@@ -58,6 +58,8 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     // this should find the createFactory() method
     protected NoParameterProperty noparams;
     
+    protected MultiPropertyComponent() {}
+    
     public void setLong(long i1, long i2, long i3) {
         longProp.set(i1, getIndex(), 0);
         longProp.set(i2, getIndex(), 1);
@@ -83,7 +85,7 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
         floatProp.set(f, getIndex(), 0);
     }
     
-    public float getFloat(int offset) {
+    public float getFloat() {
         return floatProp.get(getIndex(), 0);
     }
     

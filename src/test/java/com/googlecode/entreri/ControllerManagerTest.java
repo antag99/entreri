@@ -161,10 +161,10 @@ public class ControllerManagerTest {
         system.getControllerManager().addController(ctrl);
         
         Entity e = system.addEntity();
-        IntComponent i = e.add(ComponentData.getTypedId(IntComponent.class));
+        Component<IntComponent> i = e.add(TypeId.get(IntComponent.class));
         
         Assert.assertEquals(i, ctrl.lastAddedComponent);
-        e.remove(ComponentData.getTypedId(IntComponent.class));
+        e.remove(TypeId.get(IntComponent.class));
         Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
     
@@ -181,34 +181,41 @@ public class ControllerManagerTest {
         private Entity lastAddedEntity;
         private Entity lastRemovedEntity;
         
-        private ComponentData lastAddedComponent;
-        private ComponentData lastRemovedComponent;
+        private Component<?> lastAddedComponent;
+        private Component<?> lastRemovedComponent;
+        
+        private EntitySystem system;
         
         @Override
-        public void preProcess(EntitySystem system, float dt) {
+        public EntitySystem getEntitySystem() {
+            return system;
+        }
+        
+        @Override
+        public void preProcess(float dt) {
             preprocessed = true;
             this.dt = dt;
         }
 
         @Override
-        public void process(EntitySystem system, float dt) {
+        public void process(float dt) {
             processed = true;
             this.dt = dt;
         }
 
         @Override
-        public void postProcess(EntitySystem system, float dt) {
+        public void postProcess(float dt) {
             postprocessed = true;
             this.dt = dt;
         }
 
         @Override
-        public void addedToSystem(EntitySystem system) {
+        public void init(EntitySystem system) {
             added = true;
         }
 
         @Override
-        public void removedFromSystem(EntitySystem system) {
+        public void destroy() {
             removed = true;
         }
 
@@ -223,12 +230,12 @@ public class ControllerManagerTest {
         }
 
         @Override
-        public void onComponentAdd(ComponentData c) {
+        public void onComponentAdd(Component<?> c) {
             lastAddedComponent = c;
         }
 
         @Override
-        public void onComponentRemove(ComponentData c) {
+        public void onComponentRemove(Component<?> c) {
             lastRemovedComponent = c;
         }
     }

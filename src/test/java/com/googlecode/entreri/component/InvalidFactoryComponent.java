@@ -41,4 +41,6 @@ public class InvalidFactoryComponent extends ComponentData<InvalidFactoryCompone
     // use a FloatPropertyFactory for the wrong property type
     @Factory(FloatPropertyFactory.class)
     protected IntProperty prop;
+    
+    protected InvalidFactoryComponent() {}
 }

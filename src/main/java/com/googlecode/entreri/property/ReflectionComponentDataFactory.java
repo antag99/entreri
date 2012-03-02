@@ -123,7 +123,7 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         // validate field now
         if (f == null)
             throw new IllegalArgumentException("Key is not in Map returned by getPropertyFactories(): " + key);
-        if (f.getType().isAssignableFrom(property.getClass()))
+        if (!f.getType().isAssignableFrom(property.getClass()))
             throw new IllegalArgumentException("Property was not created by correct PropertyFactory for key: " + key);
         
         try {
@@ -150,15 +150,18 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         Factory factoryAnnot = field.getAnnotation(Factory.class);
         if (factoryAnnot != null) {
             // verify that the PropertyFactory actually creates the right type
-            try {
-                Method create = factoryAnnot.value().getMethod("create");
-                if (!type.isAssignableFrom(create.getReturnType()))
-                    throw new IllegalComponentDefinitionException(forCType, "@Factory for " + factoryAnnot.value() + " creates incorrect Property type for property type: " + type);
-            } catch (Exception e) {
-                // should not happen
-                throw new RuntimeException("Unable to inspect PropertyFactory create() method", e);
-            }
-            
+                try {
+                    Method create = factoryAnnot.value().getMethod("create");
+                    if (!type.isAssignableFrom(create.getReturnType()))
+                        throw new IllegalComponentDefinitionException(forCType, "@Factory for " + factoryAnnot.value() + " creates incorrect Property type for property type: " + type);
+                } catch (SecurityException e) {
+                    // should not happen
+                    throw new RuntimeException("Unable to inspect factory's create method", e);
+                } catch (NoSuchMethodException e) {
+                    // should not happen
+                    throw new RuntimeException("Unable to inspect factory's create method", e);
+                }
+                
             try {
                 return factoryAnnot.value().newInstance();
             } catch (Exception e) {

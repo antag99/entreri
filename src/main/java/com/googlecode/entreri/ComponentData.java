@@ -112,7 +112,10 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     public final boolean isValid() {
         // we have to check the index of the ComponentData because the ComponentRepository
         // does not make sure the data's indices stay within bounds of the repository arrays
-        return index != 0 && index < owner.getSizeEstimate() && owner.getId(index) == id;
+        if (index != 0 && index < owner.getMaxComponentIndex()) {
+            return owner.getId(index) == id && owner.getEntityIndex(index) != 0;
+        }
+        return false;
     }
 
     /**
@@ -172,11 +175,15 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      *             entity system
      */
     public final boolean set(Component<T> component) {
-        // we check repository since it is guaranteed type safe
-        if (component.getRepository() == owner)
-            throw new IllegalArgumentException("Component not created by expected EntitySystem");
-        
-        return setFast(component.index);
+        if (component == null) {
+            return setFast(0);
+        } else {
+            // we check repository since it is guaranteed type safe
+            if (component.getRepository() != owner)
+                throw new IllegalArgumentException("Component not created by expected EntitySystem");
+            
+            return setFast(component.index);
+        }
     }
 
     /**

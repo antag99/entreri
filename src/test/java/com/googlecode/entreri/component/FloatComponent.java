@@ -39,6 +39,8 @@ public class FloatComponent extends ComponentData<FloatComponent> {
     @ElementSize(3)
     private FloatProperty property;
     
+    protected FloatComponent() { } 
+    
     public float getFloat(int offset) {
         int index = getIndex() * 3 + offset;
         return property.getIndexedData()[index];

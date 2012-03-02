@@ -39,6 +39,8 @@ public class IntComponent extends ComponentData<IntComponent> {
     @ElementSize(3)
     private IntProperty property;
     
+    protected IntComponent() { }
+    
     public int getInt(int offset) {
         int index = getIndex() * 3 + offset;
         return property.getIndexedData()[index];

@@ -136,7 +136,7 @@ public final class ObjectProperty<T> implements Property {
      *             would access illegal indices
      */
     public void set(T val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize] = val;
+        store.array[componentIndex * store.elementSize + offset] = val;
     }
     
     @Override

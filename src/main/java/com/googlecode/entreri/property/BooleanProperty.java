@@ -132,7 +132,7 @@ public final class BooleanProperty implements Property {
      *             would access illegal indices
      */
     public void set(boolean val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize] = val;
+        store.array[componentIndex * store.elementSize + offset] = val;
     }
     
     @Override

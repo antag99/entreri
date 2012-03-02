@@ -37,7 +37,7 @@ public class ComponentIterator {
             // putting one data into the required array
             required = Arrays.copyOf(required, required.length + 1);
 
-            if (data.owner.getSizeEstimate() < primary.owner.getSizeEstimate()) {
+            if (data.owner.getMaxComponentIndex() < primary.owner.getMaxComponentIndex()) {
                 // new primary
                 required[required.length - 1] = primary;
                 primary = data;
@@ -70,8 +70,10 @@ public class ComponentIterator {
         boolean found;
         int entity;
         int component;
-        int count = primary.owner.getSizeEstimate();
-        while(index < count) {
+        int count = primary.owner.getMaxComponentIndex();
+        while(index < count - 1) {
+            index++; // always increment one
+
             found = true;
             entity = primary.owner.getEntityIndex(index);
             if (entity != 0) {
@@ -96,8 +98,6 @@ public class ComponentIterator {
                     return true;
                 }
             }
-            
-            index++;
         }
         
         return false;

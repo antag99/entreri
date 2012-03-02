@@ -33,5 +33,5 @@ package com.googlecode.entreri.component;
  * @author Michael Ludwig
  */
 public class InvalidHierarchyComponent extends FloatComponent {
-   
+   protected InvalidHierarchyComponent() { }
 }
