@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2011, Michael Ludwig
+ * Copyright (c) 2012, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -365,11 +365,11 @@ public final class EntitySystem implements Iterable<Entity> {
         if (factoryAnnot != null) {
             Class factoryType =  factoryAnnot.value();
             // check for supported constructors, priority: TypeId, Class, default
-            ComponentDataFactory<T> factory = attemptInstantiation(factoryType, id);
+            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id);
             if (factory == null)
-                factory = attemptInstantiation(factoryType, id.getType());
+                factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id.getType());
             if (factory == null)
-                factory = attemptInstantiation(factoryType);
+                factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType);
             if (factory == null)
                 throw new IllegalComponentDefinitionException(id.getType(), "Cannot instantiate default ComponentDataFactory of type: " + factoryType);
             
@@ -384,9 +384,9 @@ public final class EntitySystem implements Iterable<Entity> {
      * Look for a constructor that takes the given params and use it. Returns
      * null if any exception is thrown.
      */
-    private <T> T attemptInstantiation(Class<T> type, Object... params) {
+    private Object attemptInstantiation(Class<?> type, Object... params) {
         Class<?>[] argTypes = new Class<?>[params.length];
-        Constructor<T> constructor;
+        Constructor<?> constructor;
         try {
             constructor = type.getConstructor(argTypes);
             return constructor.newInstance(params);
