@@ -56,7 +56,6 @@ public interface Controller {
      * the main processing. All controllers in a system will have their
      * preProcess() method called before the first process() method is called.
      * 
-     * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
     public void preProcess(float dt);
@@ -67,7 +66,6 @@ public interface Controller {
      * none will have postProcess() invoked until process() has completed for
      * all controllers in the system.
      * 
-     * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
     public void process(float dt);
@@ -76,7 +74,6 @@ public interface Controller {
      * Invoked at the end of a processing phase after all controllers in a
      * system have completed their process() methods.
      * 
-     * @param system The entity system to process
      * @param dt The elapsed time since the last processing
      */
     public void postProcess(float dt);

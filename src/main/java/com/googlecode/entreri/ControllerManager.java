@@ -65,7 +65,7 @@ public class ControllerManager {
         /**
          * The PREPROCESS phase is invoked before all other phases. All
          * controllers in a manager will have their
-         * {@link Controller#preProcess(EntitySystem, float)} method called
+         * {@link Controller#preProcess(float)} method called
          * before moving to the next phase.
          */
         PREPROCESS,
@@ -73,7 +73,7 @@ public class ControllerManager {
         /**
          * The PROCESS phase is invoked between PREPROCESS and POSTPROCESS. All
          * controllers in the manager will have their
-         * {@link Controller#process(EntitySystem, float)} method called before
+         * {@link Controller#process(float)} method called before
          * moving to the next phase.
          */
         PROCESS,
@@ -81,7 +81,7 @@ public class ControllerManager {
         /**
          * The POSTPROCESS phase is invoked after PREPROCESS and POSTPROCESS.
          * All controllers in their manager will have their
-         * {@link Controller#postProcess(EntitySystem, float)} method called
+         * {@link Controller#postProcess(float)} method called
          * before the frame is completed.
          */
         POSTPROCESS,
@@ -150,7 +150,7 @@ public class ControllerManager {
      * 
      * @param key The annotation key
      * @return The object previously mapped to the annotation with
-     *         {@link #setControllerData(Class, Object)}
+     *         {@link #setData(Key, Object)}
      * @throws NullPointerException if key is null
      */
     @SuppressWarnings("unchecked")
