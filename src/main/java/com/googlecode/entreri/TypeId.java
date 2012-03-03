@@ -120,7 +120,7 @@ public class TypeId<T extends ComponentData<T>> {
      * Return the unique TypeId instance for the given <tt>type</tt>. If a
      * TypeId hasn't yet been created a new one is instantiated with the next
      * numeric id in the internal id sequence. The new TypeId is stored for
-     * later, so that subsequent calls to {@link #getTypeId(Class)} with
+     * later, so that subsequent calls to {@link #get(Class)} with
      * <tt>type</tt> will return the same instance. It is recommended that a
      * ComponentData declare a static final <tt>ID</tt> holding its TypeId.
      * </p>
