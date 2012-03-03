@@ -33,10 +33,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * <p>
  * ControllerManager is a utility that manages the list of Controllers that can
- * process an EntitySystem. It also exposes two different ways of storing
- * controller data: the first is by annotation key for sharing between
- * controller types, the second is by a private object key for storing data
- * dependent on a system but internal to a controller implementation.
+ * process an EntitySystem. It also provides a mechanism to share data between
+ * controllers by storing objects associated with {@link Key Keys}. If a
+ * Controller type publically exposes a static key, other controllers can then
+ * look up the associated value.
  * </p>
  * <p>
  * Additionally, the ControllerManager is used to invoke the phase processing

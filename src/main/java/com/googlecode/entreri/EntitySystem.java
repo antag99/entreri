@@ -42,13 +42,13 @@ import com.googlecode.entreri.property.ReflectionComponentDataFactory;
  * such as a game or physics world. It contains all entities needed for
  * processing the scene or data. Entities are created with {@link #addEntity()}
  * or {@link #addEntity(Entity)}. They can be removed (and effectively
- * destroyed) with {@link #removeEntity(Entity)} or from the remove() methods of
- * the various iterators over the system data.
+ * destroyed) with {@link #removeEntity(Entity)}.
  * </p>
  * <p>
  * After an Entity is created, Components can be added to it to store
- * domain-specific data and control its behaviors. This depends on the ComponentData
- * implementations and Controllers used to process your data.
+ * domain-specific data and configure its behaviors. The specifics of the data
+ * and behavior depends on the ComponentData implementations and Controllers
+ * used to process your data.
  * </p>
  * <p>
  * The {@link ControllerManager} of an EntitySystem can be used to register
@@ -58,13 +58,12 @@ import com.googlecode.entreri.property.ReflectionComponentDataFactory;
  * </p>
  * <p>
  * When Entities are created by an EntitySystem, the created instance is
- * assigned an ID which represents its true identity. Certain iterators in the
- * system may create a single Entity object which slides over the underlying
- * entity data for performance purposes. With each iteration, its ID changes
- * even though the reference does not. This is same way that {@link ComponentData
- * Components} are stored and treated by the EntitySystem.
+ * assigned an ID which represents its true identity.
  * </p>
  * 
+ * @see Entity
+ * @see Component
+ * @see ComponentData
  * @author Michael Ludwig
  */
 public final class EntitySystem implements Iterable<Entity> {
@@ -88,9 +87,43 @@ public final class EntitySystem implements Iterable<Entity> {
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
     }
-    
+
+    /**
+     * <p>
+     * Assign a specific ComponentDataFactory instance to create and manage
+     * ComponentData instances of the given type for this system. This will
+     * override the default {@link ReflectionComponentDataFactory} or any
+     * default type declared by the {@link DefaultFactory} annotation.
+     * </p>
+     * <p>
+     * However, a ComponentDataFactory cannot be assigned if there is already
+     * another factory in use for that type. This situation arises if
+     * setFactory() is called multiple times, or if the EntitySystem needs to
+     * use a given type before setFactory() is called and it must fall back onto
+     * a default factory.
+     * </p>
+     * <p>
+     * This rule exists to ensure that all ComponentData instances of a given
+     * type created by an EntitySystem come from the same factory, regardless of
+     * when they were instantiated.
+     * </p>
+     * 
+     * @param <T> The ComponentData type created by the factory
+     * @param id The type id for the component type
+     * @param factory The factory to use in this system for the given type
+     * @throws NullPointerException if id or factory are null
+     * @throws IllegalArgumentException if the factory does not actually create
+     *             instances of type T
+     * @throws IllegalStateException if the EntitySystem already has a factory
+     *             for the given type
+     */
     @SuppressWarnings("unchecked")
     public <T extends ComponentData<T>> void setFactory(TypeId<T> id, ComponentDataFactory<T> factory) {
+        if (id == null)
+            throw new NullPointerException("TypeId cannot be null");
+        if (factory == null)
+            throw new NullPointerException("ComponentDataFactory cannot be null");
+        
         int index = id.getId();
         if (index >= componentIndices.length) {
             // make sure it's the correct size
@@ -113,7 +146,17 @@ public final class EntitySystem implements Iterable<Entity> {
         i.expandEntityIndex(entities.length);
         componentIndices[index] = i;
     }
-    
+
+    /**
+     * Create a new instance of type T for use with accessing the component data
+     * of this EntitySystem. The returned instance will be invalid until it is
+     * assigned a Component to access (explicitly or via a
+     * {@link ComponentIterator}).
+     * 
+     * @param <T> The type of ComponentData to create
+     * @param id The type id of the ComponentDat
+     * @return A new instance of T linked to this EntitySystem
+     */
     public <T extends ComponentData<T>> T createDataInstance(TypeId<T> id) {
         return getIndex(id).createDataInstance();
     }
@@ -154,7 +197,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * to the system is a good idea. Alternatively, invoking it every few frames
      * in a game works as well. An entity system that has no additions or
      * removals of entities (or their components) gains no benefit from
-     * compacting, except potentially for freeing excess memory.
+     * compacting, except potentially freeing excess memory.
      * </p>
      * <p>
      * Compacting is not overly fast or slow, so it should not cause noticeably
@@ -275,15 +318,15 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Remove the given entity from this system. The entity and its attached
-     * components are removed from the system. The canonical instances
-     * associated with each will be updated to reference null regions of data
-     * and should not be used.
+     * components are removed from the system. This will cause the entity and
+     * its components to no longer be alive. Any ComponentData's referencing the
+     * entity's components will become invalid until assigned to a new
+     * component.
      * 
-     * @param e The entity to remove (this does not need to be the canonical
-     *            instance, just meet equals() equality).
+     * @param e The entity to remove
      * @throws NullPointerException if e is null
      * @throws IllegalArgumentException if the entity is not owned by this
-     *             system
+     *             system, or already removed
      */
     public void removeEntity(Entity e) {
         if (e == null)

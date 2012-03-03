@@ -26,8 +26,8 @@
  */
 package com.googlecode.entreri;
 
+import com.googlecode.entreri.annot.DefaultFactory;
 import com.googlecode.entreri.property.ReflectionComponentDataFactory;
-
 
 /**
  * <p>
@@ -47,10 +47,12 @@ import com.googlecode.entreri.property.ReflectionComponentDataFactory;
  * ComponentData's are defined like any other class, but they are intended to be
  * created and configured by a {@link ComponentDataFactory}. These factories may
  * impose certain restrictions or requirements in what constructors or fields
- * are valid.
+ * are valid. ComponentData implementations can define a default
+ * ComponentDataFactory type with the {@link DefaultFactory} annoation. By
+ * default ComponentData implementations are created using The
+ * {@link ReflectionComponentDataFactory}
  * </p>
  * 
- * @see ReflectionComponentDataFactory
  * @author Michael Ludwig
  * @param <T> The self-referencing type of the ComponentData
  */
@@ -63,17 +65,13 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     ComponentRepository<T> owner;
     
     protected ComponentData() { }
-    
+
     /**
-     * Get the Entity that owns this ComponentData. The Entity will still be part of
-     * an EntitySystem, and the component can be iterated over via
-     * {@link EntitySystem#iterator(TypeId)}. If a ComponentData is removed from an
-     * Entity (or the Entity is removed from the system), this will return null.
+     * Get the Entity that owns this ComponentData. This is a convenience for
+     * <code>getComponent().getEntity()</code>. This should not be invoked if
+     * {@link #isValid()} returns false.
      * 
      * @return The owning Entity
-     * @throws IndexOutOfBoundsException if the ComponentData has been removed from
-     *             an Entity, or if its owning Entity has been removed from its
-     *             EntitySystem.
      */
     public final Entity getEntity() {
         int entityIndex = owner.getEntityIndex(index);
@@ -113,7 +111,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
         // we have to check the index of the ComponentData because the ComponentRepository
         // does not make sure the data's indices stay within bounds of the repository arrays
         if (index != 0 && index < owner.getMaxComponentIndex()) {
-            return owner.getId(index) == id && owner.getEntityIndex(index) != 0;
+            return owner.getId(index) == id;
         }
         return false;
     }
@@ -142,7 +140,8 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     /**
      * Return the Component that this data reads and writes to. If
      * {@link #isValid()} returns false, the returned Component is undefined. It
-     * may be the proper component, another component in the system, or null.
+     * may be the proper component, another component in the system, or null, or
+     * throw an exception.
      * 
      * @return The component this data is attached to
      */

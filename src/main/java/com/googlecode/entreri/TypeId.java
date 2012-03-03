@@ -26,9 +26,8 @@
  */
 package com.googlecode.entreri;
 
+import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.googlecode.entreri.annot.Unmanaged;
 
 
 /**
@@ -116,9 +115,6 @@ public class TypeId<T extends ComponentData<T>> {
         return "TypeId (" + type.getSimpleName() + ", id=" + id + ")";
     }
 
-    // FIXME: I believe I will have to double check this for correctness
-    // FIXME: this no longer verifies the correctness, so all documentation should move
-    //  - most of it goes into ReflectionComponentDataFactory
     /**
      * <p>
      * Return the unique TypeId instance for the given <tt>type</tt>. If a
@@ -129,20 +125,9 @@ public class TypeId<T extends ComponentData<T>> {
      * ComponentData declare a static final <tt>ID</tt> holding its TypeId.
      * </p>
      * <p>
-     * This method also performs runtime checks to ensure the validity of the
-     * ComponentData type definition. The following rules must be upheld or an
-     * {@link IllegalComponentDefinitionException} is thrown.
-     * <ul>
-     * <li>If the class extends from a class other than ComponentData, that class
-     * must be a subclass of ComponentData and be declared abstract. Additional
-     * rules might affect these parent classes.</li>
-     * <li>A concrete ComponentData type must have only one constructor; it must be
-     * private and with arguments: EntitySystem, int. Abstract ComponentData types
-     * do not have this restriction.</li>
-     * <li>Any non-static fields defined in a ComponentData (abstract or concrete)
-     * must implement Property and be declared private or protected, or be
-     * annotated with {@link Unmanaged} (in which case the field is ignored.</li>
-     * </ul>
+     * This method does not validate the definition of the ComponentData because
+     * validation depends on the potentially customized ComponentDataFactory used
+     * by each EntitySystem.
      * Additionally, abstract ComponentData types cannot have a TypeId assigned to
      * them.
      * </p>
@@ -154,10 +139,6 @@ public class TypeId<T extends ComponentData<T>> {
      * @throws NullPointerException if type is null
      * @throws IllegalArgumentException if type is not actually a subclass of
      *             ComponentData, or if it is abstract
-     * @throws IllegalComponentDefinitionException if the type does not follow
-     *             the definition rules described above
-     * @throws SecurityException if the reflection needed to create and analyze
-     *             the ComponentData fails
      */
     @SuppressWarnings("unchecked")
     public static <T extends ComponentData<T>> TypeId<T> get(Class<T> type) {
@@ -170,6 +151,11 @@ public class TypeId<T extends ComponentData<T>> {
         TypeId<T> id = (TypeId<T>) typeMap.get(type);
         if (id != null)
             return id; // Found an existing id
+        
+        if (!ComponentData.class.isAssignableFrom(type))
+            throw new IllegalArgumentException("Class does not extend ComponentData: " + type);
+        if (Modifier.isAbstract(type.getModifiers()))
+            throw new IllegalArgumentException("Abstract classes cannot have TypeIds: " + type);
         
         synchronized(typeMap) {
             // Must create a new id, we lock completely to prevent concurrent get() on the

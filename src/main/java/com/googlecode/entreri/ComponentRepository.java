@@ -88,11 +88,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
         this.factory = factory;
         this.type = type;
         
-        Map<String, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
+        Map<?, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
         
         declaredProperties = new ArrayList<PropertyStore<?>>();
         decoratedProperties = new ArrayList<PropertyStore<?>>(); // empty for now
-        for (Entry<String, PropertyFactory<?>> e: propertyFactories.entrySet()) {
+        for (Entry<?, PropertyFactory<?>> e: propertyFactories.entrySet()) {
             PropertyStore store = new PropertyStore(e.getValue(), e.getKey());
             declaredProperties.add(store);
         }
@@ -193,6 +193,10 @@ final class ComponentRepository<T extends ComponentData<T>> {
         enabledProperty.set(enabled, componentIndex, 0);
     }
     
+    /**
+     * @param componentIndex The component index
+     * @return The component id of the component at the given index
+     */
     public int getId(int componentIndex) {
         return componentIdProperty.get(componentIndex, 0);
     }
@@ -372,6 +376,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
+        componentIdProperty.set(0, componentIndex, 0);
+        enabledProperty.set(false, componentIndex, 0);
         
         return oldComponent != null;
     }
@@ -490,20 +496,20 @@ final class ComponentRepository<T extends ComponentData<T>> {
         componentIndexToEntityIndex = newComponentRepository;
         
         // Possibly compact the component data
-        /*if (componentInsert < .6f * components.length) {
+        if (componentInsert < .6f * components.length) {
             int newSize = (int) (1.2f * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
             componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
             resizePropertyStores(declaredProperties, newSize);
             resizePropertyStores(decoratedProperties, newSize);
-        }*/
+        }
         
         // Repair entityIndexToComponentRepository - and possible shrink the index
         // based on the number of packed entities
-        /*if (numEntities < .6f * entityIndexToComponentRepository.length)
+        if (numEntities < .6f * entityIndexToComponentRepository.length)
             entityIndexToComponentRepository = new int[(int) (1.2f * numEntities) + 1];
         else
-            Arrays.fill(entityIndexToComponentRepository, 0);*/
+            Arrays.fill(entityIndexToComponentRepository, 0);
         
         for (int i = 1; i < componentInsert; i++)
             entityIndexToComponentRepository[componentIndexToEntityIndex[i]] = i;
@@ -563,12 +569,12 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * store for compaction.
      */
     private static class PropertyStore<P extends Property> {
-        final String key;
+        final Object key;
         final P property;
         final PropertyFactory<P> creator;
         IndexedDataStore swap; // may be null
         
-        public PropertyStore(PropertyFactory<P> creator, String key) {
+        public PropertyStore(PropertyFactory<P> creator, Object key) {
             this.creator = creator;
             this.key = key;
             property = creator.create();

@@ -26,7 +26,10 @@
  */
 package com.googlecode.entreri;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -92,7 +95,13 @@ public class ReflectionComponentDataFactoryTest {
     @SuppressWarnings("unchecked")
     public void testPropertyLookup() {
         ReflectionComponentDataFactory<MultiPropertyComponent> builder = new ReflectionComponentDataFactory<MultiPropertyComponent>(MultiPropertyComponent.class);
-        Map<String, PropertyFactory<?>> props = builder.getPropertyFactories();
+        Map<?, PropertyFactory<?>> origProps = builder.getPropertyFactories();
+        
+        // for this test convert it to a string key map
+        Map<String, PropertyFactory<?>> props = new HashMap<String, PropertyFactory<?>>();
+        for (Entry<?, PropertyFactory<?>> e: origProps.entrySet()) {
+            props.put(((Field) e.getKey()).getName(), e.getValue());
+        }
         
         // verify that fields are mapped properly
         Assert.assertTrue(props.containsKey("longProp"));

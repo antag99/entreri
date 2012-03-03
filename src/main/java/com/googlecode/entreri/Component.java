@@ -31,8 +31,9 @@ package com.googlecode.entreri;
  * Component represents a grouping of reusable and related states that are added
  * to an {@link Entity}. The specific state of a component is stored and defined
  * in {@link ComponentData} implementations. This separation is to support fast
- * iteration using local memory. All of the component data is packed into
- * buffers or arrays for cache locality.
+ * iteration over blocks of packed, managed memory. All of the component data is
+ * packed into buffers or arrays for cache locality. A single ComponentData
+ * instance can then be used to access multiple Components.
  * </p>
  * <p>
  * Component instances represent the identity of the conceptual components,
@@ -42,6 +43,7 @@ package com.googlecode.entreri;
  * </p>
  * 
  * @author Michael Ludwig
+ * @param <T> The ComponentData type defining the data of this component
  */
 public final class Component<T extends ComponentData<T>> {
     private final ComponentRepository<T> owner;

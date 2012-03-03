@@ -30,14 +30,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.googlecode.entreri.ComponentData;
 import com.googlecode.entreri.ComponentDataFactory;
 import com.googlecode.entreri.IllegalComponentDefinitionException;
+import com.googlecode.entreri.annot.DefaultFactory;
 import com.googlecode.entreri.annot.DefaultValue;
 import com.googlecode.entreri.annot.ElementSize;
 import com.googlecode.entreri.annot.Factory;
@@ -45,17 +47,42 @@ import com.googlecode.entreri.annot.Unmanaged;
 
 /**
  * <p>
- * ReflectionComponentDataFactory is a factory for creating new instances of ComponentDatas of a
- * specific type. 
- * FIXME: Move conventions from TypeId.getTypeId() to here
+ * ReflectionComponentDataFactory is a factory for creating new instances of
+ * ComponentDatas of a specific type. ReflectionComponentDataFactory has a
+ * number of requirements for the way that a ComponentData subclass is defined
+ * in order to be processed correctly. If these are too restrictive for your
+ * needs, you can implement your own {@link ComponentDataFactory} and annotate
+ * the ComponentData type with {@link DefaultFactory}.
+ * </p>
+ * <p>
+ * ReflectionComponentDataFactory has the following requirements:
+ * <ol>
+ * <li>If the class is not a direct subclass of ComponentData, its parent must
+ * be a assignable to ComponentData and be declared abstract. The parent's
+ * declared fields must also follow the rules below.</li>
+ * <li>A concrete subclass of ComponentData must have only constructor; it must
+ * be private or protected and take zero arguments.</li>
+ * <li>All non-static fields that are not annotated with {@link Unmanaged}
+ * defined in the ComponentData type, or its abstract parents, must be
+ * Properties and be private or protected.</li>
+ * <li>The managed Property fields must be annoted with {@link Factory},
+ * {@link ElementSize}, and/or {@link DefaultValue} in order to define a
+ * PropertyFactory implementation, or determine a static factory method defined
+ * in the Property definition.</li>
+ * </ol>
+ * </p>
+ * <p>
+ * For an example of static factory methods, see
+ * {@link LongProperty#factory(int)} and {@link LongProperty#factory(int, long)}
+ * .
+ * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The built component type
  */
 public final class ReflectionComponentDataFactory<T extends ComponentData<T>> implements ComponentDataFactory<T> {
     private final Constructor<T> constructor;
-    private final Map<String, PropertyFactory<?>> propertyFactories;
-    private final Map<String, Field> fields;
+    private final Map<Field, PropertyFactory<?>> propertyFactories;
 
     /**
      * Create a new ReflectionComponentDataFactory for the given type of
@@ -83,7 +110,7 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             throw new IllegalArgumentException("ComponentData class type cannot be abstract: " + type);
         
         // Accumulate all property fields and validate type hierarchy
-        Map<String, Field> fields = new HashMap<String, Field>(getFields(type));
+        List<Field> fields = new ArrayList<Field>(getFields(type));
         
         Class<? super T> parent = type.getSuperclass();
         while(!ComponentData.class.equals(parent)) {
@@ -91,17 +118,16 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
                 throw new IllegalComponentDefinitionException(type, "Parent class " + parent + " is not abstract");
             
             // this cast is safe since we're in the while loop
-            fields.putAll(getFields((Class<? extends ComponentData<?>>) parent));
+            fields.addAll(getFields((Class<? extends ComponentData<?>>) parent));
             parent = parent.getSuperclass();
         }
         
         constructor = getConstructor(type);
         propertyFactories = Collections.unmodifiableMap(getPropertyFactories(fields));
-        this.fields = Collections.unmodifiableMap(fields);
     }
 
     @Override
-    public Map<String, PropertyFactory<?>> getPropertyFactories() {
+    public Map<Field, PropertyFactory<?>> getPropertyFactories() {
         return propertyFactories;
     }
     
@@ -115,14 +141,11 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
     }
     
     @Override
-    public void setProperty(T instance, String key, Property property) {
+    public void setProperty(T instance, Object key, Property property) {
         if (instance == null || key == null || property == null)
             throw new NullPointerException("Arguments cannot be null");
-        Field f = fields.get(key);
+        Field f = (Field) key;
         
-        // validate field now
-        if (f == null)
-            throw new IllegalArgumentException("Key is not in Map returned by getPropertyFactories(): " + key);
         if (!f.getType().isAssignableFrom(property.getClass()))
             throw new IllegalArgumentException("Property was not created by correct PropertyFactory for key: " + key);
         
@@ -133,10 +156,10 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         }
     }
 
-    private static <T extends ComponentData<?>> Map<String, PropertyFactory<?>> getPropertyFactories(Map<String, Field> fields) {
-        Map<String, PropertyFactory<?>> factories = new HashMap<String, PropertyFactory<?>>();
-        for (Entry<String, Field> f: fields.entrySet()) {
-            factories.put(f.getKey(), createFactory(f.getValue()));
+    private static <T extends ComponentData<?>> Map<Field, PropertyFactory<?>> getPropertyFactories(List<Field> fields) {
+        Map<Field, PropertyFactory<?>> factories = new HashMap<Field, PropertyFactory<?>>();
+        for (Field f: fields) {
+            factories.put(f, createFactory(f));
         }
         return factories;
     }
@@ -295,9 +318,9 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         return ctor;
     }
     
-    private static Map<String, Field> getFields(Class<? extends ComponentData<?>> type) {
+    private static List<Field> getFields(Class<? extends ComponentData<?>> type) {
         Field[] declared = type.getDeclaredFields();
-        Map<String, Field> nonTransientFields = new HashMap<String, Field>(declared.length);
+        List<Field> nonTransientFields = new ArrayList<Field>(declared.length);
 
         for (int i = 0; i < declared.length; i++) {
             int modifiers = declared[i].getModifiers();
@@ -314,12 +337,12 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers))
                 throw new IllegalComponentDefinitionException(type, "Field must be private or protected: " + declared[i]);
             
-            nonTransientFields.put(declared[i].getName(), declared[i]);
+            nonTransientFields.add(declared[i]);
         }
         
         // Make sure all fields are accessible so we can assign them
         Field[] access = new Field[nonTransientFields.size()];
-        nonTransientFields.values().toArray(access);
+        nonTransientFields.toArray(access);
         Field.setAccessible(access, true);
         return nonTransientFields;
     }

@@ -39,9 +39,8 @@ import com.googlecode.entreri.property.PropertyFactory;
  * similar function that takes another Entity as a template.
  * </p>
  * <p>
- * Like {@link ComponentData}, a given instance of Entity might change its true
- * identity by having its index into the system changed. An Entity's identity is
- * determined by its id, which can be found with {@link #getId()}.
+ * Entities use instance equality, just like {@link Component}. Once created the
+ * Entity object will not change its identity.
  * </p>
  * 
  * @author Michael Ludwig

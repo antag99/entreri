@@ -64,12 +64,11 @@ public interface PropertyFactory<T extends Property> {
      */
     public void setDefaultValue(T property, int index);
 
-    // FIXME: update docs once entity is stabilized
     /**
      * Copy the value from <tt>src</tt> at component index, <tt>srcIndex</tt> to
      * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is
      * created and cloned from a template with
-     * {@link Entity#add(com.googlecode.entreri.ComponentData)}. For many cases a
+     * {@link Entity#add(com.googlecode.entreri.Component)}. For many cases a
      * plain copy-by-value or copy-by-reference is sufficient, but some
      * component types might require more complicated cloning rules.
      * 

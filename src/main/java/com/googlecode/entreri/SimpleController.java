@@ -27,9 +27,18 @@
 package com.googlecode.entreri;
 
 /**
+ * <p>
  * SimpleController implements Controller by performing no action on each of
  * Controller's process or event hooks. Subclasses can override just the methods
- * they are interested in implementing.
+ * they are interested in implementing. It implements the necessary logic for
+ * recording its attached EntitySystem and validating its initialization and
+ * destruction life-cycle.
+ * </p>
+ * <p>
+ * If subclasses override {@link #init(EntitySystem)}, they must invoke
+ * super.init() before running their code. Similarly, if they override
+ * {@link #destroy()}, super.destroy() must be called last.
+ * </p>
  * 
  * @author Michael Ludwig
  */
