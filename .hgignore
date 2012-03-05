@@ -1,0 +1,9 @@
+
+syntax: regexp
+^\.project$
+syntax: regexp
+^\.classpath$
+syntax: regexp
+\.prefs$
+syntax: regexp
+^\.settings$
