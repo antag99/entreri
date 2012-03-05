@@ -7,3 +7,5 @@ syntax: regexp
 \.prefs$
 syntax: regexp
 ^\.settings$
+syntax: regexp
+^target$

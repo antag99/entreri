@@ -79,6 +79,7 @@ import java.util.Iterator;
  */
 public class ComponentIterator {
     private final EntitySystem system;
+    private boolean ignoreEnabled;
     
     private int index;
     
@@ -103,6 +104,21 @@ public class ComponentIterator {
         optional = new ComponentData<?>[0];
         primary = null;
         index = 0;
+        ignoreEnabled = false;
+    }
+
+    /**
+     * Set whether or not the enabled status of a component is ignored. If true,
+     * disabled components will be considered by this iterator. If false,
+     * disabled components will act as though they don't exist. This is
+     * equivalent to {@link Entity#get(TypeId, boolean)}.
+     * 
+     * @param e The enable flag to set
+     * @return This iterator for chaining purposes
+     */
+    public ComponentIterator setIgnoreEnabled(boolean e) {
+        ignoreEnabled = e;
+        return this;
     }
 
     /**
@@ -218,23 +234,26 @@ public class ComponentIterator {
             if (entity != 0) {
                 // we have a possible entity candidate
                 primary.setFast(index);
-                for (int i = 0; i < required.length; i++) {
-                    component = required[i].owner.getComponentIndex(entity);
-                    if (!required[i].setFast(component)) {
-                        found = false;
-                        break;
+                if (ignoreEnabled || primary.isEnabled()) {
+                    for (int i = 0; i < required.length; i++) {
+                        component = required[i].owner.getComponentIndex(entity);
+                        if (!required[i].setFast(component) 
+                            || (!ignoreEnabled && !required[i].isEnabled())) {
+                            found = false;
+                            break;
+                        }
                     }
-                }
-                
-                if (found) {
-                    // we have satisfied all required components,
-                    // so now set all optional requirements as well
-                    for (int i = 0; i < optional.length; i++) {
-                        component = optional[i].owner.getComponentIndex(entity);
-                        optional[i].setFast(component); // we don't care if this is valid or not
+
+                    if (found) {
+                        // we have satisfied all required components,
+                        // so now set all optional requirements as well
+                        for (int i = 0; i < optional.length; i++) {
+                            component = optional[i].owner.getComponentIndex(entity);
+                            optional[i].setFast(component); // we don't care if this is valid or not
+                        }
+
+                        return true;
                     }
-                    
-                    return true;
                 }
             }
         }

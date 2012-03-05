@@ -41,7 +41,7 @@ import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.component.FloatComponent;
 import com.lhkbob.entreri.component.ObjectComponent;
 
-public class IteratorTest {
+public class AdvancedIteratorTest {
     private static final int ENTITY_COUNT = 5;
     
     private EntitySystem system;
