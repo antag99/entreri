@@ -1,18 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.googlecode.entreri</groupId>
+    <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
     <packaging>jar</packaging>
     <version>1.4.2-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
     <description>
-    Entreri is an entity-component framework for Java that helps manage
-    or remove complex OO hierarchies that often form when developing games. For a 
-    useful description of an entity-component framework, see 
-    http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
+    Entreri is an entity-component framework for Java that helps manage or remove complex OO hierarchies that often form when developing games. For a useful description of an entity-component framework, see http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
     </description>
-    <url>http://entreri.googlecode.com</url>
+    <url>http://entreri.lhkbob.com</url>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
@@ -35,14 +32,14 @@
     </licenses>
 
     <issueManagement>
-        <system>Google Code</system>
-        <url>http://code.google.com/p/entreri/issues/list</url>
+        <system>bitbucket</system>
+        <url>http://bitbucket.org/mludwig/entreri/issues</url>
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://entreri.googlecode.com/svn/trunk</connection>
-        <developerConnection>scm:svn:https://entreri.googlecode.com/svn/trunk</developerConnection>
-        <url>http://entreri.googlecode.com/svn/trunk</url>
+        <connection>scm:hg:http://bitbucket.org/mludwig/entreri</connection>
+        <developerConnection>scm:hg:https://bitbucket.org/mludwig/entreri</developerConnection>
+        <url>http://bitbucket.org/mludwig/entreri</url>
     </scm>
 
     <profiles>
@@ -100,7 +97,6 @@
                 <version>2.2.1</version>
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
-                    <tagBase>https://entreri.googlecode.com/svn/tags</tagBase>
                     <mavenExecutorId>forked-path</mavenExecutorId>
                 </configuration>
             </plugin>
