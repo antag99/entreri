@@ -153,13 +153,11 @@ public class ReflectionComponentDataFactoryTest {
             c.setFloat(i);
         }
         
-        int i = 0;
         UnmanagedFieldComponent c = system.createDataInstance(id);
         for (Entity e: system) {
             Assert.assertTrue(e.get(c));
             float f = c.getFloat();
             Assert.assertEquals(0, f, .0001f);
-            i++;
         }
     }
 }

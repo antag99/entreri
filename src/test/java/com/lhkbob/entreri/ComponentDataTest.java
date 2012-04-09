@@ -30,11 +30,8 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.component.IntComponent;
+import com.lhkbob.entreri.component.OnSetComponent;
 
 public class ComponentDataTest {
     @Test
@@ -139,5 +136,38 @@ public class ComponentDataTest {
         
         cd.set(e.add(TypeId.get(IntComponent.class)));
         Assert.assertTrue(cd.isValid());
+    }
+    
+    @Test
+    public void testOnSetInvoked() {
+        // must test both public set() and default setFast()
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        Component<OnSetComponent> c = e.add(TypeId.get(OnSetComponent.class));
+        OnSetComponent cd = system.createDataInstance(TypeId.get(OnSetComponent.class));
+        
+        // sanity checks (onset gets called once during initialization)
+        Assert.assertEquals(0, cd.onsetIndex);
+        Assert.assertTrue(cd.onsetCalled);
+        
+        // reset
+        cd.onsetCalled = false;
+        cd.onsetIndex = 0;
+        
+        // trigger a regular set() call
+        cd.set(c);
+        Assert.assertEquals(c.index, cd.onsetIndex);
+        Assert.assertEquals(cd.getIndex(), cd.onsetIndex);
+        Assert.assertTrue(cd.onsetCalled);
+        
+        // reset
+        cd.onsetCalled = false;
+        cd.onsetIndex = 0;
+        
+        // trigger a setFast() call
+        e.get(cd);
+        Assert.assertEquals(c.index, cd.onsetIndex);
+        Assert.assertEquals(cd.getIndex(), cd.onsetIndex);
+        Assert.assertTrue(cd.onsetCalled);
     }
 }

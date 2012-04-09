@@ -186,6 +186,16 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     }
 
     /**
+     * Event hook called when this ComponentData is assigned to a valid
+     * component at the provided non-zero index.
+     * 
+     * @param index The new index
+     */
+    protected void onSet(int index) { 
+        // do nothing in base class
+    }
+
+    /**
      * A slightly faster method that requires only an index to a component, and
      * performs no validation. It also does not look up the component reference
      * since it assumes it's valid. These are lazily done when needed.
@@ -196,6 +206,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     boolean setFast(int componentIndex) {
         index = componentIndex;
         id = owner.getId(index);
+        onSet(index);
         return index != 0;
     }
 }
