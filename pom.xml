@@ -3,7 +3,7 @@
     <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
     <packaging>jar</packaging>
-    <version>1.5.1</version>
+    <version>1.5.2-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
     <description>
