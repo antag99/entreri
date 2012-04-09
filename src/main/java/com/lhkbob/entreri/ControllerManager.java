@@ -27,7 +27,9 @@
 package com.lhkbob.entreri;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -96,6 +98,8 @@ public class ControllerManager {
     private float fixedDelta;
     private final List<Controller> controllers;
     
+    private final Map<Controller, ProfileData> profile;
+    
     // This is a concurrent map so that parallel controllers can access it efficiently
     // - the rest of the class is assumed to be single-threaded
     private final ConcurrentHashMap<Key<?>, Object> controllerData;
@@ -116,6 +120,8 @@ public class ControllerManager {
         this.system = system;
         controllerData = new ConcurrentHashMap<Key<?>, Object>();
         controllers = new ArrayList<Controller>();
+        
+        profile = new HashMap<Controller, ProfileData>();
         
         fixedDelta = 1 / 60f; // 60fps
     }
@@ -202,8 +208,11 @@ public class ControllerManager {
         // now add it to the end
         controllers.add(controller);
         
-        if (!removed)
+        if (!removed) {
+            // perform initialization steps if we've never seen the controller
+            profile.put(controller, new ProfileData());
             controller.init(system);
+        }
     }
 
     /**
@@ -218,8 +227,42 @@ public class ControllerManager {
         if (controller == null)
             throw new NullPointerException("Controller cannot be null");
         boolean removed = controllers.remove(controller);
-        if (removed)
+        if (removed) {
             controller.destroy();
+            profile.remove(controller);
+        }
+    }
+    
+    /**
+     * Return the last execution time for the given controller and phase. This
+     * will return 0 if the controller has not been added to the manager.
+     * 
+     * @param controller The controller whose time is looked up
+     * @param phase The phase that whose timing is returned
+     * @return The last execution time of the controller
+     */
+    public long getExecutionTime(Controller controller, Phase phase) {
+        if (controller == null || phase == null)
+            throw new NullPointerException("Arguments cannot be null");
+        
+        ProfileData c = profile.get(controller);
+        long time = 0L;
+        
+        if (c != null) {
+            switch(phase) {
+            case ALL:
+                time = c.postprocessTime + c.preprocessTime + c.processTime;
+                break;
+            case POSTPROCESS:
+                time = c.postprocessTime; break;
+            case PREPROCESS:
+                time = c.preprocessTime; break;
+            case PROCESS:
+                time = c.processTime; break;
+            }
+        }
+        
+        return time;
     }
     
     /**
@@ -311,17 +354,38 @@ public class ControllerManager {
     }
     
     private void firePreProcess(float dt) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
+            long start = System.nanoTime();
             controllers.get(i).preProcess(dt);
+            profile.get(controllers.get(i)).preprocessTime = System.nanoTime() - start;
+        }
     }
     
     private void fireProcess(float dt) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
+            long start = System.nanoTime();
             controllers.get(i).process(dt);
+            profile.get(controllers.get(i)).processTime = System.nanoTime() - start;
+        }
     }
     
     private void firePostProcess(float dt) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
+            long start = System.nanoTime();
             controllers.get(i).postProcess(dt);
+            profile.get(controllers.get(i)).postprocessTime = System.nanoTime() - start;
+        }
+    }
+    
+    private static class ProfileData {
+        private long processTime;
+        private long preprocessTime;
+        private long postprocessTime;
+        
+        public ProfileData() {
+            processTime = 0;
+            preprocessTime = 0;
+            postprocessTime = 0;
+        }
     }
 }
