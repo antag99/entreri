@@ -95,9 +95,7 @@ public class ControllerManager {
         ALL
     }
 
-    private float fixedDelta;
     private final List<Controller> controllers;
-    
     private final Map<Controller, ProfileData> profile;
     
     // This is a concurrent map so that parallel controllers can access it efficiently
@@ -105,6 +103,8 @@ public class ControllerManager {
     private final ConcurrentHashMap<Key<?>, Object> controllerData;
 
     private final EntitySystem system;
+    
+    private long lastProcessTime;
 
     /**
      * Create a new ControllerManager that will store controllers and controller
@@ -122,29 +122,7 @@ public class ControllerManager {
         controllers = new ArrayList<Controller>();
         
         profile = new HashMap<Controller, ProfileData>();
-        
-        fixedDelta = 1 / 60f; // 60fps
-    }
-
-    /**
-     * Set a new fixed time frame delta. This can take any value and represents
-     * the number of seconds between each frame, so negative values may produce
-     * undefined results with some controllers. This value is only used if
-     * {@link #process()} is invoked, the other varieties take a delta value
-     * that overrides this one.
-     * 
-     * @param dt The new time frame delta
-     */
-    public void setFixedDelta(float dt) {
-        fixedDelta = dt;
-    }
-
-    /**
-     * @return The current fixed time frame delta that is used if
-     *         {@link #process()} is invoked
-     */
-    public float getFixedDelta() {
-        return fixedDelta;
+        lastProcessTime = -1L;
     }
 
     /**
@@ -266,10 +244,17 @@ public class ControllerManager {
     }
     
     /**
-     * Run all phases of the manager using the current fixed frame time delta.
+     * Run all phases of the manager using the time delta from the last time the
+     * post-process phase was executed. This means that the time delta is
+     * reasonably defined even if {@link #process(double)} and
+     * {@link #process(Phase, double)} are used in addition to this process()
+     * call.
      */
     public void process() {
-        process(fixedDelta);
+        if (lastProcessTime < 0)
+            process(0);
+        else
+            process((System.nanoTime() - lastProcessTime) / 1e9);
     }
 
     /**
@@ -279,7 +264,7 @@ public class ControllerManager {
      * @param dt The time delta for the frame, or the amount of time since the
      *            start of the last frame and this one
      */
-    public void process(float dt) {
+    public void process(double dt) {
         process(Phase.ALL, dt);
     }
 
@@ -293,7 +278,7 @@ public class ControllerManager {
      *            start of the last frame and this one
      * @throws NullPointerException if phase is null
      */
-    public void process(Phase phase, float dt) {
+    public void process(Phase phase, double dt) {
         if (phase == null)
             throw new NullPointerException("Phase cannot be null");
         
@@ -353,7 +338,7 @@ public class ControllerManager {
             controllers.get(i).onComponentRemove(c);
     }
     
-    private void firePreProcess(float dt) {
+    private void firePreProcess(double dt) {
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
             controllers.get(i).preProcess(dt);
@@ -361,7 +346,7 @@ public class ControllerManager {
         }
     }
     
-    private void fireProcess(float dt) {
+    private void fireProcess(double dt) {
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
             controllers.get(i).process(dt);
@@ -369,12 +354,14 @@ public class ControllerManager {
         }
     }
     
-    private void firePostProcess(float dt) {
+    private void firePostProcess(double dt) {
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
             controllers.get(i).postProcess(dt);
             profile.get(controllers.get(i)).postprocessTime = System.nanoTime() - start;
         }
+        
+        lastProcessTime = System.nanoTime();
     }
     
     private static class ProfileData {

@@ -58,7 +58,7 @@ public interface Controller {
      * 
      * @param dt The elapsed time since the last processing
      */
-    public void preProcess(float dt);
+    public void preProcess(double dt);
 
     /**
      * Invoke controller specific operations to process the EntitySystem. All
@@ -68,7 +68,7 @@ public interface Controller {
      * 
      * @param dt The elapsed time since the last processing
      */
-    public void process(float dt);
+    public void process(double dt);
 
     /**
      * Invoked at the end of a processing phase after all controllers in a
@@ -76,7 +76,7 @@ public interface Controller {
      * 
      * @param dt The elapsed time since the last processing
      */
-    public void postProcess(float dt);
+    public void postProcess(double dt);
 
     /**
      * Invoked when a Controller is added to an EntitySystem. This method

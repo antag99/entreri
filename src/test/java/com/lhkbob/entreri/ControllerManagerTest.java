@@ -45,7 +45,7 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().process(Phase.PREPROCESS, 0f);
+        system.getControllerManager().process(Phase.PREPROCESS, 0);
         
         Assert.assertTrue(controller.preprocessed);
         Assert.assertFalse(controller.processed);
@@ -58,7 +58,7 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().process(Phase.PROCESS, 0f);
+        system.getControllerManager().process(Phase.PROCESS, 0);
         
         Assert.assertFalse(controller.preprocessed);
         Assert.assertTrue(controller.processed);
@@ -71,7 +71,7 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().process(Phase.POSTPROCESS, 0f);
+        system.getControllerManager().process(Phase.POSTPROCESS, 0);
         
         Assert.assertFalse(controller.preprocessed);
         Assert.assertFalse(controller.processed);
@@ -84,7 +84,7 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().process(Phase.ALL, 0f);
+        system.getControllerManager().process(Phase.ALL, 0);
         
         Assert.assertTrue(controller.preprocessed);
         Assert.assertTrue(controller.processed);
@@ -92,19 +92,24 @@ public class ControllerManagerTest {
     }
     
     @Test
-    public void testFixedDelta() {
+    public void testComputedDelta() throws Exception {
         ControllerImpl controller = new ControllerImpl();
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().setFixedDelta(1f);
+        system.getControllerManager().process();
+        // 1st process() uses a dt of 0
+        Assert.assertEquals(0.0, controller.dt, .0001);
+        
+        Thread.sleep(10);
         
         system.getControllerManager().process();
-        
         Assert.assertTrue(controller.preprocessed);
         Assert.assertTrue(controller.processed);
         Assert.assertTrue(controller.postprocessed);
-        Assert.assertEquals(1f, controller.dt, .0001f);
+        // must be at least 10 ms, within 2 ms error either direction
+        Assert.assertTrue(controller.dt > .008);
+        Assert.assertTrue(controller.dt < .012);
     }
     
     @Test
@@ -113,14 +118,12 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().setFixedDelta(-1f);
-        
         system.getControllerManager().process(1f);
         
         Assert.assertTrue(controller.preprocessed);
         Assert.assertTrue(controller.processed);
         Assert.assertTrue(controller.postprocessed);
-        Assert.assertEquals(1f, controller.dt, .0001f);
+        Assert.assertEquals(1f, controller.dt, .0001);
     }
     
     @Test
@@ -178,7 +181,7 @@ public class ControllerManagerTest {
         private boolean processed;
         private boolean postprocessed;
         
-        private float dt;
+        private double dt;
         
         private boolean added;
         private boolean removed;
@@ -197,19 +200,19 @@ public class ControllerManagerTest {
         }
         
         @Override
-        public void preProcess(float dt) {
+        public void preProcess(double dt) {
             preprocessed = true;
             this.dt = dt;
         }
 
         @Override
-        public void process(float dt) {
+        public void process(double dt) {
             processed = true;
             this.dt = dt;
         }
 
         @Override
-        public void postProcess(float dt) {
+        public void postProcess(double dt) {
             postprocessed = true;
             this.dt = dt;
         }

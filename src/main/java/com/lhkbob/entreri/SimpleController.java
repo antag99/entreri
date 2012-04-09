@@ -46,17 +46,17 @@ public class SimpleController implements Controller {
     private EntitySystem system;
     
     @Override
-    public void preProcess(float dt) {
+    public void preProcess(double dt) {
         // do nothing in base class
     }
 
     @Override
-    public void process(float dt) {
+    public void process(double dt) {
         // do nothing in base class
     }
 
     @Override
-    public void postProcess(float dt) {
+    public void postProcess(double dt) {
         // do nothing in base class
     }
 
