@@ -162,6 +162,11 @@ public final class DoubleProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 8 * array.length;
+        }
+        
+        @Override
         public DoubleDataStore create(int size) {
             return new DoubleDataStore(elementSize, new double[elementSize * size]);
         }

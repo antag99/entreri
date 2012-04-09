@@ -162,6 +162,11 @@ public final class ByteProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return array.length;
+        }
+        
+        @Override
         public ByteDataStore create(int size) {
             return new ByteDataStore(elementSize, new byte[elementSize * size]);
         }

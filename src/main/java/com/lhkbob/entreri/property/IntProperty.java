@@ -162,6 +162,11 @@ public final class IntProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 4 * array.length;
+        }
+        
+        @Override
         public IntDataStore create(int size) {
             return new IntDataStore(elementSize, new int[elementSize * size]);
         }

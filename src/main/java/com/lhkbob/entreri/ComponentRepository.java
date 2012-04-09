@@ -174,6 +174,30 @@ final class ComponentRepository<T extends ComponentData<T>> {
             entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository, (int) (numEntities * 1.5f) + 1);
         }
     }
+    
+    /**
+     * @return Estimated memory usage of this component repository
+     */
+    public long estimateMemory() {
+        long total = 0L;
+        for (int i = 0; i < declaredProperties.size(); i++) {
+            total += declaredProperties.get(i).property.getDataStore().memory();
+        }
+        for (int i = 0; i < decoratedProperties.size(); i++) {
+            total += decoratedProperties.get(i).property.getDataStore().memory();
+        }
+        
+        // also add in an estimate for other structures used by
+        // this repository
+        total += 4 * entityIndexToComponentRepository.length;
+        total += 4 * componentIndexToEntityIndex.length;
+        
+        // estimate each Component object as 4 bytes for a pointer, 
+        // 4 bytes for its index, 4 bytes for its repository reference
+        total += 12 * components.length;
+        
+        return total;
+    }
 
     /**
      * @param componentIndex The component to look up

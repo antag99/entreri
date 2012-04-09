@@ -162,6 +162,11 @@ public final class ShortProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 2 * array.length;
+        }
+        
+        @Override
         public ShortDataStore create(int size) {
             return new ShortDataStore(elementSize, new short[elementSize * size]);
         }

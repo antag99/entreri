@@ -163,6 +163,11 @@ public final class FloatProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 4 * array.length;
+        }
+        
+        @Override
         public FloatDataStore create(int size) {
             return new FloatDataStore(elementSize, new float[elementSize * size]);
         }

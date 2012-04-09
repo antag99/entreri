@@ -126,7 +126,7 @@ public final class Entity implements Iterable<Component<?>> {
      * @throws NullPointerException if id is null
      */
     public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId, boolean ignoreEnable) {
-        ComponentRepository<T> ci = system.getIndex(componentId);
+        ComponentRepository<T> ci = system.getRepository(componentId);
         Component<T> c = ci.getComponent(ci.getComponentIndex(index));
         
         if (c == null || ignoreEnable || c.isEnabled())
@@ -192,7 +192,7 @@ public final class Entity implements Iterable<Component<?>> {
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> Component<T> add(TypeId<T> componentId) {
-        ComponentRepository<T> ci = system.getIndex(componentId);
+        ComponentRepository<T> ci = system.getRepository(componentId);
         return ci.addComponent(index);
     }
 
@@ -225,7 +225,7 @@ public final class Entity implements Iterable<Component<?>> {
     public <T extends ComponentData<T>> Component<T> add(Component<T> toClone) {
         if (toClone == null)
             throw new NullPointerException("ComponentData template, toClone, cannot be null");
-        ComponentRepository ci = system.getIndex(toClone.getTypeId());
+        ComponentRepository ci = system.getRepository(toClone.getTypeId());
         return ci.addComponent(index, toClone);
     }
 
@@ -242,7 +242,7 @@ public final class Entity implements Iterable<Component<?>> {
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> boolean remove(TypeId<T> componentId) {
-        ComponentRepository<T> ci = system.getIndex(componentId);
+        ComponentRepository<T> ci = system.getRepository(componentId);
         return ci.removeComponent(index);
     }
 

@@ -163,6 +163,11 @@ public final class BooleanProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return array.length;
+        }
+        
+        @Override
         public BooleanDataStore create(int size) {
             return new BooleanDataStore(elementSize, new boolean[elementSize * size]);
         }

@@ -167,6 +167,13 @@ public final class ObjectProperty<T> implements Property {
         }
         
         @Override
+        public long memory() {
+            // since this is just an approximate, we use 12 bytes as a minimum
+            // size for each object
+            return 12 * array.length;
+        }
+        
+        @Override
         public ObjectDataStore create(int size) {
             return new ObjectDataStore(elementSize, new Object[elementSize * size]);
         }

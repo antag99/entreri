@@ -67,7 +67,7 @@ import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
  * @author Michael Ludwig
  */
 public final class EntitySystem implements Iterable<Entity> {
-    private ComponentRepository<?>[] componentIndices;
+    private ComponentRepository<?>[] componentRepositories;
     
     private Entity[] entities;
     
@@ -82,7 +82,7 @@ public final class EntitySystem implements Iterable<Entity> {
     public EntitySystem() {
         manager = new ControllerManager(this);
         entities = new Entity[1];
-        componentIndices = new ComponentRepository[0];
+        componentRepositories = new ComponentRepository[0];
         
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
         entityInsert = 1;
@@ -125,12 +125,12 @@ public final class EntitySystem implements Iterable<Entity> {
             throw new NullPointerException("ComponentDataFactory cannot be null");
         
         int index = id.getId();
-        if (index >= componentIndices.length) {
+        if (index >= componentRepositories.length) {
             // make sure it's the correct size
-            componentIndices = Arrays.copyOf(componentIndices, index + 1);
+            componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
         }
         
-        ComponentRepository<T> i = (ComponentRepository<T>) componentIndices[index];
+        ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i != null) {
             // a factory is already defined
             throw new IllegalStateException("A ComponentDataFactory is already assigned to the type: " + id);
@@ -144,7 +144,7 @@ public final class EntitySystem implements Iterable<Entity> {
         
         i = new ComponentRepository<T>(this, id, factory);
         i.expandEntityIndex(entities.length);
-        componentIndices[index] = i;
+        componentRepositories[index] = i;
     }
 
     /**
@@ -158,7 +158,27 @@ public final class EntitySystem implements Iterable<Entity> {
      * @return A new instance of T linked to this EntitySystem
      */
     public <T extends ComponentData<T>> T createDataInstance(TypeId<T> id) {
-        return getIndex(id).createDataInstance();
+        return getRepository(id).createDataInstance();
+    }
+    
+    /**
+     * Estimate the memory usage of the components with the given TypeId in this
+     * EntitySystem. The returned long is measured in bytes. For ComponentData
+     * types that store primitive data, the estimate will be quite accurate. For
+     * types that store references to objects, it is likely be an underestimate.
+     * 
+     * @param id The TypeId to estimate
+     * @return The memory estimate for the given type
+     * @throws NullPointerException if id is null
+     */
+    public long estimateMemory(TypeId<?> id) {
+        int index = id.getId();
+        if (index < componentRepositories.length) {
+            ComponentRepository<?> repo = componentRepositories[index];
+            return repo.estimateMemory();
+        } else {
+            return 0L;
+        }
     }
     
     /**
@@ -244,9 +264,9 @@ public final class EntitySystem implements Iterable<Entity> {
         }
         
         // Now index and update all ComponentIndices
-        for (int i = 0; i < componentIndices.length; i++) {
-            if (componentIndices[i] != null)
-                componentIndices[i].compact(oldToNew, entityInsert);
+        for (int i = 0; i < componentRepositories.length; i++) {
+            if (componentRepositories[i] != null)
+                componentRepositories[i].compact(oldToNew, entityInsert);
         }
     }
 
@@ -295,9 +315,9 @@ public final class EntitySystem implements Iterable<Entity> {
             entities = Arrays.copyOf(entities, (int) (entityIndex * 1.5f) + 1);
         }
         
-        for (int i = 0; i < componentIndices.length; i++) {
-            if (componentIndices[i] != null)
-                componentIndices[i].expandEntityIndex(entityIndex + 1);
+        for (int i = 0; i < componentRepositories.length; i++) {
+            if (componentRepositories[i] != null)
+                componentRepositories[i].expandEntityIndex(entityIndex + 1);
         }
         
         Entity newEntity = new Entity(this, entityIndex, entityIdSeq++);
@@ -337,9 +357,9 @@ public final class EntitySystem implements Iterable<Entity> {
             throw new IllegalArgumentException("Entity has already been removed");
         
         // Remove all components from the entity
-        for (int i = 0; i < componentIndices.length; i++) {
-            if (componentIndices[i] != null)
-                componentIndices[i].removeComponent(e.index);
+        for (int i = 0; i < componentRepositories.length; i++) {
+            if (componentRepositories[i] != null)
+                componentRepositories[i].removeComponent(e.index);
         }
         
         // clear out the entity
@@ -370,7 +390,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * @throws NullPointerException if type or factory are null
      */
     public <T extends ComponentData<T>, P extends Property> P decorate(TypeId<T> type, PropertyFactory<P> factory) {
-        ComponentRepository<?> index = getIndex(type);
+        ComponentRepository<?> index = getRepository(type);
         return index.decorate(factory);
     }
 
@@ -385,7 +405,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * @throws NullPointerException if type is null
      */
     public <T extends ComponentData<T>> void undecorate(TypeId<T> type, Property p) {
-        ComponentRepository<?> index = getIndex(type);
+        ComponentRepository<?> index = getRepository(type);
         index.undecorate(p);
     }
 
@@ -398,19 +418,19 @@ public final class EntitySystem implements Iterable<Entity> {
      * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
-    <T extends ComponentData<T>> ComponentRepository<T> getIndex(TypeId<T> id) {
+    <T extends ComponentData<T>> ComponentRepository<T> getRepository(TypeId<T> id) {
         int index = id.getId();
-        if (index >= componentIndices.length) {
+        if (index >= componentRepositories.length) {
             // make sure it's the correct size
-            componentIndices = Arrays.copyOf(componentIndices, index + 1);
+            componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
         }
         
-        ComponentRepository<T> i = (ComponentRepository<T>) componentIndices[index];
+        ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
             i = new ComponentRepository<T>(this, id, createDefaultFactory(id));
             i.expandEntityIndex(entities.length);
-            componentIndices[index] = i;
+            componentRepositories[index] = i;
         }
         
         return i;
@@ -477,7 +497,7 @@ public final class EntitySystem implements Iterable<Entity> {
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, TypeId typeId, Component<T> c) {
-        ComponentRepository index = getIndex(typeId);
+        ComponentRepository index = getRepository(typeId);
         index.addComponent(entityIndex, c);
     }
 
@@ -494,7 +514,7 @@ public final class EntitySystem implements Iterable<Entity> {
         public boolean hasNext() {
             if (!advanced)
                 advance();
-            return index < componentIndices.length;
+            return index < componentRepositories.length;
         }
 
         @Override
@@ -502,7 +522,7 @@ public final class EntitySystem implements Iterable<Entity> {
             if (!hasNext())
                 throw new NoSuchElementException();
             advanced = false;
-            return componentIndices[index];
+            return componentRepositories[index];
         }
 
         @Override
@@ -513,7 +533,7 @@ public final class EntitySystem implements Iterable<Entity> {
         private void advance() {
             do {
                 index++;
-            } while(index < componentIndices.length && componentIndices[index] == null);
+            } while(index < componentRepositories.length && componentRepositories[index] == null);
             advanced = true;
         }
     }

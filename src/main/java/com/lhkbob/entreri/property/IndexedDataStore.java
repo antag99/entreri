@@ -48,6 +48,11 @@ public interface IndexedDataStore {
      * @return The number of properties that can fit into this IndexedDataStore
      */
     public int size();
+    
+    /**
+     * @return Memory usage estimate of this data store
+     */
+    public long memory();
 
     /**
      * <p>

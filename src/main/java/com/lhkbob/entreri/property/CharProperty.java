@@ -162,6 +162,11 @@ public final class CharProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 2 * array.length;
+        }
+        
+        @Override
         public CharDataStore create(int size) {
             return new CharDataStore(elementSize, new char[elementSize * size]);
         }

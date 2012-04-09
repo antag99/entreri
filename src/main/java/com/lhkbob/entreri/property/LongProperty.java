@@ -162,6 +162,11 @@ public final class LongProperty implements Property {
         }
         
         @Override
+        public long memory() {
+            return 8 * array.length;
+        }
+        
+        @Override
         public LongDataStore create(int size) {
             return new LongDataStore(elementSize, new long[elementSize * size]);
         }
