@@ -35,11 +35,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.lhkbob.entreri.property.BooleanProperty;
-import com.lhkbob.entreri.property.CompactAwareProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
 import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * ComponentRepository manages storing all the componentDatas of a specific type for an
@@ -463,15 +459,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         return dst;
     }
     
-    private void notifyCompactAwareProperties(List<PropertyStore<?>> props) {
-        PropertyStore<?> p;
-        for (int i = 0; i < props.size(); i++) {
-            p = props.get(i);
-            if (p.property instanceof CompactAwareProperty)
-                ((CompactAwareProperty) p.property).onCompactComplete();
-        }
-    }
-
     /**
      * <p>
      * Compact the data of this ComponentRepository to account for removals and
@@ -537,9 +524,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         
         for (int i = 1; i < componentInsert; i++)
             entityIndexToComponentRepository[componentIndexToEntityIndex[i]] = i;
-        
-        notifyCompactAwareProperties(declaredProperties);
-        notifyCompactAwareProperties(decoratedProperties);
     }
 
     /**

@@ -31,29 +31,20 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
-
 /**
  * <p>
- * ElementSize is an annotation that can be added to {@link Property} fields in
- * a component definition to automatically configure their creating
- * PropertyFactories.
- * </p>
+ * ElementSize is an attribute annotation that can be applied to a field
+ * declaration of a Property to declare how many elements belong to each
+ * component. This is useful if multiple primitives must be packed together for
+ * the same component, such as with a 3D vector.
  * <p>
- * The default {@link ReflectionComponentDataFactory} will look for a static
- * method named 'factory()' that takes a single int as a parameter. ElementSize
- * can be combined with the {@link DefaultValue} if there is a factory() that
- * takes an int and a second argument for the default value. It is not necessary
- * to use the {@link ElementSize} if the element size should be 1.
- * </p>
- * <p>
- * All Property implementations in com.lhkbob.entreri.property support the
- * use of this annotation.
+ * All Property implementations in com.lhkbob.entreri.property support the use
+ * of this annotation.
  * </p>
  * 
  * @author Michael Ludwig
  */
+@Attribute
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface ElementSize {

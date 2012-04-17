@@ -26,33 +26,16 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.CompactAwareProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.PropertyFactory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.annot.Factory;
 
-public class NoParameterProperty implements CompactAwareProperty {
+@Factory(NoParameterProperty.NoArgFactory.class)
+public class NoParameterProperty implements Property {
     private final IntProperty property;
-    
-    private boolean compacted;
     
     public NoParameterProperty() {
         property = new IntProperty(1);
-    }
-    
-    public static PropertyFactory<NoParameterProperty> createFactory() {
-        return new AbstractPropertyFactory<NoParameterProperty>() {
-            @Override
-            public void setDefaultValue(NoParameterProperty property, int index) {
-                property.property.set(0, index, 0);
-            }
-            
-            @Override
-            public NoParameterProperty create() {
-                return new NoParameterProperty();
-            }
-        };
     }
     
     @Override
@@ -64,13 +47,20 @@ public class NoParameterProperty implements CompactAwareProperty {
     public void setDataStore(IndexedDataStore store) {
         property.setDataStore(store);
     }
-
-    @Override
-    public void onCompactComplete() {
-        compacted = true;
-    }
     
-    public boolean wasCompacted() {
-        return compacted;
+    public static class NoArgFactory extends AbstractPropertyFactory<NoParameterProperty> {
+        public NoArgFactory() {
+            super(null);
+        }
+
+        @Override
+        public NoParameterProperty create() {
+            return new NoParameterProperty();
+        }
+
+        @Override
+        public void setDefaultValue(NoParameterProperty property, int index) {
+            property.property.set(0, index, 0);
+        }
     }
 }

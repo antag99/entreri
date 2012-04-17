@@ -26,12 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.FloatProperty;
 
 
 public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
     public static final float DEFAULT = 5f;
+    
+    public FloatPropertyFactory() {
+        super(null);
+    }
     
     @Override
     public FloatProperty create() {

@@ -31,22 +31,32 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.property.PropertyFactory;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.ReflectionComponentDataFactory;
 
 /**
+ * <p>
  * The Factory annotation can be declared on a Property field in a ComponentData
  * definition to specify the type of PropertyFactory to use when creating
  * instances of the Property for the component. The factory type must have a
  * no-argument constructor in order to be instantiated correctly. This
- * annotation should be used if {@link ElementSize} and {@link DefaultValue} are
- * not sufficient.
+ * annotation should be used if Property does not provide a default factory with
+ * sufficient flexibility with annotation attributes (e.g. {@link DefaultValue}
+ * and {@link Factory}).
+ * </p>
+ * <p>
+ * Factory can also be placed at the type level on a Property implementation to
+ * declare the default PropertyFactory to use. When using the
+ * {@link ReflectionComponentDataFactory}, it checks for a constructor taking a
+ * single {@link Attributes} object, or the default constructor.
+ * </p>
  * 
  * @see ReflectionComponentDataFactory
  * @author Michael Ludwig
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ ElementType.FIELD, ElementType.TYPE })
 public @interface Factory {
     /**
      * @return Class of the PropertyFactory to instantiate, must have an

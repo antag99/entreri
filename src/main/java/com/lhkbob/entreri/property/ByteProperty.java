@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * ByteProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(ByteProperty.BytePropertyFactory.class)
 public final class ByteProperty implements Property {
     private ByteDataStore store;
     
@@ -63,7 +71,7 @@ public final class ByteProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for ByteProperty
      */
-    public static PropertyFactory<ByteProperty> factory(final int elementSize) {
+    public static PropertyFactory<ByteProperty> factory(int elementSize) {
         return factory(elementSize, (byte) 0);
     }
 
@@ -75,19 +83,8 @@ public final class ByteProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for ByteProperty
      */
-    public static PropertyFactory<ByteProperty> factory(final int elementSize, final byte dflt) {
-        return new AbstractPropertyFactory<ByteProperty>() {
-            @Override
-            public ByteProperty create() {
-                return new ByteProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(ByteProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<ByteProperty> factory(int elementSize, byte dflt) {
+        return new BytePropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -138,7 +135,7 @@ public final class ByteProperty implements Property {
     public IndexedDataStore getDataStore() {
         return store;
     }
-
+    
     @Override
     public void setDataStore(IndexedDataStore store) {
         if (store == null)
@@ -151,6 +148,42 @@ public final class ByteProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with ByteProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class BytePropertyFactory extends AbstractPropertyFactory<ByteProperty> {
+        private final int elementSize;
+        private final byte defaultValue;
+        
+        public BytePropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultByte();
+            else
+                defaultValue = 0;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public BytePropertyFactory(int elementSize, byte defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public ByteProperty create() {
+            return new ByteProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(ByteProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class ByteDataStore extends AbstractIndexedDataStore<byte[]> {

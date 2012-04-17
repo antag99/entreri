@@ -27,7 +27,6 @@
 package com.lhkbob.entreri;
 
 import com.lhkbob.entreri.annot.DefaultFactory;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
 
 /**
  * <p>

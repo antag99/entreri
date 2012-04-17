@@ -26,7 +26,13 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * ObjectProperty is an implementation of Property that stores the property data
@@ -36,6 +42,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(ObjectProperty.ObjectPropertyFactory.class)
 public final class ObjectProperty<T> implements Property {
     private ObjectDataStore store;
     
@@ -66,7 +73,7 @@ public final class ObjectProperty<T> implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for ObjectProperty
      */
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize) {
+    public static <T> PropertyFactory<ObjectProperty<T>> factory(int elementSize) {
         return factory(elementSize, null);
     }
 
@@ -79,19 +86,10 @@ public final class ObjectProperty<T> implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for ObjectProperty
      */
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(final int elementSize, final T dflt) {
-        return new AbstractPropertyFactory<ObjectProperty<T>>() {
-            @Override
-            public ObjectProperty<T> create() {
-                return new ObjectProperty<T>(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(ObjectProperty<T> p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static <T> PropertyFactory<ObjectProperty<T>> factory(int elementSize, T dflt) {
+        PropertyFactory superRaw = new ObjectPropertyFactory(elementSize, dflt);
+        return (PropertyFactory<ObjectProperty<T>>) superRaw;
     }
     
     /**
@@ -156,6 +154,41 @@ public final class ObjectProperty<T> implements Property {
             throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    @SuppressWarnings("rawtypes")
+    private static class ObjectPropertyFactory extends AbstractPropertyFactory<ObjectProperty> {
+        private final int elementSize;
+        private final Object defaultValue;
+        
+        public ObjectPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            defaultValue = null;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public ObjectPropertyFactory(int elementSize, Object defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public ObjectProperty create() {
+            return new ObjectProperty(elementSize);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void setDefaultValue(ObjectProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class ObjectDataStore extends AbstractIndexedDataStore<Object[]> {

@@ -32,9 +32,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import com.lhkbob.entreri.annot.DefaultFactory;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
 
 /**
  * <p>

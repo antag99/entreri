@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * LongProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(LongProperty.LongPropertyFactory.class)
 public final class LongProperty implements Property {
     private LongDataStore store;
     
@@ -63,7 +71,7 @@ public final class LongProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for LongProperty
      */
-    public static PropertyFactory<LongProperty> factory(final int elementSize) {
+    public static PropertyFactory<LongProperty> factory(int elementSize) {
         return factory(elementSize, 0);
     }
 
@@ -75,19 +83,8 @@ public final class LongProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for LongProperty
      */
-    public static PropertyFactory<LongProperty> factory(final int elementSize, final long dflt) {
-        return new AbstractPropertyFactory<LongProperty>() {
-            @Override
-            public LongProperty create() {
-                return new LongProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(LongProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<LongProperty> factory(int elementSize, long dflt) {
+        return new LongPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,6 +148,42 @@ public final class LongProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with LongProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class LongPropertyFactory extends AbstractPropertyFactory<LongProperty> {
+        private final int elementSize;
+        private final long defaultValue;
+        
+        public LongPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultLong();
+            else
+                defaultValue = 0L;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public LongPropertyFactory(int elementSize, long defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public LongProperty create() {
+            return new LongProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(LongProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class LongDataStore extends AbstractIndexedDataStore<long[]> {

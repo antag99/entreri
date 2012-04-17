@@ -34,10 +34,6 @@ import java.util.Map.Entry;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
-import com.lhkbob.entreri.TypeId;
 import com.lhkbob.entreri.component.BadConstructorComponent;
 import com.lhkbob.entreri.component.ExtraFieldComponent;
 import com.lhkbob.entreri.component.FloatComponent;
@@ -46,7 +42,6 @@ import com.lhkbob.entreri.component.InvalidFactoryComponent;
 import com.lhkbob.entreri.component.InvalidFactoryMethodComponent;
 import com.lhkbob.entreri.component.InvalidHierarchyComponent;
 import com.lhkbob.entreri.component.MultiPropertyComponent;
-import com.lhkbob.entreri.component.NoFactoryMethodComponent;
 import com.lhkbob.entreri.component.ObjectComponent;
 import com.lhkbob.entreri.component.PublicConstructorComponent;
 import com.lhkbob.entreri.component.UnmanagedFieldComponent;
@@ -55,8 +50,6 @@ import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.LongProperty;
 import com.lhkbob.entreri.property.NoParameterProperty;
-import com.lhkbob.entreri.property.PropertyFactory;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
 
 public class ReflectionComponentDataFactoryTest {
     @Test
@@ -76,7 +69,6 @@ public class ReflectionComponentDataFactoryTest {
         doInvalidComponentDefinitionTest(InvalidHierarchyComponent.class);
         doInvalidComponentDefinitionTest(InvalidFactoryComponent.class);
         doInvalidComponentDefinitionTest(InvalidFactoryMethodComponent.class);
-        doInvalidComponentDefinitionTest(NoFactoryMethodComponent.class);
         doInvalidComponentDefinitionTest(PublicConstructorComponent.class);
     }
     

@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * FloatProperty is an implementation of Property that stores the property data
@@ -35,6 +42,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(FloatProperty.FloatPropertyFactory.class)
 public final class FloatProperty implements Property {
     private FloatDataStore store;
     
@@ -64,7 +72,7 @@ public final class FloatProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for FloatProperty
      */
-    public static PropertyFactory<FloatProperty> factory(final int elementSize) {
+    public static PropertyFactory<FloatProperty> factory(int elementSize) {
         return factory(elementSize, 0f);
     }
 
@@ -76,19 +84,8 @@ public final class FloatProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for FloatProperty
      */
-    public static PropertyFactory<FloatProperty> factory(final int elementSize, final float dflt) {
-        return new AbstractPropertyFactory<FloatProperty>() {
-            @Override
-            public FloatProperty create() {
-                return new FloatProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(FloatProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<FloatProperty> factory(int elementSize, float dflt) {
+        return new FloatPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -152,6 +149,42 @@ public final class FloatProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
+        private final int elementSize;
+        private final float defaultValue;
+        
+        public FloatPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultFloat();
+            else
+                defaultValue = 0f;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public FloatPropertyFactory(int elementSize, float defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public FloatProperty create() {
+            return new FloatProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(FloatProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {

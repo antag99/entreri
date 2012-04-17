@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.property;
+package com.lhkbob.entreri;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -36,12 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.ComponentDataFactory;
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
 import com.lhkbob.entreri.annot.DefaultFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
 import com.lhkbob.entreri.annot.Factory;
 import com.lhkbob.entreri.annot.Unmanaged;
 
@@ -60,21 +55,16 @@ import com.lhkbob.entreri.annot.Unmanaged;
  * <li>If the class is not a direct subclass of ComponentData, its parent must
  * be a assignable to ComponentData and be declared abstract. The parent's
  * declared fields must also follow the rules below.</li>
- * <li>A concrete subclass of ComponentData must have only constructor; it must
- * be private or protected and take zero arguments.</li>
+ * <li>A concrete subclass of ComponentData must have only one constructor; it
+ * must be private or protected and take zero arguments.</li>
  * <li>All non-static fields that are not annotated with {@link Unmanaged}
  * defined in the ComponentData type, or its abstract parents, must be
  * Properties and be private or protected.</li>
- * <li>The managed Property fields must be annoted with {@link Factory},
- * {@link ElementSize}, and/or {@link DefaultValue} in order to define a
- * PropertyFactory implementation, or determine a static factory method defined
- * in the Property definition.</li>
+ * <li>The Property field must be annotated with {@link Factory} or the Property
+ * class must be annotated with {@link Factory}.</li>
+ * <li>The specified factory must have a default constructor, or a constructor
+ * that takes a single {@link Attributes} instance.</li>
  * </ol>
- * </p>
- * <p>
- * For an example of static factory methods, see
- * {@link LongProperty#factory(int)} and {@link LongProperty#factory(int, long)}
- * .
  * </p>
  * 
  * @author Michael Ludwig
@@ -169,132 +159,61 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         Class<? extends Property> type = (Class<? extends Property>) field.getType();
         Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field.getDeclaringClass();
         
-        // Check to use the explicit factory
-        Factory factoryAnnot = field.getAnnotation(Factory.class);
-        if (factoryAnnot != null) {
-            // verify that the PropertyFactory actually creates the right type
-                try {
-                    Method create = factoryAnnot.value().getMethod("create");
-                    if (!type.isAssignableFrom(create.getReturnType()))
-                        throw new IllegalComponentDefinitionException(forCType, "@Factory for " + factoryAnnot.value() + " creates incorrect Property type for property type: " + type);
-                } catch (SecurityException e) {
-                    // should not happen
-                    throw new RuntimeException("Unable to inspect factory's create method", e);
-                } catch (NoSuchMethodException e) {
-                    // should not happen
-                    throw new RuntimeException("Unable to inspect factory's create method", e);
-                }
-                
-            try {
-                return factoryAnnot.value().newInstance();
-            } catch (Exception e) {
-                throw new IllegalComponentDefinitionException(forCType, "Cannot create PropertyFactory from @Factory annotation: " + factoryAnnot.value());
-            }
-        }
-        
-        // we'll fall back to using these annotations (and their defaults) to create a factory
-        // if there is a static factory() method present on the Property
-        DefaultValue dfltValue = field.getAnnotation(DefaultValue.class);
-        ElementSize elementSize = field.getAnnotation(ElementSize.class);
-        int actualElementSize = (elementSize == null ? 1 : elementSize.value());
-        
-        if (dfltValue != null) {
-            // look for factory methods of the different primitive types
-            try {
-                { // boolean
-                    Method fm = getFactoryMethod(type, true, boolean.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultBoolean());
-                }
-                { // char
-                    Method fm = getFactoryMethod(type, true, char.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultChar());
-                }
-                { // byte
-                    Method fm = getFactoryMethod(type, true, byte.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultByte());
-                }
-                { // short
-                    Method fm = getFactoryMethod(type, true, short.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultShort());
-                }
-                { // int
-                    Method fm = getFactoryMethod(type, true, int.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultInt());
-                }
-                { // long
-                    Method fm = getFactoryMethod(type, true, long.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultLong());
-                }
-                { // float
-                    Method fm = getFactoryMethod(type, true, float.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultFloat());
-                }
-                { // double
-                    Method fm = getFactoryMethod(type, true, double.class);
-                    if (fm != null)
-                        return (PropertyFactory<?>) fm.invoke(null, actualElementSize, dfltValue.defaultDouble());
-                }
-            } catch(Exception e) {
-                throw new RuntimeException("Unable to call static factory method on Property type: " + type + " on field " + field);
-            }
+        // Check for the @Factory on the field and the type
+        Class<? extends PropertyFactory<?>> factoryType;
+        if (field.getAnnotation(Factory.class) != null) {
+            // prefer field declaration
+            factoryType = field.getAnnotation(Factory.class).value();
+        } else if (type.getAnnotation(Factory.class) != null) {
+            // fall back to type declaration
+            factoryType = type.getAnnotation(Factory.class).value();
         } else {
-            // we don't have a default type to use, so first look for one that
-            // takes an element size
-            try {
-                Method fm = getFactoryMethod(type, true, null);
-                if (fm != null)
-                    return (PropertyFactory<?>) fm.invoke(null, actualElementSize);
-                // fall back to a factory method with no arguments
-                fm = getFactoryMethod(type, false, null);
-                if (fm != null)
-                    return (PropertyFactory<?>) fm.invoke(null);
-            } catch(Exception e) {
-                
-            }
+            throw new IllegalComponentDefinitionException(forCType, "Cannot create PropertyFactory for " + type + ", no @Factory annotation on field or type");
         }
 
-        // unable to create a PropertyFactory
-        throw new IllegalComponentDefinitionException(forCType, "Unable to create PropertyFactory for " + field);
-    }
-        
-    private static Method getFactoryMethod(Class<? extends Property> type, boolean elementSize, Class<?> dfltType) {
-        Method[] methods = type.getDeclaredMethods();
-        
-        for (Method m: methods) {
-            // check if it is a static method that creates a PropertyFactory
-            if (PropertyFactory.class.isAssignableFrom(m.getReturnType())
-                && Modifier.isStatic(m.getModifiers())) {
-                // now validate parameter types
-                Class<?>[] params = m.getParameterTypes();
-                if (!elementSize) {
-                    // we assume that dfltType is also null and we accept the method
-                    // if it has no arguments
-                    if (params.length == 0)
-                        return m;
-                } else {
-                    if (dfltType == null) {
-                        // we accept it if the first type is an int
-                        if (params.length == 1 && int.class.equals(params[0]))
-                            return m;
-                    } else {
-                        // we accept it if the first type is an int and 
-                        // the second type equals dfltType
-                        if (params.length == 2 && int.class.equals(params[0]) && dfltType.equals(params[1]))
-                            return m;
-                    }
-                }
-            }
+        // verify that the PropertyFactory actually creates the right type
+        try {
+            Method create = factoryType.getMethod("create");
+            if (!type.isAssignableFrom(create.getReturnType()))
+                throw new IllegalComponentDefinitionException(forCType, "@Factory(" + factoryType + ") creates incorrect Property type: " + create.getReturnType() + ", required type: " + type);
+        } catch (SecurityException e) {
+            // should not happen
+            throw new RuntimeException("Unable to inspect factory's create method", e);
+        } catch (NoSuchMethodException e) {
+            // should not happen
+            throw new RuntimeException("Unable to inspect factory's create method", e);
         }
         
-        // no suitable factory method was found
-        return null;
+        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(field));
+        if (factory == null)
+            factory = invokeConstructor(factoryType);
+
+        if (factory == null) {
+            // unable to create a PropertyFactory
+            throw new IllegalComponentDefinitionException(forCType, "Unable to create PropertyFactory for " + field);
+        } else {
+            return factory;
+        }
+    }
+    
+    private static PropertyFactory<?> invokeConstructor(Class<? extends PropertyFactory<?>> type, Object... args) {
+        Class<?>[] paramTypes = new Class<?>[args.length];
+        for (int i = 0; i < args.length; i++)
+            paramTypes[i] = args[i].getClass();
+        
+        try {
+            Constructor<?> ctor = type.getConstructor(paramTypes);
+            ctor.setAccessible(true);
+            return (PropertyFactory<?>) ctor.newInstance(args);
+        } catch (SecurityException e) {
+            throw new RuntimeException("Unable to inspect factory's constructor", e);
+        } catch (NoSuchMethodException e) {
+            // ignore, fall back to default constructor
+            return null;
+        } catch (Exception e) {
+            // other exceptions should not occur
+            throw new RuntimeException("Unexpected exception during factory creation", e);
+        }
     }
     
     @SuppressWarnings("unchecked")

@@ -28,9 +28,6 @@ package com.lhkbob.entreri;
 
 import java.util.Map;
 
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
 
 /**
  * <p>

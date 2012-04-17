@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * BooleanProperty is an implementation of Property that stores the property data
@@ -35,6 +42,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(BooleanProperty.BooleanPropertyFactory.class)
 public final class BooleanProperty implements Property {
     private BooleanDataStore store;
     
@@ -64,7 +72,7 @@ public final class BooleanProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for BooleanProperty
      */
-    public static PropertyFactory<BooleanProperty> factory(final int elementSize) {
+    public static PropertyFactory<BooleanProperty> factory(int elementSize) {
         return factory(elementSize, false);
     }
 
@@ -76,19 +84,8 @@ public final class BooleanProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for IntProperty
      */
-    public static PropertyFactory<BooleanProperty> factory(final int elementSize, final boolean dflt) {
-        return new AbstractPropertyFactory<BooleanProperty>() {
-            @Override
-            public BooleanProperty create() {
-                return new BooleanProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(BooleanProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<BooleanProperty> factory(int elementSize, boolean dflt) {
+        return new BooleanPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -152,6 +149,42 @@ public final class BooleanProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class BooleanPropertyFactory extends AbstractPropertyFactory<BooleanProperty> {
+        private final int elementSize;
+        private final boolean defaultValue;
+        
+        public BooleanPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultBoolean();
+            else
+                defaultValue = false;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public BooleanPropertyFactory(int elementSize, boolean defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public BooleanProperty create() {
+            return new BooleanProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(BooleanProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class BooleanDataStore extends AbstractIndexedDataStore<boolean[]> {

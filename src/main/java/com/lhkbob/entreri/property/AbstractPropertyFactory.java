@@ -26,6 +26,11 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+
 /**
  * AbstractPropertyFactory is an abstract PropertyFactory implementation that
  * implements {@link #clone(Property, int, Property, int)} in terms of
@@ -36,6 +41,12 @@ package com.lhkbob.entreri.property;
  * @param <P>
  */
 public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
+    protected final Attributes attributes;
+    
+    public AbstractPropertyFactory(Attributes attrs) {
+        attributes = attrs;
+    }
+    
     @Override
     public void clone(P src, int srcIndex, P dst, int dstIndex) {
         src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);

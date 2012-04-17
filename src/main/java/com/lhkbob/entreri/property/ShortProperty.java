@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * ShortProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(ShortProperty.ShortPropertyFactory.class)
 public final class ShortProperty implements Property {
     private ShortDataStore store;
     
@@ -63,7 +71,7 @@ public final class ShortProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for ShortProperty
      */
-    public static PropertyFactory<ShortProperty> factory(final int elementSize) {
+    public static PropertyFactory<ShortProperty> factory(int elementSize) {
         return factory(elementSize, (short) 0);
     }
 
@@ -75,19 +83,8 @@ public final class ShortProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for ShortProperty
      */
-    public static PropertyFactory<ShortProperty> factory(final int elementSize, final short dflt) {
-        return new AbstractPropertyFactory<ShortProperty>() {
-            @Override
-            public ShortProperty create() {
-                return new ShortProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(ShortProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<ShortProperty> factory(int elementSize, short dflt) {
+        return new ShortPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,6 +148,42 @@ public final class ShortProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with ShortProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class ShortPropertyFactory extends AbstractPropertyFactory<ShortProperty> {
+        private final int elementSize;
+        private final short defaultValue;
+        
+        public ShortPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultShort();
+            else
+                defaultValue = 0;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public ShortPropertyFactory(int elementSize, short defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public ShortProperty create() {
+            return new ShortProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(ShortProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class ShortDataStore extends AbstractIndexedDataStore<short[]> {

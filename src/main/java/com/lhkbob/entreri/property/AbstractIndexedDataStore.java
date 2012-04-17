@@ -29,6 +29,8 @@ package com.lhkbob.entreri.property;
 import java.nio.Buffer;
 import java.util.List;
 
+import com.lhkbob.entreri.IndexedDataStore;
+
 
 /**
  * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses

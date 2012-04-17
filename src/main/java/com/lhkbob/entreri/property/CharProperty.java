@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * CharProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(CharProperty.CharPropertyFactory.class)
 public final class CharProperty implements Property {
     private CharDataStore store;
     
@@ -63,7 +71,7 @@ public final class CharProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for CharProperty
      */
-    public static PropertyFactory<CharProperty> factory(final int elementSize) {
+    public static PropertyFactory<CharProperty> factory(int elementSize) {
         return factory(elementSize, '\0');
     }
 
@@ -75,19 +83,8 @@ public final class CharProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for CharProperty
      */
-    public static PropertyFactory<CharProperty> factory(final int elementSize, final char dflt) {
-        return new AbstractPropertyFactory<CharProperty>() {
-            @Override
-            public CharProperty create() {
-                return new CharProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(CharProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<CharProperty> factory(int elementSize, char dflt) {
+        return new CharPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,6 +148,42 @@ public final class CharProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with CharProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class CharPropertyFactory extends AbstractPropertyFactory<CharProperty> {
+        private final int elementSize;
+        private final char defaultValue;
+        
+        public CharPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultChar();
+            else
+                defaultValue = '\0';
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public CharPropertyFactory(int elementSize, char defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public CharProperty create() {
+            return new CharProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(CharProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class CharDataStore extends AbstractIndexedDataStore<char[]> {

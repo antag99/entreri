@@ -29,8 +29,6 @@ package com.lhkbob.entreri;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * <p>

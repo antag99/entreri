@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
 
 import com.lhkbob.entreri.ComponentDataFactory;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.property.ReflectionComponentDataFactory;
+import com.lhkbob.entreri.ReflectionComponentDataFactory;
 
 /**
  * <p>

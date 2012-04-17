@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * IntProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(IntProperty.IntPropertyFactory.class)
 public final class IntProperty implements Property {
     private IntDataStore store;
     
@@ -63,7 +71,7 @@ public final class IntProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for IntProperty
      */
-    public static PropertyFactory<IntProperty> factory(final int elementSize) {
+    public static PropertyFactory<IntProperty> factory(int elementSize) {
         return factory(elementSize, 0);
     }
 
@@ -75,19 +83,8 @@ public final class IntProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for IntProperty
      */
-    public static PropertyFactory<IntProperty> factory(final int elementSize, final int dflt) {
-        return new AbstractPropertyFactory<IntProperty>() {
-            @Override
-            public IntProperty create() {
-                return new IntProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(IntProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<IntProperty> factory(int elementSize, final int dflt) {
+        return new IntPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,6 +148,42 @@ public final class IntProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with IntProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class IntPropertyFactory extends AbstractPropertyFactory<IntProperty> {
+        private final int elementSize;
+        private final int defaultValue;
+        
+        public IntPropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultInt();
+            else
+                defaultValue = 0;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public IntPropertyFactory(int elementSize, int defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public IntProperty create() {
+            return new IntProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(IntProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class IntDataStore extends AbstractIndexedDataStore<int[]> {

@@ -26,7 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
+import com.lhkbob.entreri.annot.DefaultValue;
+import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.annot.Factory;
 
 /**
  * DoubleProperty is an implementation of Property that stores the property data
@@ -34,6 +41,7 @@ import com.lhkbob.entreri.ComponentData;
  * 
  * @author Michael Ludwig
  */
+@Factory(DoubleProperty.DoublePropertyFactory.class)
 public final class DoubleProperty implements Property {
     private DoubleDataStore store;
     
@@ -63,7 +71,7 @@ public final class DoubleProperty implements Property {
      * @param elementSize The element size of the created properties
      * @return A PropertyFactory for DoubleProperty
      */
-    public static PropertyFactory<DoubleProperty> factory(final int elementSize) {
+    public static PropertyFactory<DoubleProperty> factory(int elementSize) {
         return factory(elementSize, 0.0);
     }
 
@@ -75,19 +83,8 @@ public final class DoubleProperty implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for DoubleProperty
      */
-    public static PropertyFactory<DoubleProperty> factory(final int elementSize, final double dflt) {
-        return new AbstractPropertyFactory<DoubleProperty>() {
-            @Override
-            public DoubleProperty create() {
-                return new DoubleProperty(elementSize);
-            }
-          
-            @Override
-            public void setDefaultValue(DoubleProperty p, int index) {
-                for (int i = 0; i < elementSize; i++)
-                    p.set(dflt, index, i);
-            }
-        };
+    public static PropertyFactory<DoubleProperty> factory(int elementSize, double dflt) {
+        return new DoublePropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,6 +148,42 @@ public final class DoubleProperty implements Property {
             throw new IllegalArgumentException("Store not compatible with DoubleProperty, wrong element size: " + newStore.elementSize);
         
         this.store = newStore;
+    }
+    
+    private static class DoublePropertyFactory extends AbstractPropertyFactory<DoubleProperty> {
+        private final int elementSize;
+        private final double defaultValue;
+        
+        public DoublePropertyFactory(Attributes attrs) {
+            super(attrs);
+            
+            if (attrs.hasAttribute(DefaultValue.class))
+                defaultValue = attrs.getAttribute(DefaultValue.class).defaultDouble();
+            else
+                defaultValue = 0;
+            
+            if (attrs.hasAttribute(ElementSize.class))
+                elementSize = attrs.getAttribute(ElementSize.class).value();
+            else
+                elementSize = 1;
+        }
+        
+        public DoublePropertyFactory(int elementSize, double defaultValue) {
+            super(null);
+            this.elementSize = elementSize;
+            this.defaultValue = defaultValue;
+        }
+
+        @Override
+        public DoubleProperty create() {
+            return new DoubleProperty(elementSize);
+        }
+
+        @Override
+        public void setDefaultValue(DoubleProperty property, int index) {
+            for (int i = 0; i < elementSize; i++)
+                property.set(defaultValue, index, i);
+        }
     }
 
     private static class DoubleDataStore extends AbstractIndexedDataStore<double[]> {

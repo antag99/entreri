@@ -31,9 +31,9 @@ import java.util.Map;
 
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentDataFactory;
+import com.lhkbob.entreri.Property;
+import com.lhkbob.entreri.PropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 public class CustomFactoryComponent extends ComponentData<CustomFactoryComponent> {
     public IntProperty prop;

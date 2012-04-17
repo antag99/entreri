@@ -26,34 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
-import com.lhkbob.entreri.property.CompactAwareProperty;
-import com.lhkbob.entreri.property.IndexedDataStore;
-import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.PropertyFactory;
+import com.lhkbob.entreri.IndexedDataStore;
+import com.lhkbob.entreri.Property;
 
-public class NoFactoryProperty implements CompactAwareProperty {
+public class NoFactoryProperty implements Property {
     private final IntProperty property;
-    
-    private boolean compacted;
     
     public NoFactoryProperty(int size) {
         property = new IntProperty(size);
-    }
-    
-    // add a 3rd arg so this does not match the method checked
-    public static PropertyFactory<NoFactoryProperty> createFactory(final int size, final int dflt, Object extraArg) {
-        return new AbstractPropertyFactory<NoFactoryProperty>() {
-            @Override
-            public void setDefaultValue(NoFactoryProperty property, int index) {
-                property.property.set(dflt, index, 0);
-            }
-            
-            @Override
-            public NoFactoryProperty create() {
-                return new NoFactoryProperty(size);
-            }
-        };
     }
     
     @Override
@@ -64,14 +44,5 @@ public class NoFactoryProperty implements CompactAwareProperty {
     @Override
     public void setDataStore(IndexedDataStore store) {
         property.setDataStore(store);
-    }
-
-    @Override
-    public void onCompactComplete() {
-        compacted = true;
-    }
-    
-    public boolean wasCompacted() {
-        return compacted;
     }
 }
