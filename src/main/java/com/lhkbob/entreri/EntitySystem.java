@@ -27,8 +27,11 @@
 package com.lhkbob.entreri;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 
@@ -175,6 +178,33 @@ public final class EntitySystem implements Iterable<Entity> {
         } else {
             return 0L;
         }
+    }
+    
+    /**
+     * Get all TypeIds within this EntitySystem that have types assignable to
+     * the input <tt>type</tt>.
+     * 
+     * @param type The query type
+     * @return All TypeIds that have components in this EntitySystem that are
+     *         subclasses of the input component data type
+     * @throws NullPointerException if type is null
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <T extends ComponentData<? extends T>> Collection<TypeId<? extends T>> getTypes(Class<T> type) {
+        if (type == null)
+            throw new NullPointerException("Type cannot be null");
+        
+        List<TypeId<? extends T>> ids = new ArrayList<TypeId<? extends T>>();
+        for (int i = 0; i < componentRepositories.length; i++) {
+            if (componentRepositories[i] != null) {
+                // check the type
+                if (type.isAssignableFrom(componentRepositories[i].getTypeId().getType())) {
+                    // this type is a subclass of the requested type
+                    ids.add((TypeId) componentRepositories[i].getTypeId());
+                }
+            }
+        }
+        return ids;
     }
     
     /**
