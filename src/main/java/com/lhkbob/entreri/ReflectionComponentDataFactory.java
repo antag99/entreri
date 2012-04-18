@@ -36,9 +36,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.lhkbob.entreri.annot.DefaultFactory;
-import com.lhkbob.entreri.annot.Factory;
-import com.lhkbob.entreri.annot.Unmanaged;
 
 /**
  * <p>

@@ -31,7 +31,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.lhkbob.entreri.annot.DefaultFactory;
 
 /**
  * <p>

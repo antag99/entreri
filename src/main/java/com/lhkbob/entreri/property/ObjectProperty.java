@@ -28,11 +28,10 @@ package com.lhkbob.entreri.property;
 
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * ObjectProperty is an implementation of Property that stores the property data
@@ -42,7 +41,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(ObjectProperty.ObjectPropertyFactory.class)
+@Factory(ObjectProperty.Factory.class)
 public final class ObjectProperty<T> implements Property {
     private ObjectDataStore store;
     
@@ -66,19 +65,6 @@ public final class ObjectProperty<T> implements Property {
 
     /**
      * Return a PropertyFactory that creates ObjectProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is null.
-     * 
-     * @param <T>
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for ObjectProperty
-     */
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(int elementSize) {
-        return factory(elementSize, null);
-    }
-
-    /**
-     * Return a PropertyFactory that creates ObjectProperties with the given
      * element size and default value.
      * 
      * @param <T>
@@ -88,7 +74,7 @@ public final class ObjectProperty<T> implements Property {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <T> PropertyFactory<ObjectProperty<T>> factory(int elementSize, T dflt) {
-        PropertyFactory superRaw = new ObjectPropertyFactory(elementSize, dflt);
+        PropertyFactory superRaw = new Factory(elementSize, dflt);
         return (PropertyFactory<ObjectProperty<T>>) superRaw;
     }
     
@@ -156,12 +142,17 @@ public final class ObjectProperty<T> implements Property {
         this.store = newStore;
     }
     
+    /**
+     * Factory to create ObjectProperties. 
+     * 
+     * @author Michael Ludwig
+     */
     @SuppressWarnings("rawtypes")
-    private static class ObjectPropertyFactory extends AbstractPropertyFactory<ObjectProperty> {
+    public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
         private final int elementSize;
         private final Object defaultValue;
         
-        public ObjectPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
             defaultValue = null;
@@ -172,7 +163,7 @@ public final class ObjectProperty<T> implements Property {
                 elementSize = 1;
         }
         
-        public ObjectPropertyFactory(int elementSize, Object defaultValue) {
+        public Factory(int elementSize, Object defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;

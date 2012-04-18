@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lhkbob.entreri.annot.Attribute;
 
 public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;

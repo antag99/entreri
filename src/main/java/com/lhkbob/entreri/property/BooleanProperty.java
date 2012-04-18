@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * BooleanProperty is an implementation of Property that stores the property data
@@ -42,7 +43,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(BooleanProperty.BooleanPropertyFactory.class)
+@Factory(BooleanProperty.Factory.class)
 public final class BooleanProperty implements Property {
     private BooleanDataStore store;
     
@@ -62,30 +63,6 @@ public final class BooleanProperty implements Property {
      */
     public BooleanProperty(int elementSize) {
         store = new BooleanDataStore(elementSize, new boolean[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates BooleanProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is false.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for BooleanProperty
-     */
-    public static PropertyFactory<BooleanProperty> factory(int elementSize) {
-        return factory(elementSize, false);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for IntProperty
-     */
-    public static PropertyFactory<BooleanProperty> factory(int elementSize, boolean dflt) {
-        return new BooleanPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,15 +128,21 @@ public final class BooleanProperty implements Property {
         this.store = newStore;
     }
     
-    private static class BooleanPropertyFactory extends AbstractPropertyFactory<BooleanProperty> {
+    /**
+     * Factory to create BooleanProperties. Properties annotated with
+     * DefaultBoolean will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<BooleanProperty> {
         private final int elementSize;
         private final boolean defaultValue;
         
-        public BooleanPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultBoolean();
+            if (attrs.hasAttribute(DefaultBoolean.class))
+                defaultValue = attrs.getAttribute(DefaultBoolean.class).value();
             else
                 defaultValue = false;
             
@@ -169,7 +152,7 @@ public final class BooleanProperty implements Property {
                 elementSize = 1;
         }
         
-        public BooleanPropertyFactory(int elementSize, boolean defaultValue) {
+        public Factory(int elementSize, boolean defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -185,6 +168,17 @@ public final class BooleanProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default boolean attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultBoolean {
+        boolean value();
     }
 
     private static class BooleanDataStore extends AbstractIndexedDataStore<boolean[]> {

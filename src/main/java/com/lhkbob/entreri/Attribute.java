@@ -1,4 +1,4 @@
-package com.lhkbob.entreri.annot;
+package com.lhkbob.entreri;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

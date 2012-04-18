@@ -27,13 +27,14 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.Factory;
+import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.property.FloatProperty.DefaultFloat;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.LongProperty;
+import com.lhkbob.entreri.property.LongProperty.DefaultLong;
 import com.lhkbob.entreri.property.NoParameterProperty;
 
 /**
@@ -42,11 +43,11 @@ import com.lhkbob.entreri.property.NoParameterProperty;
  * @author Michael Ludwig
  */
 public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent> {
-    @DefaultValue(defaultLong=Long.MAX_VALUE)
+    @DefaultLong(Long.MAX_VALUE)
     @ElementSize(3)
     protected LongProperty longProp; // should use factory(int, long)
     
-    @DefaultValue(defaultFloat=0.5f)
+    @DefaultFloat(0.5f)
     protected FloatProperty floatProp; // should use factory(1, float)
     
     @ElementSize(2)

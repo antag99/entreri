@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * ShortProperty is an implementation of Property that stores the property data
@@ -41,7 +42,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(ShortProperty.ShortPropertyFactory.class)
+@Factory(ShortProperty.Factory.class)
 public final class ShortProperty implements Property {
     private ShortDataStore store;
     
@@ -61,30 +62,6 @@ public final class ShortProperty implements Property {
      */
     public ShortProperty(int elementSize) {
         store = new ShortDataStore(elementSize, new short[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is 0.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for ShortProperty
-     */
-    public static PropertyFactory<ShortProperty> factory(int elementSize) {
-        return factory(elementSize, (short) 0);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for ShortProperty
-     */
-    public static PropertyFactory<ShortProperty> factory(int elementSize, short dflt) {
-        return new ShortPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -150,15 +127,21 @@ public final class ShortProperty implements Property {
         this.store = newStore;
     }
     
-    private static class ShortPropertyFactory extends AbstractPropertyFactory<ShortProperty> {
+    /**
+     * Factory to create ShortProperties. Properties annotated with
+     * DefaultShort will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<ShortProperty> {
         private final int elementSize;
         private final short defaultValue;
         
-        public ShortPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultShort();
+            if (attrs.hasAttribute(DefaultShort.class))
+                defaultValue = attrs.getAttribute(DefaultShort.class).value();
             else
                 defaultValue = 0;
             
@@ -168,7 +151,7 @@ public final class ShortProperty implements Property {
                 elementSize = 1;
         }
         
-        public ShortPropertyFactory(int elementSize, short defaultValue) {
+        public Factory(int elementSize, short defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -184,6 +167,17 @@ public final class ShortProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default short attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultShort {
+        short value();
     }
 
     private static class ShortDataStore extends AbstractIndexedDataStore<short[]> {

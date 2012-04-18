@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.annot.ElementSize;
+import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**

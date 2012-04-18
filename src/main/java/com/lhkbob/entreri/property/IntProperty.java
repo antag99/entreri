@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * IntProperty is an implementation of Property that stores the property data
@@ -41,7 +42,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(IntProperty.IntPropertyFactory.class)
+@Factory(IntProperty.Factory.class)
 public final class IntProperty implements Property {
     private IntDataStore store;
     
@@ -61,30 +62,6 @@ public final class IntProperty implements Property {
      */
     public IntProperty(int elementSize) {
         store = new IntDataStore(elementSize, new int[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is 0.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for IntProperty
-     */
-    public static PropertyFactory<IntProperty> factory(int elementSize) {
-        return factory(elementSize, 0);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for IntProperty
-     */
-    public static PropertyFactory<IntProperty> factory(int elementSize, final int dflt) {
-        return new IntPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -150,15 +127,21 @@ public final class IntProperty implements Property {
         this.store = newStore;
     }
     
-    private static class IntPropertyFactory extends AbstractPropertyFactory<IntProperty> {
+    /**
+     * Factory to create IntProperties. Properties annotated with
+     * DefaultInt will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<IntProperty> {
         private final int elementSize;
         private final int defaultValue;
         
-        public IntPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultInt();
+            if (attrs.hasAttribute(DefaultInt.class))
+                defaultValue = attrs.getAttribute(DefaultInt.class).value();
             else
                 defaultValue = 0;
             
@@ -168,7 +151,7 @@ public final class IntProperty implements Property {
                 elementSize = 1;
         }
         
-        public IntPropertyFactory(int elementSize, int defaultValue) {
+        public Factory(int elementSize, int defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -186,6 +169,17 @@ public final class IntProperty implements Property {
         }
     }
 
+    /**
+     * Default int attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultInt {
+        int value();
+    }
+    
     private static class IntDataStore extends AbstractIndexedDataStore<int[]> {
         private final int[] array;
         

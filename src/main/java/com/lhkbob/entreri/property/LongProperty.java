@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * LongProperty is an implementation of Property that stores the property data
@@ -41,7 +42,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(LongProperty.LongPropertyFactory.class)
+@Factory(LongProperty.Factory.class)
 public final class LongProperty implements Property {
     private LongDataStore store;
     
@@ -61,30 +62,6 @@ public final class LongProperty implements Property {
      */
     public LongProperty(int elementSize) {
         store = new LongDataStore(elementSize, new long[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is 0.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for LongProperty
-     */
-    public static PropertyFactory<LongProperty> factory(int elementSize) {
-        return factory(elementSize, 0);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for LongProperty
-     */
-    public static PropertyFactory<LongProperty> factory(int elementSize, long dflt) {
-        return new LongPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -150,15 +127,21 @@ public final class LongProperty implements Property {
         this.store = newStore;
     }
     
-    private static class LongPropertyFactory extends AbstractPropertyFactory<LongProperty> {
+    /**
+     * Factory to create LongProperties. Properties annotated with
+     * DefaultLong will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<LongProperty> {
         private final int elementSize;
         private final long defaultValue;
         
-        public LongPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultLong();
+            if (attrs.hasAttribute(DefaultLong.class))
+                defaultValue = attrs.getAttribute(DefaultLong.class).value();
             else
                 defaultValue = 0L;
             
@@ -168,7 +151,7 @@ public final class LongProperty implements Property {
                 elementSize = 1;
         }
         
-        public LongPropertyFactory(int elementSize, long defaultValue) {
+        public Factory(int elementSize, long defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -184,6 +167,17 @@ public final class LongProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default long attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultLong {
+        long value();
     }
 
     private static class LongDataStore extends AbstractIndexedDataStore<long[]> {

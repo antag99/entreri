@@ -103,8 +103,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         resizePropertyStores(declaredProperties, 1);
         
         // decorate the component data with a boolean property to track enabled status
-        enabledProperty = decorate(BooleanProperty.factory(1, true));
-        componentIdProperty = decorate(IntProperty.factory(1)); // we'll not assign a default value, since we change the id each time
+        enabledProperty = decorate(new BooleanProperty.Factory(1, true));
+        componentIdProperty = decorate(new IntProperty.Factory(1, 0)); // we'll not assign a default value, since we change the id each time
         idSeq = 1; // start at 1, just like entity id sequences
     }
     

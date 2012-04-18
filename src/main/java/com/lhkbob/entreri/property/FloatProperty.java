@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * FloatProperty is an implementation of Property that stores the property data
@@ -42,7 +43,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(FloatProperty.FloatPropertyFactory.class)
+@Factory(FloatProperty.Factory.class)
 public final class FloatProperty implements Property {
     private FloatDataStore store;
     
@@ -62,30 +63,6 @@ public final class FloatProperty implements Property {
      */
     public FloatProperty(int elementSize) {
         store = new FloatDataStore(elementSize, new float[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates FloatProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is 0.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for FloatProperty
-     */
-    public static PropertyFactory<FloatProperty> factory(int elementSize) {
-        return factory(elementSize, 0f);
-    }
-
-    /**
-     * Return a PropertyFactory that creates FloatProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for FloatProperty
-     */
-    public static PropertyFactory<FloatProperty> factory(int elementSize, float dflt) {
-        return new FloatPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -151,15 +128,21 @@ public final class FloatProperty implements Property {
         this.store = newStore;
     }
     
-    private static class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
+    /**
+     * Factory to create FloatProperties. Properties annotated with
+     * DefaultFloat will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<FloatProperty> {
         private final int elementSize;
         private final float defaultValue;
         
-        public FloatPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultFloat();
+            if (attrs.hasAttribute(DefaultFloat.class))
+                defaultValue = attrs.getAttribute(DefaultFloat.class).value();
             else
                 defaultValue = 0f;
             
@@ -169,7 +152,7 @@ public final class FloatProperty implements Property {
                 elementSize = 1;
         }
         
-        public FloatPropertyFactory(int elementSize, float defaultValue) {
+        public Factory(int elementSize, float defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -185,6 +168,17 @@ public final class FloatProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default float attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultFloat {
+        float value();
     }
 
     private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {

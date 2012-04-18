@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.DefaultFactory;
+import com.lhkbob.entreri.DefaultFactory;
 import com.lhkbob.entreri.property.IntProperty;
 
 @DefaultFactory(DefaultComponentDataFactory.class)

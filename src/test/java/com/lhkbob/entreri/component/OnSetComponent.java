@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.Unmanaged;
+import com.lhkbob.entreri.Unmanaged;
 
 public class OnSetComponent extends ComponentData<OnSetComponent> {
     @Unmanaged

@@ -37,7 +37,7 @@ import com.lhkbob.entreri.property.IntProperty;
 public class DefaultComponentDataFactory implements ComponentDataFactory<DefaultFactoryComponent> {
     @Override
     public Map<?, PropertyFactory<?>> getPropertyFactories() {
-        return Collections.<String, PropertyFactory<?>>singletonMap("prop", IntProperty.factory(1));
+        return Collections.<String, PropertyFactory<?>>singletonMap("prop", new IntProperty.Factory(1, 0));
     }
 
     @Override

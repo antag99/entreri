@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * CharProperty is an implementation of Property that stores the property data
@@ -41,7 +42,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(CharProperty.CharPropertyFactory.class)
+@Factory(CharProperty.Factory.class)
 public final class CharProperty implements Property {
     private CharDataStore store;
     
@@ -61,30 +62,6 @@ public final class CharProperty implements Property {
      */
     public CharProperty(int elementSize) {
         store = new CharDataStore(elementSize, new char[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is '\0'.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for CharProperty
-     */
-    public static PropertyFactory<CharProperty> factory(int elementSize) {
-        return factory(elementSize, '\0');
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for CharProperty
-     */
-    public static PropertyFactory<CharProperty> factory(int elementSize, char dflt) {
-        return new CharPropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -150,15 +127,21 @@ public final class CharProperty implements Property {
         this.store = newStore;
     }
     
-    private static class CharPropertyFactory extends AbstractPropertyFactory<CharProperty> {
+    /**
+     * Factory to create CharProperties. Properties annotated with
+     * DefaultChar will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<CharProperty> {
         private final int elementSize;
         private final char defaultValue;
         
-        public CharPropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultChar();
+            if (attrs.hasAttribute(DefaultChar.class))
+                defaultValue = attrs.getAttribute(DefaultChar.class).value();
             else
                 defaultValue = '\0';
             
@@ -168,7 +151,7 @@ public final class CharProperty implements Property {
                 elementSize = 1;
         }
         
-        public CharPropertyFactory(int elementSize, char defaultValue) {
+        public Factory(int elementSize, char defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -184,6 +167,17 @@ public final class CharProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default char attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultChar {
+        char value();
     }
 
     private static class CharDataStore extends AbstractIndexedDataStore<char[]> {

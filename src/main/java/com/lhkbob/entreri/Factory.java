@@ -24,16 +24,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.annot;
+package com.lhkbob.entreri;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.ReflectionComponentDataFactory;
 
 /**
  * <p>

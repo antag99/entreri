@@ -24,26 +24,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.annot;
+package com.lhkbob.entreri.property;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.Attribute;
 
 /**
- * Unmanaged is an annotation that can be applied to fields in a ComponentData
- * definition to make the field completely ignored by the EntitySystem creating
- * or managing the component. This can be used to store per-instance cached data
- * in the component without triggering
- * {@link IllegalComponentDefinitionException exceptions}. However, it makes
- * little sense to declare a Property field as unmanaged because then its data
- * store will not be kept in sync with the component's other indexed data.
+ * <p>
+ * ElementSize is an attribute annotation that can be applied to a field
+ * declaration of a Property to declare how many elements belong to each
+ * component. This is useful if multiple primitives must be packed together for
+ * the same component, such as with a 3D vector.
+ * <p>
+ * All Property implementations in com.lhkbob.entreri.property support the use
+ * of this annotation.
+ * </p>
  * 
  * @author Michael Ludwig
  */
+@Attribute
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Unmanaged { }
+public @interface ElementSize {
+    /**
+     * @return The number of primitive elements allocated for each component
+     */
+    int value();
+}

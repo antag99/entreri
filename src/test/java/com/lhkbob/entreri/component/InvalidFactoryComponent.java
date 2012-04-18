@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.annot.Factory;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 

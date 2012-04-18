@@ -26,14 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-import com.lhkbob.entreri.annot.DefaultValue;
-import com.lhkbob.entreri.annot.ElementSize;
-import com.lhkbob.entreri.annot.Factory;
 
 /**
  * DoubleProperty is an implementation of Property that stores the property data
@@ -41,7 +42,7 @@ import com.lhkbob.entreri.annot.Factory;
  * 
  * @author Michael Ludwig
  */
-@Factory(DoubleProperty.DoublePropertyFactory.class)
+@Factory(DoubleProperty.Factory.class)
 public final class DoubleProperty implements Property {
     private DoubleDataStore store;
     
@@ -61,30 +62,6 @@ public final class DoubleProperty implements Property {
      */
     public DoubleProperty(int elementSize) {
         store = new DoubleDataStore(elementSize, new double[elementSize]);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size. If it is less than 1, the factory's create() method will
-     * fail. The default value is 0.
-     * 
-     * @param elementSize The element size of the created properties
-     * @return A PropertyFactory for DoubleProperty
-     */
-    public static PropertyFactory<DoubleProperty> factory(int elementSize) {
-        return factory(elementSize, 0.0);
-    }
-
-    /**
-     * Return a PropertyFactory that creates IntProperties with the given
-     * element size and default value.
-     * 
-     * @param elementSize The element size of the created properties
-     * @param dflt The default value assigned to each component and element
-     * @return A PropertyFactory for DoubleProperty
-     */
-    public static PropertyFactory<DoubleProperty> factory(int elementSize, double dflt) {
-        return new DoublePropertyFactory(elementSize, dflt);
     }
 
     /**
@@ -150,15 +127,21 @@ public final class DoubleProperty implements Property {
         this.store = newStore;
     }
     
-    private static class DoublePropertyFactory extends AbstractPropertyFactory<DoubleProperty> {
+    /**
+     * Factory to create DoubleProperties. Properties annotated with
+     * DefaultDouble will use that value as the default for all components.
+     * 
+     * @author Michael Ludwig
+     */
+    public static class Factory extends AbstractPropertyFactory<DoubleProperty> {
         private final int elementSize;
         private final double defaultValue;
         
-        public DoublePropertyFactory(Attributes attrs) {
+        public Factory(Attributes attrs) {
             super(attrs);
             
-            if (attrs.hasAttribute(DefaultValue.class))
-                defaultValue = attrs.getAttribute(DefaultValue.class).defaultDouble();
+            if (attrs.hasAttribute(DefaultDouble.class))
+                defaultValue = attrs.getAttribute(DefaultDouble.class).value();
             else
                 defaultValue = 0;
             
@@ -168,7 +151,7 @@ public final class DoubleProperty implements Property {
                 elementSize = 1;
         }
         
-        public DoublePropertyFactory(int elementSize, double defaultValue) {
+        public Factory(int elementSize, double defaultValue) {
             super(null);
             this.elementSize = elementSize;
             this.defaultValue = defaultValue;
@@ -184,6 +167,17 @@ public final class DoubleProperty implements Property {
             for (int i = 0; i < elementSize; i++)
                 property.set(defaultValue, index, i);
         }
+    }
+    
+    /**
+     * Default double attribute for properties.
+     * @author Michael Ludwig
+     *
+     */
+    @Attribute
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface DefaultDouble {
+        double value();
     }
 
     private static class DoubleDataStore extends AbstractIndexedDataStore<double[]> {

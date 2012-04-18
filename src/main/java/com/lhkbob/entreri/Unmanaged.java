@@ -24,49 +24,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.annot;
+package com.lhkbob.entreri;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.ComponentDataFactory;
-import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.ReflectionComponentDataFactory;
 
 /**
- * <p>
- * DefaultFactory is a type-level annotation that can be added to ComponentData
- * definitions to declare a different ComponentDataFactory than
- * {@link ReflectionComponentDataFactory} as the default. This default will be
- * used by any EntitySystem unless it has a per-system factory override that was
- * set with
- * {@link EntitySystem#setFactory(com.lhkbob.entreri.TypeId, ComponentDataFactory)}
- * </p>
- * <p>
- * Runtime exceptions will be thrown if the factory type declared by the
- * annotation does not have an accessible, supported constructor. The currently
- * supported constructors are:
- * <ol>
- * <li><code>ComponentDataFactory()</code></li>
- * <li><code>ComponentDataFactory(TypeId&lt;T&gt;)</code></li>
- * <li>
- * <code>ComponentDataFactory(Class&lt;T extends ComponentData&lt;T&gt;&gt;)</code>
- * </li>
- * </ol>
- * </p>
+ * Unmanaged is an annotation that can be applied to fields in a ComponentData
+ * definition to make the field completely ignored by the EntitySystem creating
+ * or managing the component. This can be used to store per-instance cached data
+ * in the component without triggering
+ * {@link IllegalComponentDefinitionException exceptions}. However, it makes
+ * little sense to declare a Property field as unmanaged because then its data
+ * store will not be kept in sync with the component's other indexed data.
  * 
  * @author Michael Ludwig
  */
-@Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface DefaultFactory {
-    /**
-     * @return The ComponentDataFactory implementation used to create
-     *         ComponentData's
-     */
-    Class<? extends ComponentDataFactory<?>> value();
-}
+@Target(ElementType.FIELD)
+public @interface Unmanaged { }
