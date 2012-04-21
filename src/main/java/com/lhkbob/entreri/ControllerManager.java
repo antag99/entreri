@@ -53,7 +53,7 @@ public class ControllerManager {
         /**
          * The PREPROCESS phase is invoked before all other phases. All
          * controllers in a manager will have their
-         * {@link Controller#preProcess(float)} method called
+         * {@link Controller#preProcess(double)} method called
          * before moving to the next phase.
          */
         PREPROCESS,
@@ -61,7 +61,7 @@ public class ControllerManager {
         /**
          * The PROCESS phase is invoked between PREPROCESS and POSTPROCESS. All
          * controllers in the manager will have their
-         * {@link Controller#process(float)} method called before
+         * {@link Controller#process(double)} method called before
          * moving to the next phase.
          */
         PROCESS,
@@ -69,7 +69,7 @@ public class ControllerManager {
         /**
          * The POSTPROCESS phase is invoked after PREPROCESS and POSTPROCESS.
          * All controllers in their manager will have their
-         * {@link Controller#postProcess(float)} method called
+         * {@link Controller#postProcess(double)} method called
          * before the frame is completed.
          */
         POSTPROCESS,
