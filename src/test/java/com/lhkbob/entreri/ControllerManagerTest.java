@@ -29,12 +29,6 @@ package com.lhkbob.entreri;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Controller;
-import com.lhkbob.entreri.Entity;
-import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.TypeId;
-import com.lhkbob.entreri.ControllerManager.Key;
 import com.lhkbob.entreri.ControllerManager.Phase;
 import com.lhkbob.entreri.component.IntComponent;
 
@@ -127,16 +121,23 @@ public class ControllerManagerTest {
     }
     
     @Test
-    public void testControllerData() {
-        Key<Object> key = new Key<Object>();
+    public void testSupplyResult() {
         EntitySystem system = new EntitySystem();
-        Object data = new Object();
-        system.getControllerManager().setData(key, data);
+        ResultSupplyingController supplier = new ResultSupplyingController();
+        ListeningControler listener = new ListeningControler();
+        ControllerImpl ignored = new ControllerImpl();
         
-        Assert.assertEquals(data, system.getControllerManager().getData(key));
+        system.getControllerManager().addController(supplier);
+        system.getControllerManager().addController(listener);
+        system.getControllerManager().addController(ignored);
         
-        system.getControllerManager().setData(key, null);
-        Assert.assertNull(system.getControllerManager().getData(key));
+        Assert.assertNull(supplier.o);
+        Assert.assertNull(listener.o);
+        
+        system.getControllerManager().process();
+        
+        Assert.assertNotNull(supplier.o);
+        Assert.assertSame(supplier.o, listener.o);
     }
     
     @Test
@@ -176,6 +177,43 @@ public class ControllerManagerTest {
         Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
     
+    private static interface Listener {
+        public void setData(Object o);
+    }
+    
+    private static class ResultSupplyingController extends SimpleController {
+        private Object o;
+        
+        @Override
+        public void preProcess(double dt) {
+            o = new Object();
+        }
+        
+        @Override
+        public void process(double dt) {
+            getEntitySystem().getControllerManager().supply(new Result<Listener>() {
+                @Override
+                public void supply(Listener listener) {
+                    listener.setData(o);
+                }
+
+                @Override
+                public Class<Listener> getListenerType() {
+                    return Listener.class;
+                }
+            });
+        }
+    }
+    
+    private static class ListeningControler extends SimpleController implements Listener {
+        private Object o;
+        @Override
+        public void setData(Object o) {
+            this.o = o;
+        }
+    }
+    
+    // explicitly not a listener
     private static class ControllerImpl implements Controller {
         private boolean preprocessed;
         private boolean processed;
