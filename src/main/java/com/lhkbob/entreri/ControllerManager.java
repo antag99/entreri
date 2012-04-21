@@ -30,15 +30,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>
  * ControllerManager is a utility that manages the list of Controllers that can
- * process an EntitySystem. It also provides a mechanism to share data between
- * controllers by storing objects associated with {@link Key Keys}. If a
- * Controller type publically exposes a static key, other controllers can then
- * look up the associated value.
+ * process an EntitySystem.
  * </p>
  * <p>
  * Additionally, the ControllerManager is used to invoke the phase processing
@@ -48,16 +44,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Michael Ludwig
  */
 public class ControllerManager {
-    /**
-     * Key represents a typed key into controller data managed by a
-     * ControllerManager. Equality is defined by reference, so it is generally
-     * best to store keys for reuse in private or public fields (possibly static
-     * if the key is shared).
-     * 
-     * @param <T> The type of data associated with the key
-     */
-    public static class Key<T> { }
-    
     /**
      * The Phase enum represents the different phases of
      * processing that an EntitySystem can go through during
@@ -97,10 +83,6 @@ public class ControllerManager {
 
     private final List<Controller> controllers;
     private final Map<Controller, ProfileData> profile;
-    
-    // This is a concurrent map so that parallel controllers can access it efficiently
-    // - the rest of the class is assumed to be single-threaded
-    private final ConcurrentHashMap<Key<?>, Object> controllerData;
 
     private final EntitySystem system;
     
@@ -118,48 +100,29 @@ public class ControllerManager {
             throw new NullPointerException("EntitySystem cannot be null");
         
         this.system = system;
-        controllerData = new ConcurrentHashMap<Key<?>, Object>();
         controllers = new ArrayList<Controller>();
         
         profile = new HashMap<Controller, ProfileData>();
         lastProcessTime = -1L;
     }
-
+    
     /**
-     * Return the controller data that has been mapped to the given <tt>key</tt>
-     * . This will return null if there has been no assigned data. The getData()
-     * and setData() methods should be used by controllers to share data between
-     * themselves, and to store system-dependent state so that their
-     * implementations are properly indepdent of the system.
+     * Supply the given Result to all registered Controllers in this manager
+     * that listen to the type, T. Controllers declare their interest in results
+     * of type T by implementing the interface T.
      * 
-     * @param key The annotation key
-     * @return The object previously mapped to the annotation with
-     *         {@link #setData(Key, Object)}
-     * @throws NullPointerException if key is null
+     * @see Result
+     * @param result The result to supply to registered controllers
+     * @throws NullPointerException if result is null
      */
-    @SuppressWarnings("unchecked")
-    public <T> T getData(Key<T> key) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        return (T) controllerData.get(key);
-    }
-
-    /**
-     * Store <tt>value</tt> to the given <tt>key</tt> so that future
-     * calls to {@link #getData(Key)} with the same key will return
-     * the new value. If the value is null, any previous mapping is removed.
-     * 
-     * @param key The key
-     * @param value The new value to store
-     * @throws NullPointerException if key is null
-     */
-    public <T> void setData(Key<T> key, T value) {
-        if (key == null)
-            throw new NullPointerException("Key cannot be null");
-        if (value == null)
-            controllerData.remove(key);
-        else
-            controllerData.put(key, value);
+    public <T> void supply(Result<T> result) {
+        Class<T> type = result.getListenerType();
+        int ct = controllers.size();
+        for (int i = 0; i < ct; i++) {
+            if (type.isInstance(controllers.get(i))) {
+                result.supply(type.cast(controllers.get(i)));
+            }
+        }
     }
 
     /**
