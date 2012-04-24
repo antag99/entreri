@@ -1,5 +1,4 @@
-Entreri
-=======
+# Entreri
 
 Entreri is a data-oriented entity-component framework designed for high 
 performance applications and games. It scales well to tens of thousands of instances,
@@ -24,29 +23,35 @@ In off-the-cuff performance tests, garbage collection in other entity-component
 frameworks could cause performance to slow down by a factor of 2 to 4, while 
 Entreri remained consistently fast (pre-GC performances near identical).
 
-Maven
-~~~~~
- * version: 1.5.2
- * groupId: com.lhkbob.entreri
- * artifactId: entreri
- 
-Release Notes
-~~~~~~~~~~~~~
+## Maven
 
-1.5.2
------
- * Improve PropertyFactory API to better support custom Property definitions 
-   that want to define new annotations to control default behavior, etc.
- * Replace Controller data storage using Key objects with a simple Result API
-   that allows Controllers to express interest in data and have that injected
-   using custom interfaces defined by the computing controller.
-  
-1.5.1
------
- * Add protected onSet(int) method to ComponentData to better support 
-   ComponentData's that rely on unmanaged fields for caching.
- * Add functionality to estimate memory usage by component type.
- * Update ControllerManage to record run time performance of each controller,
-   for the last executed frame.
- * Changed the no-argument process() method in ControllerManager to use the
-   real change in time from the last frame, instead of a fixed time delta.
+Entreri can be easily added to a [Maven][] project with the XML snippet below.
+The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
+
+    <dependency>
+      <groupId>com.lhkbob.entreri</groupId>
+      <artifactId>entreri</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+    
+[Maven]: http://maven.apache.org
+[m2e]: http://eclipse.org/m2e
+
+## Release Notes
+
+### 1.5.2
+* Improve PropertyFactory API to better support custom Property definitions 
+  that want to define new annotations to control default behavior, etc.
+* Replace Controller data storage using Key objects with a simple Result API
+  that allows Controllers to express interest in data and have that injected
+  using custom interfaces defined by the computing controller.
+
+### 1.5.3
+* Add protected onSet(int) method to ComponentData to better support 
+  ComponentData's that rely on unmanaged fields for caching.
+* Add functionality to estimate memory usage by component type.
+* Update ControllerManage to record run time performance of each controller,
+  for the last executed frame.
+* Changed the no-argument process() method in ControllerManager to use the
+  real change in time from the last frame, instead of a fixed time delta.
+   
