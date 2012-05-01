@@ -72,13 +72,7 @@ public class ControllerManager {
          * {@link Controller#postProcess(double)} method called
          * before the frame is completed.
          */
-        POSTPROCESS,
-
-        /**
-         * ALL is a special PHASE that represents all three true phases invoked
-         * in their proper order.
-         */
-        ALL
+        POSTPROCESS
     }
 
     private final List<Controller> controllers;
@@ -187,23 +181,30 @@ public class ControllerManager {
             throw new NullPointerException("Arguments cannot be null");
         
         ProfileData c = profile.get(controller);
-        long time = 0L;
         
         if (c != null) {
             switch(phase) {
-            case ALL:
-                time = c.postprocessTime + c.preprocessTime + c.processTime;
-                break;
             case POSTPROCESS:
-                time = c.postprocessTime; break;
+                return c.postprocessTime;
             case PREPROCESS:
-                time = c.preprocessTime; break;
+                return c.preprocessTime;
             case PROCESS:
-                time = c.processTime; break;
+                return c.processTime;
             }
         }
         
-        return time;
+        return 0L;
+    }
+    
+    /**
+     * Return the last execution time for the given controller, for all its
+     * phases.
+     * 
+     * @param controller The controller whose time is looked up
+     * @return The last total execution time of the controller
+     */
+    public long getExecutionTime(Controller controller) {
+        return getExecutionTime(controller, Phase.PREPROCESS) + getExecutionTime(controller, Phase.POSTPROCESS) + getExecutionTime(controller, Phase.PROCESS);
     }
     
     /**
@@ -228,7 +229,9 @@ public class ControllerManager {
      *            start of the last frame and this one
      */
     public void process(double dt) {
-        process(Phase.ALL, dt);
+        process(Phase.PREPROCESS, dt);
+        process(Phase.PROCESS, dt);
+        process(Phase.POSTPROCESS, dt);
     }
 
     /**
@@ -252,12 +255,6 @@ public class ControllerManager {
             fireProcess(dt); break;
         case POSTPROCESS:
             firePostProcess(dt); break;
-        case ALL:
-            // Perform all phases in one go
-            firePreProcess(dt);
-            fireProcess(dt);
-            firePostProcess(dt);
-            break;
         }
     }
 

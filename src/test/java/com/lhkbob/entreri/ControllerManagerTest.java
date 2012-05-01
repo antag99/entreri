@@ -78,7 +78,7 @@ public class ControllerManagerTest {
         EntitySystem system = new EntitySystem();
         system.getControllerManager().addController(controller);
         
-        system.getControllerManager().process(Phase.ALL, 0);
+        system.getControllerManager().process();
         
         Assert.assertTrue(controller.preprocessed);
         Assert.assertTrue(controller.processed);
