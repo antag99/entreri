@@ -46,7 +46,7 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
   that allows Controllers to express interest in data and have that injected
   using custom interfaces defined by the computing controller.
 
-### 1.5.3
+### 1.5.1
 * Add protected onSet(int) method to ComponentData to better support 
   ComponentData's that rely on unmanaged fields for caching.
 * Add functionality to estimate memory usage by component type.
