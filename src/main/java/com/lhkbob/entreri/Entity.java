@@ -43,7 +43,7 @@ import java.util.NoSuchElementException;
  * 
  * @author Michael Ludwig
  */
-public final class Entity implements Iterable<Component<?>> {
+public final class Entity implements Iterable<Component<?>>, Comparable<Entity> {
     private final EntitySystem system;
     private final int id;
     
@@ -332,5 +332,10 @@ public final class Entity implements Iterable<Component<?>> {
                     nextIndex = null; // must set to null if this was last element
             }
         }
+    }
+
+    @Override
+    public int compareTo(Entity o) {
+        return id - o.id;
     }
 }
