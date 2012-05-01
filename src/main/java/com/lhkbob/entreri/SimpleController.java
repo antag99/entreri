@@ -91,6 +91,11 @@ public class SimpleController implements Controller {
     public void onComponentRemove(Component<?> c) {
         // do nothing in base class
     }
+    
+    @Override
+    public void report(Result result) {
+        // do nothing in base class
+    }
 
     @Override
     public EntitySystem getEntitySystem() {

@@ -141,6 +141,16 @@ public interface Controller {
      * @param c The component being removed
      */
     public void onComponentRemove(Component<?> c);
+    
+    /**
+     * Invoked when any other Controller reports a Result to the
+     * ControllerManager of this controller. Implementations may filter based on
+     * the type or value of the result. Results will only be reported during the
+     * processing of a phase. Singleton results will be reported at most once.
+     * 
+     * @param r The result being reported
+     */
+    public void report(Result r);
 
     /**
      * @return The current EntitySystem processed by this controller, or null if

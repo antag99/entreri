@@ -28,8 +28,10 @@ package com.lhkbob.entreri;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>
@@ -67,10 +69,17 @@ public class ControllerManager {
         PROCESS,
 
         /**
+         * <p>
          * The POSTPROCESS phase is invoked after PREPROCESS and POSTPROCESS.
          * All controllers in their manager will have their
-         * {@link Controller#postProcess(double)} method called
-         * before the frame is completed.
+         * {@link Controller#postProcess(double)} method called before the frame
+         * is completed.
+         * </p>
+         * <p>
+         * Singleton result tracking is reset after this phase completes so that
+         * singleton results can be reported at the start of the next frame.
+         * Execution timing is also completed at the end of this phase.
+         * </p>
          */
         POSTPROCESS
     }
@@ -81,6 +90,9 @@ public class ControllerManager {
     private final EntitySystem system;
     
     private long lastProcessTime;
+    private final Set<Class<?>> singletonResults;
+    
+    private Phase currentPhase;
 
     /**
      * Create a new ControllerManager that will store controllers and controller
@@ -97,25 +109,34 @@ public class ControllerManager {
         controllers = new ArrayList<Controller>();
         
         profile = new HashMap<Controller, ProfileData>();
+        singletonResults = new HashSet<Class<?>>();
         lastProcessTime = -1L;
+        
+        currentPhase = null;
     }
     
     /**
-     * Supply the given Result to all registered Controllers in this manager
-     * that listen to the type, T. Controllers declare their interest in results
-     * of type T by implementing the interface T.
+     * Report the given Result to all registered Controllers in this manager.
+     * This can only be called while a Phase is being processed.
      * 
      * @see Result
      * @param result The result to supply to registered controllers
      * @throws NullPointerException if result is null
+     * @throws IllegalStateException if not processing a phase, or if a
+     *             singleton result of the same type has already been reported
+     *             this frame
      */
-    public <T> void supply(Result<T> result) {
-        Class<T> type = result.getListenerType();
+    public void report(Result result) {
+        if (currentPhase == null)
+            throw new IllegalStateException("Can only report results while processing a phase"); 
+        if (result.isSingleton()) {
+            if (!singletonResults.add(result.getClass()))
+                throw new IllegalStateException("Singleton result of type " + result.getClass() + " already reported this frame");
+        }
+        
         int ct = controllers.size();
         for (int i = 0; i < ct; i++) {
-            if (type.isInstance(controllers.get(i))) {
-                result.supply(type.cast(controllers.get(i)));
-            }
+            controllers.get(i).report(result);
         }
     }
 
@@ -248,14 +269,17 @@ public class ControllerManager {
         if (phase == null)
             throw new NullPointerException("Phase cannot be null");
         
+        currentPhase = phase;
         switch(phase) {
         case PREPROCESS:
             firePreProcess(dt); break;
         case PROCESS:
             fireProcess(dt); break;
         case POSTPROCESS:
-            firePostProcess(dt); break;
+            firePostProcess(dt); 
+            break;
         }
+        currentPhase = null;
     }
 
     /**
@@ -322,6 +346,7 @@ public class ControllerManager {
         }
         
         lastProcessTime = System.nanoTime();
+        singletonResults.clear();
     }
     
     private static class ProfileData {

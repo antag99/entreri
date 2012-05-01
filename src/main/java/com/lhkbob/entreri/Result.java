@@ -26,6 +26,8 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.ControllerManager.Phase;
+
 /**
  * <p>
  * Result represents a computed result, preferably that of a bulk computation,
@@ -33,42 +35,49 @@ package com.lhkbob.entreri;
  * other controllers that might be interested in their computations.
  * </p>
  * <p>
- * Controllers that wish to expose results must define an interface that is
- * capable of receiving their computations. The signature of this method is
- * entirely up to the Controller. Then, the controller wraps the computed
- * results in an internal Result implementation that knows how to invoke the
- * listener interface defined previously with the just computed data. To provide
- * to all interested Controllers, the {@link ControllerManager#supply(Result)}
- * method can be used.
+ * Controllers that wish to expose results define classes that implement Result
+ * and expose the actual result data. During processing of a controller, result
+ * instances are created and supplied to all controllers by calling
+ * {@link ControllerManager#report(Result)}
  * </p>
  * <p>
- * To receive computed results, Controllers merely have to implement the
- * listener interfaces defined by the controllers of interest and store the
- * supplied results.
+ * To receive computed results, Controllers override their
+ * {@link Controller#report(Result)} and check incoming results for the
+ * desired type of result. Every controller is notified of all results, they are
+ * responsible for ignoring results they are not interested in.
  * </p>
  * 
  * @author Michael Ludwig
- * @param <T> The listener type
  */
-public interface Result<T> {
+public interface Result {
     /**
      * <p>
-     * Supply this result to the provided listener of type T. It is expected
-     * that a listener interface will define some method that enables compatible
-     * Result implementations to inject the computed data.
+     * Return true if this result is a "singleton" result. A singleton result is
+     * a type of result that is only supplied once during the processing of a
+     * frame (i.e. at the end of the {@link Phase#POSTPROCESS} phase, it is reset).The
+     * ControllerManager verifies that singleton results are supplied at most
+     * once. Most results should return false. The returned value should be the
+     * same for every instance of a type, it should not depend on the state of
+     * the instance.
      * </p>
      * <p>
-     * This injection or supplying is performed by this method. Controllers that
-     * compute results will define interfaces as appropriate to receive their
-     * results, and result implementations to provide those results.
+     * Singleton results should only be used when the computation of the result
+     * produces all of the result data. As an example, a 3D engine might assign
+     * entities to lights, and each unique configuration of lights on an entity
+     * is a "light group". It makes more sense to provide a single result that
+     * describes all light groups than individual results for each group. They
+     * are packed into a single result because each group is dependent on the
+     * others to guarantee its uniqueness.
+     * </p>
+     * <p>
+     * As a counter example, computing potentially visible sets for a 3D engine
+     * should not be a singleton result. A result that contains the view and set
+     * of visible entities is a self-contained result, other views or cameras do
+     * not affect the PVS results.
      * </p>
      * 
-     * @param listener The listener to receive the event
+     * @return True if this result should only be supplied at most once during
+     *         each frame
      */
-    public void supply(T listener);
-    
-    /**
-     * @return The listener interface this result is supplied to
-     */
-    public Class<T> getListenerType();
+    public boolean isSingleton();
 }

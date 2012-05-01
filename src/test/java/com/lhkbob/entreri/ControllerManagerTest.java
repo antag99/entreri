@@ -26,6 +26,10 @@
  */
 package com.lhkbob.entreri;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -121,23 +125,82 @@ public class ControllerManagerTest {
     }
     
     @Test
-    public void testSupplyResult() {
+    public void testReportResult() {
+        doTestReportResult(new ResultImpl());
+    }
+    
+    @Test
+    public void testReportMultipleResults() {
+        doTestReportResult(new ResultImpl(), new ResultImpl());
+    }
+    
+    @Test
+    public void testReportSingletonResult() {
+        doTestReportResult(new SingletonResultImpl());
+    }
+    
+    @Test
+    public void testReportMixedResults() {
+        doTestReportResult(new SingletonResultImpl(), new ResultImpl());
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testReportMultipleSingletonResults() {
+        doTestReportResult(new SingletonResultImpl(), new SingletonResultImpl());
+    }
+    
+    @Test(expected=IllegalStateException.class)
+    public void testReportOutOfPhase() {
+        Result result = new ResultImpl();
+        
         EntitySystem system = new EntitySystem();
-        ResultSupplyingController supplier = new ResultSupplyingController();
-        ListeningControler listener = new ListeningControler();
-        ControllerImpl ignored = new ControllerImpl();
+        ResultSupplyingController supplier = new ResultSupplyingController(result);
+        ControllerImpl receiver = new ControllerImpl();
         
         system.getControllerManager().addController(supplier);
-        system.getControllerManager().addController(listener);
-        system.getControllerManager().addController(ignored);
+        system.getControllerManager().addController(receiver);
         
-        Assert.assertNull(supplier.o);
-        Assert.assertNull(listener.o);
+        system.getControllerManager().report(result);
+    }
+    
+    @Test
+    public void testSingletonResultReset() {
+        Result result = new SingletonResultImpl();
+        
+        EntitySystem system = new EntitySystem();
+        ResultSupplyingController supplier = new ResultSupplyingController(result);
+        ControllerImpl receiver = new ControllerImpl();
+        
+        system.getControllerManager().addController(supplier);
+        system.getControllerManager().addController(receiver);
+        
+        Assert.assertArrayEquals(new Result[] { result }, supplier.resultsToReport);
+        Assert.assertTrue(receiver.reportedResults.isEmpty());
+        
+        // process twice
+        system.getControllerManager().process();
+        system.getControllerManager().process();
+        
+        // result list should contain 2 elements to the same result
+        Assert.assertEquals(2, receiver.reportedResults.size());
+        Assert.assertSame(result, receiver.reportedResults.get(0));
+        Assert.assertSame(result, receiver.reportedResults.get(1));
+    }
+    
+    private void doTestReportResult(Result... results) {
+        EntitySystem system = new EntitySystem();
+        ResultSupplyingController supplier = new ResultSupplyingController(results);
+        ControllerImpl receiver = new ControllerImpl();
+        
+        system.getControllerManager().addController(supplier);
+        system.getControllerManager().addController(receiver);
+        
+        Assert.assertArrayEquals(results, supplier.resultsToReport);
+        Assert.assertTrue(receiver.reportedResults.isEmpty());
         
         system.getControllerManager().process();
         
-        Assert.assertNotNull(supplier.o);
-        Assert.assertSame(supplier.o, listener.o);
+        Assert.assertEquals(Arrays.asList(results), receiver.reportedResults);
     }
     
     @Test
@@ -177,39 +240,32 @@ public class ControllerManagerTest {
         Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
     
-    private static interface Listener {
-        public void setData(Object o);
-    }
-    
     private static class ResultSupplyingController extends SimpleController {
-        private Object o;
+        private final Result[] resultsToReport;
         
-        @Override
-        public void preProcess(double dt) {
-            o = new Object();
+        public ResultSupplyingController(Result... results) {
+            resultsToReport = results;
         }
         
         @Override
         public void process(double dt) {
-            getEntitySystem().getControllerManager().supply(new Result<Listener>() {
-                @Override
-                public void supply(Listener listener) {
-                    listener.setData(o);
-                }
-
-                @Override
-                public Class<Listener> getListenerType() {
-                    return Listener.class;
-                }
-            });
+            for (Result r: resultsToReport) {
+                getEntitySystem().getControllerManager().report(r);
+            }
         }
     }
     
-    private static class ListeningControler extends SimpleController implements Listener {
-        private Object o;
+    private static class ResultImpl implements Result {
         @Override
-        public void setData(Object o) {
-            this.o = o;
+        public boolean isSingleton() {
+            return false;
+        }
+    }
+    
+    private static class SingletonResultImpl implements Result {
+        @Override
+        public boolean isSingleton() {
+            return true;
         }
     }
     
@@ -231,6 +287,14 @@ public class ControllerManagerTest {
         private Component<?> lastRemovedComponent;
         
         private EntitySystem system;
+        
+        private final List<Result> reportedResults = new ArrayList<Result>();
+        
+        @Override
+        public void report(Result result) {
+            reportedResults.add(result);
+        }
+        
         
         @Override
         public EntitySystem getEntitySystem() {
