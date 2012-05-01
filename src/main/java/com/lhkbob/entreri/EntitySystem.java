@@ -208,6 +208,24 @@ public final class EntitySystem implements Iterable<Entity> {
     }
     
     /**
+     * Get all TypeIds currently used by the EntitySystem. If a type has had all
+     * of its components removed, it will still be returned here.
+     * 
+     * @return All TypeIds at one point used by this system
+     */
+    public Collection<TypeId<?>> getTypes() {
+        List<TypeId<?>> ids = new ArrayList<TypeId<?>>();
+        for (int i = 0; i < componentRepositories.length; i++) {
+            if (componentRepositories[i] != null) {
+                // check the type
+                    // this type is a subclass of the requested type
+                    ids.add(componentRepositories[i].getTypeId());
+            }
+        }
+        return ids;
+    }
+    
+    /**
      * Return the ControllerManager for this EntitySystem that can be used to
      * organize processing of the system using {@link Controller}
      * implementations.
