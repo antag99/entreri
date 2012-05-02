@@ -89,13 +89,16 @@ public final class Component<T extends ComponentData<T>> {
     }
 
     /**
-     * @return True if this component is enabled, or false if it is disabled and
-     *         will appear as though it doesn't exist under default behavior
+     * Return true if this component is enabled, or false if it is disabled and
+     * will appear as though it doesn't exist under default behavior. False is
+     * always returned if the component is not live.
+     * 
+     * @return True if enabled
      */
     public boolean isEnabled() {
         // if isLive() returns false, index references the 0th index, which
         // just contains garbage
-        return owner.isEnabled(index);
+        return isLive() && owner.isEnabled(index);
     }
 
     /**

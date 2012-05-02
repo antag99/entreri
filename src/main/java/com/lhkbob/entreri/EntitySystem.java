@@ -243,8 +243,22 @@ public final class EntitySystem implements Iterable<Entity> {
      * 
      * @return An iterator over the entities of the system
      */
+    @Override
     public Iterator<Entity> iterator() {
         return new EntityIterator();
+    }
+    
+    /**
+     * Return an iterator over all components of with the given type. The
+     * returned iterator reuses a single ComponentData instance of T, so it is a
+     * fast iterator. This effectively wraps a {@link ComponentIterator} in a
+     * standard {@link Iterator} with a single required component type.
+     * 
+     * @param id The type of component to iterate over
+     * @return A fast iterator over components in this system
+     */
+    public <T extends ComponentData<T>> Iterator<T> iterator(TypeId<T> id) {
+        return new ComponentIteratorWrapper<T>(id);
     }
 
     /**
@@ -579,6 +593,45 @@ public final class EntitySystem implements Iterable<Entity> {
                 index++;
             } while(index < componentRepositories.length && componentRepositories[index] == null);
             advanced = true;
+        }
+    }
+    
+    private class ComponentIteratorWrapper<T extends ComponentData<T>> implements Iterator<T> {
+        private final T data;
+        private final ComponentIterator it;
+        
+        private boolean nextCalled;
+        private boolean hasNext;
+        
+        public ComponentIteratorWrapper(TypeId<T> type) {
+            data = createDataInstance(type);
+            it = new ComponentIterator(EntitySystem.this);
+            it.addRequired(data);
+            
+            nextCalled = false;
+            hasNext = false;
+        }
+        
+        @Override
+        public boolean hasNext() {
+            if (!nextCalled) {
+                hasNext = it.next();
+                nextCalled = true;
+            }
+            return hasNext;
+        }
+
+        @Override
+        public T next() {
+            if (!hasNext())
+                throw new NoSuchElementException();
+            nextCalled = false;
+            return data;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
     

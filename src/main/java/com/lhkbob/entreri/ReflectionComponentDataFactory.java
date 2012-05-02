@@ -199,7 +199,9 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             paramTypes[i] = args[i].getClass();
         
         try {
-            Constructor<?> ctor = type.getConstructor(paramTypes);
+            // must use getDeclaredConstructor in case the class type is private
+            // or the constructor is not public
+            Constructor<?> ctor = type.getDeclaredConstructor(paramTypes);
             ctor.setAccessible(true);
             return (PropertyFactory<?>) ctor.newInstance(args);
         } catch (SecurityException e) {

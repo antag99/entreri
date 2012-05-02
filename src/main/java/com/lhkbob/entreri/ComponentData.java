@@ -118,10 +118,10 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      * Return whether or not the component this data is attached to is enabled.
      * This is an optimized shortcut for <code>getComponent().isEnabled()</code>
      * 
-     * @return True if the component is enabled
+     * @return True if the component is enabled, false if disabled or invalid
      */
     public final boolean isEnabled() {
-        return owner.isEnabled(index);
+        return index != 0 && owner.isEnabled(index);
     }
 
     /**
