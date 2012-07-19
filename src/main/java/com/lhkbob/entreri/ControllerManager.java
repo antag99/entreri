@@ -323,6 +323,8 @@ public class ControllerManager {
     }
     
     private void firePreProcess(double dt) {
+        lastProcessTime = System.nanoTime();
+
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
             controllers.get(i).preProcess(dt);
@@ -345,7 +347,6 @@ public class ControllerManager {
             profile.get(controllers.get(i)).postprocessTime = System.nanoTime() - start;
         }
         
-        lastProcessTime = System.nanoTime();
         singletonResults.clear();
     }
     
