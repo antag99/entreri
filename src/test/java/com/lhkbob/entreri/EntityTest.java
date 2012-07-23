@@ -55,11 +55,11 @@ public class EntityTest {
         
         Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
         
-        c.getData().setInt(0, 1);
-        Assert.assertEquals(1, c.getData().getInt(0));
+        c.getData().setInt(1);
+        Assert.assertEquals(1, c.getData().getInt());
         
         Assert.assertEquals(c, e.get(TypeId.get(IntComponent.class)));
-        Assert.assertEquals(1, e.get(TypeId.get(IntComponent.class)).getData().getInt(0));
+        Assert.assertEquals(1, e.get(TypeId.get(IntComponent.class)).getData().getInt());
         
         Assert.assertTrue(e.remove(TypeId.get(IntComponent.class)));
         
@@ -90,13 +90,13 @@ public class EntityTest {
         Entity e = system.addEntity();
         
         Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
-        c.getData().setInt(0, 2);
+        c.getData().setInt(2);
         
         int count = 0;
         for (Entity e2: system) {
             Assert.assertSame(e, e2);
             Assert.assertSame(c, e2.get(TypeId.get(IntComponent.class)));
-            Assert.assertEquals(2, e2.get(TypeId.get(IntComponent.class)).getData().getInt(0));
+            Assert.assertEquals(2, e2.get(TypeId.get(IntComponent.class)).getData().getInt());
             count++;
         }
         
@@ -128,15 +128,15 @@ public class EntityTest {
         IntComponent data = system.createDataInstance(TypeId.get(IntComponent.class));
         
         Assert.assertTrue(data.set(e1.add(TypeId.get(IntComponent.class))));
-        data.setInt(0, 1);
+        data.setInt(1);
         
         Assert.assertTrue(data.set(e2.add(TypeId.get(IntComponent.class))));
-        data.setInt(0, 2);
+        data.setInt(2);
         
         Assert.assertTrue(e1.get(data));
-        Assert.assertEquals(1, data.getInt(0));
+        Assert.assertEquals(1, data.getInt());
         Assert.assertTrue(e2.get(data));
-        Assert.assertEquals(2, data.getInt(0));
+        Assert.assertEquals(2, data.getInt());
         
         // now test disabled'ness
         e1.get(TypeId.get(IntComponent.class)).setEnabled(false);

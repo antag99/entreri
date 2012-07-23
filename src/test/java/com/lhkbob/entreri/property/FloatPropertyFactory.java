@@ -37,11 +37,11 @@ public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty>
     
     @Override
     public FloatProperty create() {
-        return new FloatProperty(1);
+        return new FloatProperty();
     }
     
     @Override
     public void setDefaultValue(FloatProperty p, int index) {
-        p.set(DEFAULT, index, 0);
+        p.set(DEFAULT, index);
     }
 }

@@ -31,15 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * BooleanProperty is an implementation of Property that stores the property data
- * as a number of packed booleans for each property. An example would be a
- * three-dimensional vector, which would have an element size of 3.
+ * BooleanProperty is an implementation of Property that stores a single boolean
+ * property.
  * 
  * @author Michael Ludwig
  */
@@ -48,65 +46,45 @@ public final class BooleanProperty implements Property {
     private BooleanDataStore store;
     
     /**
-     * Create a FloatProperty with an element size of 1.
+     * Create a BooleanProperty.
      */
     public BooleanProperty() {
-        this(1);
+        store = new BooleanDataStore(1, new boolean[1]);
     }
-
-    /**
-     * Create a new FloatProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public BooleanProperty(int elementSize) {
-        store = new BooleanDataStore(elementSize, new boolean[elementSize]);
-    }
-
+    
     /**
      * Return the backing boolean array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The boolean data for all packed properties that this property has
      *         been packed with
      */
     public boolean[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public boolean get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public boolean get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
-     * @param val The value to store, can be null
+     * @param val The value to store
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(boolean val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(boolean val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -135,7 +113,6 @@ public final class BooleanProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<BooleanProperty> {
-        private final int elementSize;
         private final boolean defaultValue;
         
         public Factory(Attributes attrs) {
@@ -145,28 +122,21 @@ public final class BooleanProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultBoolean.class).value();
             else
                 defaultValue = false;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, boolean defaultValue) {
+        public Factory(boolean defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public BooleanProperty create() {
-            return new BooleanProperty(elementSize);
+            return new BooleanProperty();
         }
 
         @Override
         public void setDefaultValue(BooleanProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -179,34 +149,5 @@ public final class BooleanProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultBoolean {
         boolean value();
-    }
-
-    private static class BooleanDataStore extends AbstractIndexedDataStore<boolean[]> {
-        private final boolean[] array;
-        
-        public BooleanDataStore(int elementSize, boolean[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return array.length;
-        }
-        
-        @Override
-        public BooleanDataStore create(int size) {
-            return new BooleanDataStore(elementSize, new boolean[elementSize * size]);
-        }
-
-        @Override
-        protected boolean[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(boolean[] array) {
-            return array.length;
-        }
     }
 }

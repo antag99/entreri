@@ -35,7 +35,7 @@ public class NoParameterProperty implements Property {
     private final IntProperty property;
     
     public NoParameterProperty() {
-        property = new IntProperty(1);
+        property = new IntProperty();
     }
     
     @Override
@@ -60,7 +60,7 @@ public class NoParameterProperty implements Property {
 
         @Override
         public void setDefaultValue(NoParameterProperty property, int index) {
-            property.property.set(0, index, 0);
+            property.property.set(0, index);
         }
     }
 }

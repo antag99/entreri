@@ -28,7 +28,6 @@ package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.FloatProperty;
 import com.lhkbob.entreri.property.FloatProperty.DefaultFloat;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
@@ -44,14 +43,12 @@ import com.lhkbob.entreri.property.NoParameterProperty;
  */
 public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent> {
     @DefaultLong(Long.MAX_VALUE)
-    @ElementSize(3)
-    protected LongProperty longProp; // should use factory(int, long)
+    protected LongProperty longProp;
     
     @DefaultFloat(0.5f)
-    protected FloatProperty floatProp; // should use factory(1, float)
+    protected FloatProperty floatProp;
     
-    @ElementSize(2)
-    protected IntProperty intProp; // should use factory(int)
+    protected IntProperty intProp;
     
     @Factory(FloatPropertyFactory.class)
     protected FloatProperty fromFactory; // should create a new FloatPropertyFactory
@@ -61,33 +58,30 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     
     protected MultiPropertyComponent() {}
     
-    public void setLong(long i1, long i2, long i3) {
-        longProp.set(i1, getIndex(), 0);
-        longProp.set(i2, getIndex(), 1);
-        longProp.set(i3, getIndex(), 2);
+    public void setLong(long i) {
+        longProp.set(i, getIndex());
     }
     
     public long[] getLong() {
-        long[] v = new long[] { longProp.get(getIndex(), 0), longProp.get(getIndex(), 1), longProp.get(getIndex(), 2) };
+        long[] v = new long[] { longProp.get(getIndex()) };
         return v;
     }
     
-    public void setInt(int i1, int i2) {
-        intProp.set(i1, getIndex(), 0);
-        intProp.set(i2, getIndex(), 1);
+    public void setInt(int i) {
+        intProp.set(i, getIndex());
     }
     
     public int[] getInt() {
-        int[] v = new int[] { intProp.get(getIndex(), 0), intProp.get(getIndex(), 1) };
+        int[] v = new int[] { intProp.get(getIndex()) };
         return v;
     }
     
     public void setFloat(float f) {
-        floatProp.set(f, getIndex(), 0);
+        floatProp.set(f, getIndex());
     }
     
     public float getFloat() {
-        return floatProp.get(getIndex(), 0);
+        return floatProp.get(getIndex());
     }
     
     public NoParameterProperty getCompactProperty() {
@@ -95,10 +89,10 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     }
     
     public void setFactoryFloat(float f) {
-        fromFactory.set(f, getIndex(), 0);
+        fromFactory.set(f, getIndex());
     }
     
     public float getFactoryFloat() {
-        return fromFactory.get(getIndex(), 0);
+        return fromFactory.get(getIndex());
     }
 }

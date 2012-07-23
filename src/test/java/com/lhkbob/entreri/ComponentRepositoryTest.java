@@ -100,7 +100,7 @@ public class ComponentRepositoryTest {
     
     @Test
     public void testUndecorateInvalidProperty() {
-        FloatProperty prop = new FloatProperty(2);
+        FloatProperty prop = new FloatProperty();
         EntitySystem system = new EntitySystem();
         system.undecorate(TypeId.get(IntComponent.class), prop);
         // should not fail

@@ -90,13 +90,13 @@ public class AdvancedIteratorTest {
                 Object v = new Object();
                 entityObjValues.add(v);
                 entityCombinedObjValues.add(v);
-                objData.setObject(0, v);
+                objData.setObject(v);
                 
                 floatData.set(e.add(floatId));
-                Float fv = (float) (Math.random() * 1000);
+                float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 entityCombinedFloatValues.add(fv);
-                floatData.setFloat(0, fv);
+                floatData.setFloat(fv);
                 
                 countWithBoth++;
                 countWithObj++;
@@ -104,9 +104,9 @@ public class AdvancedIteratorTest {
             } else if (c > .4) {
                 // just float component
                 floatData.set(e.add(floatId));
-                Float fv = (float) (Math.random() * 1000);
+                float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
-                floatData.setFloat(0, fv);
+                floatData.setFloat(fv);
                 
                 countWithFloat++;
             } else {
@@ -114,7 +114,7 @@ public class AdvancedIteratorTest {
                 objData.set(e.add(objId));
                 Object v = new Object();
                 entityObjValues.add(v);
-                objData.setObject(0, v);
+                objData.setObject(v);
                 
                 countWithObj++;
             }
@@ -135,7 +135,7 @@ public class AdvancedIteratorTest {
     private void doTestObjectComponentIterator(ComponentIterator it) {
         int i = 0;
         while(it.next()) {
-            Assert.assertEquals(entityObjValues.get(i), objData.getObject(0));
+            Assert.assertEquals(entityObjValues.get(i), objData.getObject());
             i++;
         }
         
@@ -146,7 +146,7 @@ public class AdvancedIteratorTest {
     private void doTestFloatComponentIterator(ComponentIterator it) {
         int i = 0;
         while(it.next()) {
-            Assert.assertEquals(entityFloatValues.get(i).floatValue(), floatData.getFloat(0), .0001f);
+            Assert.assertEquals(entityFloatValues.get(i).floatValue(), floatData.getFloat(), .0001f);
             i++;
         }
         
@@ -157,8 +157,8 @@ public class AdvancedIteratorTest {
     private void doTestBulkComponentIterator(ComponentIterator it) {
         int i = 0;
         while(it.next()) {
-            Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject(0));
-            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), floatData.getFloat(0), .0001f);
+            Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject());
+            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), floatData.getFloat(), .0001f);
             i++;
         }
         

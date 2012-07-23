@@ -31,7 +31,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 
 
@@ -42,9 +41,8 @@ import com.lhkbob.entreri.property.IntProperty.DefaultInt;
  * instances of the Property for the component. The factory type must have a
  * no-argument constructor in order to be instantiated correctly. This
  * annotation should be used if Property does not provide a default factory with
- * sufficient flexibility with annotation attributes (e.g. {@link DefaultInt} or
- * {@link ElementSize} for the Properties defined in
- * com.lhkbob.entreri.property).
+ * sufficient flexibility with annotation attributes (e.g. {@link DefaultInt}
+ * for the Properties defined in com.lhkbob.entreri.property).
  * </p>
  * <p>
  * Factory can also be placed at the type level on a Property implementation to

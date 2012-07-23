@@ -94,16 +94,16 @@ public class SystemTest {
         Entity template = system.addEntity();
         
         Component<IntComponent> tc1 = template.add(TypeId.get(IntComponent.class));
-        tc1.getData().setInt(0, 2);
+        tc1.getData().setInt(2);
         Component<FloatComponent> tc2 = template.add(TypeId.get(FloatComponent.class));
-        tc2.getData().setFloat(0, 3f);
+        tc2.getData().setFloat(3f);
         
         Entity fromTemplate = system.addEntity(template);
         Component<IntComponent> c1 = fromTemplate.get(TypeId.get(IntComponent.class));
         Component<FloatComponent> c2 = fromTemplate.get(TypeId.get(FloatComponent.class));
         
-        Assert.assertEquals(2, c1.getData().getInt(0));
-        Assert.assertEquals(3f, c2.getData().getFloat(0), .0001f);
+        Assert.assertEquals(2, c1.getData().getInt());
+        Assert.assertEquals(3f, c2.getData().getFloat(), .0001f);
         Assert.assertNotSame(c1, tc1);
         Assert.assertNotSame(c2, tc2);
         Assert.assertNotSame(template, fromTemplate);

@@ -105,10 +105,8 @@ public class ReflectionComponentDataFactoryTest {
         LongProperty longProp = (LongProperty) props.get("longProp").create();
         ((PropertyFactory<LongProperty>) props.get("longProp")).setDefaultValue(longProp, 0);
         long[] longData = longProp.getIndexedData();
-        Assert.assertEquals(3, longData.length);
+        Assert.assertEquals(1, longData.length);
         Assert.assertEquals(Long.MAX_VALUE, longData[0]);
-        Assert.assertEquals(Long.MAX_VALUE, longData[1]);
-        Assert.assertEquals(Long.MAX_VALUE, longData[2]);
         
         Assert.assertTrue(props.containsKey("floatProp"));
         Assert.assertTrue(props.get("floatProp").create() instanceof FloatProperty);
@@ -123,9 +121,8 @@ public class ReflectionComponentDataFactoryTest {
         IntProperty intProp = (IntProperty) props.get("intProp").create();
         ((PropertyFactory<IntProperty>) props.get("intProp")).setDefaultValue(intProp, 0);
         int[] intData = intProp.getIndexedData();
-        Assert.assertEquals(2, intData.length);
+        Assert.assertEquals(1, intData.length);
         Assert.assertEquals(0, intData[0]);
-        Assert.assertEquals(0, intData[1]);
         
         Assert.assertTrue(props.containsKey("fromFactory"));
         Assert.assertTrue(props.get("fromFactory") instanceof FloatPropertyFactory);

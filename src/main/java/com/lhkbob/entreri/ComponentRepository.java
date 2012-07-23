@@ -103,8 +103,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         resizePropertyStores(declaredProperties, 1);
         
         // decorate the component data with a boolean property to track enabled status
-        enabledProperty = decorate(new BooleanProperty.Factory(1, true));
-        componentIdProperty = decorate(new IntProperty.Factory(1, 0)); // we'll not assign a default value, since we change the id each time
+        enabledProperty = decorate(new BooleanProperty.Factory(true));
+        componentIdProperty = decorate(new IntProperty.Factory(0)); // we'll not assign a default value, since we change the id each time
         idSeq = 1; // start at 1, just like entity id sequences
     }
     
@@ -200,7 +200,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return True if the component at componentIndex is enabled
      */
     public boolean isEnabled(int componentIndex) {
-        return enabledProperty.get(componentIndex, 0);
+        return enabledProperty.get(componentIndex);
     }
 
     /**
@@ -210,7 +210,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @param enabled True if the component is enabled
      */
     public void setEnabled(int componentIndex, boolean enabled) {
-        enabledProperty.set(enabled, componentIndex, 0);
+        enabledProperty.set(enabled, componentIndex);
     }
     
     /**
@@ -218,7 +218,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return The component id of the component at the given index
      */
     public int getId(int componentIndex) {
-        return componentIdProperty.get(componentIndex, 0);
+        return componentIdProperty.get(componentIndex);
     }
     
     /*
@@ -345,7 +345,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         
         // although there could be a custom PropertyFactory for setting the id,
         // it's easier to assign a new id here
-        componentIdProperty.set(idSeq++, componentIndex, 0);
+        componentIdProperty.set(idSeq++, componentIndex);
         
         return instance;
     }
@@ -396,8 +396,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
-        componentIdProperty.set(0, componentIndex, 0);
-        enabledProperty.set(false, componentIndex, 0);
+        componentIdProperty.set(0, componentIndex);
+        enabledProperty.set(false, componentIndex);
         
         return oldComponent != null;
     }

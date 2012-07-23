@@ -39,11 +39,11 @@ public class UnmanagedFieldComponent extends ComponentData<UnmanagedFieldCompone
     protected UnmanagedFieldComponent() {}
 
     public void setObject(Object v) {
-        transientProperty.set(v, getIndex(), 0);
+        transientProperty.set(v, getIndex());
     }
     
     public Object getObject() {
-        return transientProperty.get(getIndex(), 0);
+        return transientProperty.get(getIndex());
     }
     
     public float getFloat() {

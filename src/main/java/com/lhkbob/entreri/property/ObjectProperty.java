@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.property;
 
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
@@ -46,21 +45,10 @@ public final class ObjectProperty<T> implements Property {
     private ObjectDataStore store;
     
     /**
-     * Create an ObjectProperty with an element size of 1.
+     * Create an ObjectProperty.
      */
     public ObjectProperty() {
-        this(1);
-    }
-    
-    /**
-     * Create a new ObjectProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public ObjectProperty(int elementSize) {
-        store = new ObjectDataStore(elementSize, new Object[elementSize]);
+        store = new ObjectDataStore(1, new Object[1]);
     }
 
     /**
@@ -68,59 +56,49 @@ public final class ObjectProperty<T> implements Property {
      * element size and default value.
      * 
      * @param <T>
-     * @param elementSize The element size of the created properties
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for ObjectProperty
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(int elementSize, T dflt) {
-        PropertyFactory superRaw = new Factory(elementSize, dflt);
+    public static <T> PropertyFactory<ObjectProperty<T>> factory(T dflt) {
+        PropertyFactory superRaw = new Factory(dflt);
         return (PropertyFactory<ObjectProperty<T>>) superRaw;
     }
     
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The Object data for all packed properties that this property has
      *         been packed with
      */
     public Object[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
 
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     @SuppressWarnings("unchecked")
-    public T get(int componentIndex, int offset) {
-        return (T) store.array[componentIndex * store.elementSize + offset];
+    public T get(int componentIndex) {
+        return (T) store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(T val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(T val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -149,67 +127,28 @@ public final class ObjectProperty<T> implements Property {
      */
     @SuppressWarnings("rawtypes")
     public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
-        private final int elementSize;
         private final Object defaultValue;
         
         public Factory(Attributes attrs) {
             super(attrs);
             
             defaultValue = null;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, Object defaultValue) {
+        public Factory(Object defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public ObjectProperty create() {
-            return new ObjectProperty(elementSize);
+            return new ObjectProperty();
         }
 
         @Override
         @SuppressWarnings("unchecked")
         public void setDefaultValue(ObjectProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
-        }
-    }
-
-    private static class ObjectDataStore extends AbstractIndexedDataStore<Object[]> {
-        private final Object[] array;
-        
-        public ObjectDataStore(int elementSize, Object[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            // since this is just an approximate, we use 12 bytes as a minimum
-            // size for each object
-            return 12 * array.length;
-        }
-        
-        @Override
-        public ObjectDataStore create(int size) {
-            return new ObjectDataStore(elementSize, new Object[elementSize * size]);
-        }
-
-        @Override
-        protected Object[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(Object[] array) {
-            return array.length;
+            property.set(defaultValue, index);
         }
     }
 }

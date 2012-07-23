@@ -31,14 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * ShortProperty is an implementation of Property that stores the property data
- * as a number of packed ints for each property.
+ * ShortProperty is an implementation of Property that stores a single short
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -47,65 +46,45 @@ public final class ShortProperty implements Property {
     private ShortDataStore store;
     
     /**
-     * Create an ShortProperty with an element size of 1.
+     * Create an ShortProperty.
      */
     public ShortProperty() {
-        this(1);
-    }
-    
-    /**
-     * Create a new ShortProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public ShortProperty(int elementSize) {
-        store = new ShortDataStore(elementSize, new short[elementSize]);
+        store = new ShortDataStore(1, new short[1]);
     }
 
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The short data for all packed properties that this property has
      *         been packed with
      */
     public short[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public short get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public short get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(short val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(short val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -134,7 +113,6 @@ public final class ShortProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<ShortProperty> {
-        private final int elementSize;
         private final short defaultValue;
         
         public Factory(Attributes attrs) {
@@ -144,28 +122,21 @@ public final class ShortProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultShort.class).value();
             else
                 defaultValue = 0;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, short defaultValue) {
+        public Factory(short defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public ShortProperty create() {
-            return new ShortProperty(elementSize);
+            return new ShortProperty();
         }
 
         @Override
         public void setDefaultValue(ShortProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -178,34 +149,5 @@ public final class ShortProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultShort {
         short value();
-    }
-
-    private static class ShortDataStore extends AbstractIndexedDataStore<short[]> {
-        private final short[] array;
-        
-        public ShortDataStore(int elementSize, short[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return 2 * array.length;
-        }
-        
-        @Override
-        public ShortDataStore create(int size) {
-            return new ShortDataStore(elementSize, new short[elementSize * size]);
-        }
-
-        @Override
-        protected short[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(short[] array) {
-            return array.length;
-        }
     }
 }

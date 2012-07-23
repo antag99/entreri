@@ -33,15 +33,18 @@ import com.lhkbob.entreri.IndexedDataStore;
 
 
 /**
+ * <p>
  * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses
- * an resizable array to hold the packed property values of the store. It
- * implements the vast majority of the logic needed for an IndexedDataStore, and
- * concrete classes are only required to create and store the arrays.
+ * an array to hold the packed property values of the store. It implements the
+ * vast majority of the logic needed for an IndexedDataStore, and concrete
+ * classes are only required to create and store the arrays.
+ * <p>
+ * An AbstractIndexedDataStore instance will only have one array in its
+ * lifetime.
  * 
  * @author Michael Ludwig
- * @param <A> The type of array backing this data store
  */
-public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
+public abstract class AbstractIndexedDataStore implements IndexedDataStore {
     protected final int elementSize;
 
     /**
@@ -60,18 +63,17 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
 
     @Override
     public int size() {
-        return getArrayLength(getArray()) / elementSize;
+        return getArrayLength() / elementSize;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset) {
         if (dest == null)
             throw new NullPointerException("Destination store cannot be null");
         if (!(getClass().isInstance(dest)))
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong type: " + dest.getClass());
         
-        AbstractIndexedDataStore<A> dstStore = (AbstractIndexedDataStore<A>) dest;
+        AbstractIndexedDataStore dstStore = (AbstractIndexedDataStore) dest;
         if (dstStore.elementSize != elementSize)
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
         
@@ -98,21 +100,17 @@ public abstract class AbstractIndexedDataStore<A> implements IndexedDataStore {
      * @param dstOffset The element offset into the new array
      * @param len The number of array elements to copy
      */
-    protected void arraycopy(A oldArray, int srcOffset, A newArray, int dstOffset, int len) {
+    protected void arraycopy(Object oldArray, int srcOffset, Object newArray, int dstOffset, int len) {
         System.arraycopy(oldArray, srcOffset, newArray, dstOffset, len);
     }
     
     /**
-     * @return The current array instance storing property data
+     * @return The array instance storing property data
      */
-    protected abstract A getArray();
+    protected abstract Object getArray();
 
     /**
-     * Compute the array length of the given array. The array object will have
-     * been returned by {@link #getArray()} so casts are safe.
-     * 
-     * @param array The array whose length is computed
-     * @return The array length
+     * @return The length of the array backing this data store
      */
-    protected abstract int getArrayLength(A array);
+    protected abstract int getArrayLength();
 }

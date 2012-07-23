@@ -31,14 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * CharProperty is an implementation of Property that stores the property data
- * as a number of packed ints for each property.
+ * CharProperty is an implementation of Property that stores a single char
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -47,65 +46,45 @@ public final class CharProperty implements Property {
     private CharDataStore store;
     
     /**
-     * Create an CharProperty with an element size of 1.
+     * Create an CharProperty.
      */
     public CharProperty() {
-        this(1);
-    }
-    
-    /**
-     * Create a new CharProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public CharProperty(int elementSize) {
-        store = new CharDataStore(elementSize, new char[elementSize]);
+        store = new CharDataStore(1, new char[1]);
     }
 
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The char data for all packed properties that this property has
      *         been packed with
      */
     public char[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public char get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public char get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(char val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(char val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -134,7 +113,6 @@ public final class CharProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<CharProperty> {
-        private final int elementSize;
         private final char defaultValue;
         
         public Factory(Attributes attrs) {
@@ -144,28 +122,21 @@ public final class CharProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultChar.class).value();
             else
                 defaultValue = '\0';
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, char defaultValue) {
+        public Factory(char defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public CharProperty create() {
-            return new CharProperty(elementSize);
+            return new CharProperty();
         }
 
         @Override
         public void setDefaultValue(CharProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -178,34 +149,5 @@ public final class CharProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultChar {
         char value();
-    }
-
-    private static class CharDataStore extends AbstractIndexedDataStore<char[]> {
-        private final char[] array;
-        
-        public CharDataStore(int elementSize, char[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return 2 * array.length;
-        }
-        
-        @Override
-        public CharDataStore create(int size) {
-            return new CharDataStore(elementSize, new char[elementSize * size]);
-        }
-
-        @Override
-        protected char[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(char[] array) {
-            return array.length;
-        }
     }
 }

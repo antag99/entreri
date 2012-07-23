@@ -26,7 +26,6 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
@@ -35,18 +34,15 @@ import com.lhkbob.entreri.property.ObjectProperty;
  * @author Michael Ludwig
  */
 public class ObjectComponent extends AbstractComponent<ObjectComponent> {
-    @ElementSize(3)
-    private ObjectProperty<Object> property2;
+    private ObjectProperty<Object> property;
     
     protected ObjectComponent() { }
     
-    public Object getObject(int offset) {
-        int index = getIndex() * 3 + offset;
-        return property2.getIndexedData()[index];
+    public Object getObject() {
+        return property.get(getIndex());
     }
     
-    public void setObject(int offset, Object value) {
-        int index = getIndex() * 3 + offset;
-        property2.getIndexedData()[index] = value;
+    public void setObject(Object value) {
+        property.set(value, getIndex());
     }
 }

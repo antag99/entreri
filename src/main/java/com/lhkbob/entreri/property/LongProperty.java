@@ -31,14 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * LongProperty is an implementation of Property that stores the property data
- * as a number of packed ints for each property.
+ * LongProperty is an implementation of Property that stores a single
+ * long value.
  * 
  * @author Michael Ludwig
  */
@@ -47,65 +46,45 @@ public final class LongProperty implements Property {
     private LongDataStore store;
     
     /**
-     * Create an LongProperty with an element size of 1.
+     * Create an LongProperty.
      */
     public LongProperty() {
-        this(1);
-    }
-    
-    /**
-     * Create a new LongProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public LongProperty(int elementSize) {
-        store = new LongDataStore(elementSize, new long[elementSize]);
+        store = new LongDataStore(1, new long[1]);
     }
 
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The long data for all packed properties that this property has
      *         been packed with
      */
     public long[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public long get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public long get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(long val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(long val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -134,7 +113,6 @@ public final class LongProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<LongProperty> {
-        private final int elementSize;
         private final long defaultValue;
         
         public Factory(Attributes attrs) {
@@ -144,28 +122,21 @@ public final class LongProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultLong.class).value();
             else
                 defaultValue = 0L;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, long defaultValue) {
+        public Factory(long defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public LongProperty create() {
-            return new LongProperty(elementSize);
+            return new LongProperty();
         }
 
         @Override
         public void setDefaultValue(LongProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -178,34 +149,5 @@ public final class LongProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultLong {
         long value();
-    }
-
-    private static class LongDataStore extends AbstractIndexedDataStore<long[]> {
-        private final long[] array;
-        
-        public LongDataStore(int elementSize, long[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return 8 * array.length;
-        }
-        
-        @Override
-        public LongDataStore create(int size) {
-            return new LongDataStore(elementSize, new long[elementSize * size]);
-        }
-
-        @Override
-        protected long[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(long[] array) {
-            return array.length;
-        }
     }
 }

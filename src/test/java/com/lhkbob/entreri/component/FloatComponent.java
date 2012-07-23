@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.FloatProperty;
 
 /**
@@ -36,18 +35,15 @@ import com.lhkbob.entreri.property.FloatProperty;
  * @author Michael Ludwig
  */
 public class FloatComponent extends ComponentData<FloatComponent> {
-    @ElementSize(3)
     private FloatProperty property;
     
     protected FloatComponent() { } 
     
-    public float getFloat(int offset) {
-        int index = getIndex() * 3 + offset;
-        return property.getIndexedData()[index];
+    public float getFloat() {
+        return property.get(getIndex());
     }
     
-    public void setFloat(int offset, float value) {
-        int index = getIndex() * 3 + offset;
-        property.getIndexedData()[index] = value;
+    public void setFloat(float value) {
+        property.set(value, getIndex());
     }
 }

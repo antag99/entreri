@@ -31,15 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * FloatProperty is an implementation of Property that stores the property data
- * as a number of packed floats for each property. An example would be a
- * three-dimensional vector, which would have an element size of 3.
+ * FloatProperty is an implementation of Property that stores a single
+ * float value.
  * 
  * @author Michael Ludwig
  */
@@ -48,65 +46,45 @@ public final class FloatProperty implements Property {
     private FloatDataStore store;
     
     /**
-     * Create a FloatProperty with an element size of 1.
+     * Create a FloatProperty.
      */
     public FloatProperty() {
-        this(1);
-    }
-
-    /**
-     * Create a new FloatProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public FloatProperty(int elementSize) {
-        store = new FloatDataStore(elementSize, new float[elementSize]);
+        store = new FloatDataStore(1, new float[1]);
     }
 
     /**
      * Return the backing float array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The float data for all packed properties that this property has
      *         been packed with
      */
     public float[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public float get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public float get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(float val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(float val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -135,7 +113,6 @@ public final class FloatProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<FloatProperty> {
-        private final int elementSize;
         private final float defaultValue;
         
         public Factory(Attributes attrs) {
@@ -145,28 +122,21 @@ public final class FloatProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultFloat.class).value();
             else
                 defaultValue = 0f;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, float defaultValue) {
+        public Factory(float defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public FloatProperty create() {
-            return new FloatProperty(elementSize);
+            return new FloatProperty();
         }
 
         @Override
         public void setDefaultValue(FloatProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -179,34 +149,5 @@ public final class FloatProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultFloat {
         float value();
-    }
-
-    private static class FloatDataStore extends AbstractIndexedDataStore<float[]> {
-        private final float[] array;
-        
-        public FloatDataStore(int elementSize, float[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return 4 * array.length;
-        }
-        
-        @Override
-        public FloatDataStore create(int size) {
-            return new FloatDataStore(elementSize, new float[elementSize * size]);
-        }
-
-        @Override
-        protected float[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(float[] array) {
-            return array.length;
-        }
     }
 }

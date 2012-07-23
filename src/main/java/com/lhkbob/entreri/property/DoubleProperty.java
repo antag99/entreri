@@ -31,14 +31,13 @@ import java.lang.annotation.RetentionPolicy;
 
 import com.lhkbob.entreri.Attribute;
 import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * DoubleProperty is an implementation of Property that stores the property data
- * as a number of packed ints for each property.
+ * DoubleProperty is an implementation of Property that stores a single
+ * double value.
  * 
  * @author Michael Ludwig
  */
@@ -47,65 +46,45 @@ public final class DoubleProperty implements Property {
     private DoubleDataStore store;
     
     /**
-     * Create an DoubleProperty with an element size of 1.
+     * Create an DoubleProperty.
      */
     public DoubleProperty() {
-        this(1);
-    }
-    
-    /**
-     * Create a new DoubleProperty where each property will have
-     * <tt>elementSize</tt> array elements together.
-     * 
-     * @param elementSize The element size of the property
-     * @throws IllegalArgumentException if elementSize is less than 1
-     */
-    public DoubleProperty(int elementSize) {
-        store = new DoubleDataStore(elementSize, new double[elementSize]);
+        store = new DoubleDataStore(1, new double[1]);
     }
 
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system. Data may be looked up for a specific component by scaling the
-     * {@link ComponentData#getIndex() component's index} by the element size of the
-     * property.
+     * system. Data can be accessed for a component directly using the
+     * component's index.
      * 
      * @return The double data for all packed properties that this property has
      *         been packed with
      */
     public double[] getIndexedData() {
-        return store.array;
+        return store.getArray();
     }
     
     /**
-     * Get the value stored in this property for the given component index, and
-     * offset. Offset is measured from 0 to 1 minus the element size the
-     * property was originally created with.
+     * Get the value stored in this property for the given component index.
      * 
      * @param componentIndex The component's index
-     * @param offset The offset into the component's data
      * @return The object at the given offset for the given component
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public double get(int componentIndex, int offset) {
-        return store.array[componentIndex * store.elementSize + offset];
+    public double get(int componentIndex) {
+        return store.getArray()[componentIndex];
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index, at the
-     * specified offset. The offset is measured from 0 to 1 minus the element
-     * size that this property was originally created with.
+     * Store <tt>val</tt> in this property for the given component index.
      * 
      * @param val The value to store, can be null
      * @param componentIndex The index of the component being modified
-     * @param offset The offset into the component's data
-     * @throws ArrayIndexOutOfBoundsException if the componentIndex and offset
-     *             would access illegal indices
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(double val, int componentIndex, int offset) {
-        store.array[componentIndex * store.elementSize + offset] = val;
+    public void set(double val, int componentIndex) {
+        store.getArray()[componentIndex] = val;
     }
     
     @Override
@@ -134,7 +113,6 @@ public final class DoubleProperty implements Property {
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<DoubleProperty> {
-        private final int elementSize;
         private final double defaultValue;
         
         public Factory(Attributes attrs) {
@@ -144,28 +122,21 @@ public final class DoubleProperty implements Property {
                 defaultValue = attrs.getAttribute(DefaultDouble.class).value();
             else
                 defaultValue = 0;
-            
-            if (attrs.hasAttribute(ElementSize.class))
-                elementSize = attrs.getAttribute(ElementSize.class).value();
-            else
-                elementSize = 1;
         }
         
-        public Factory(int elementSize, double defaultValue) {
+        public Factory(double defaultValue) {
             super(null);
-            this.elementSize = elementSize;
             this.defaultValue = defaultValue;
         }
 
         @Override
         public DoubleProperty create() {
-            return new DoubleProperty(elementSize);
+            return new DoubleProperty();
         }
 
         @Override
         public void setDefaultValue(DoubleProperty property, int index) {
-            for (int i = 0; i < elementSize; i++)
-                property.set(defaultValue, index, i);
+            property.set(defaultValue, index);
         }
     }
     
@@ -178,34 +149,5 @@ public final class DoubleProperty implements Property {
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface DefaultDouble {
         double value();
-    }
-
-    private static class DoubleDataStore extends AbstractIndexedDataStore<double[]> {
-        private final double[] array;
-        
-        public DoubleDataStore(int elementSize, double[] array) {
-            super(elementSize);
-            this.array = array;
-        }
-        
-        @Override
-        public long memory() {
-            return 8 * array.length;
-        }
-        
-        @Override
-        public DoubleDataStore create(int size) {
-            return new DoubleDataStore(elementSize, new double[elementSize * size]);
-        }
-
-        @Override
-        protected double[] getArray() {
-            return array;
-        }
-
-        @Override
-        protected int getArrayLength(double[] array) {
-            return array.length;
-        }
     }
 }

@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.ElementSize;
 import com.lhkbob.entreri.property.IntProperty;
 
 /**
@@ -36,18 +35,15 @@ import com.lhkbob.entreri.property.IntProperty;
  * @author Michael Ludwig
  */
 public class IntComponent extends ComponentData<IntComponent> {
-    @ElementSize(3)
     private IntProperty property;
     
     protected IntComponent() { }
     
-    public int getInt(int offset) {
-        int index = getIndex() * 3 + offset;
-        return property.getIndexedData()[index];
+    public int getInt() {
+        return property.get(getIndex());
     }
     
-    public void setInt(int offset, int value) {
-        int index = getIndex() * 3 + offset;
-        property.getIndexedData()[index] = value;
+    public void setInt(int value) {
+        property.set(value, getIndex());
     }
 }

@@ -32,8 +32,8 @@ import com.lhkbob.entreri.Property;
 public class NoFactoryProperty implements Property {
     private final IntProperty property;
     
-    public NoFactoryProperty(int size) {
-        property = new IntProperty(size);
+    public NoFactoryProperty() {
+        property = new IntProperty();
     }
     
     @Override
