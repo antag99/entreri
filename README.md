@@ -39,6 +39,15 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
 
 ## Release Notes
 
+### 1.5.3
+* Improve performance in default Property implementations by restricting them
+  to a single primitive per component (removing a multiply and add on access).
+* Expose multi-element supporting IndexedDataStores that were previously hidden
+  inside the provided Property implementations.
+* Simplify Phase enum and usage to not need ALL value.
+* Fix bug with time delta calculation.
+* Improve Result API in ControllerManage to not cause a type explosion.
+
 ### 1.5.2
 * Improve PropertyFactory API to better support custom Property definitions 
   that want to define new annotations to control default behavior, etc.

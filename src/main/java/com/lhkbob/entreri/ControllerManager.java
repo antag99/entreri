@@ -27,6 +27,7 @@
 package com.lhkbob.entreri;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +117,15 @@ public class ControllerManager {
     }
     
     /**
+     * Get an unmodifiable view of the controllers registered with this manager.
+     * 
+     * @return The controllers in the manager
+     */
+    public List<Controller> getControllers() {
+        return Collections.unmodifiableList(controllers);
+    }
+    
+    /**
      * Report the given Result to all registered Controllers in this manager.
      * This can only be called while a Phase is being processed.
      * 
@@ -195,7 +205,7 @@ public class ControllerManager {
      * 
      * @param controller The controller whose time is looked up
      * @param phase The phase that whose timing is returned
-     * @return The last execution time of the controller
+     * @return The last execution time of the controller in nanoseconds.
      */
     public long getExecutionTime(Controller controller, Phase phase) {
         if (controller == null || phase == null)
@@ -219,7 +229,7 @@ public class ControllerManager {
     
     /**
      * Return the last execution time for the given controller, for all its
-     * phases.
+     * phases, in nanoseconds.
      * 
      * @param controller The controller whose time is looked up
      * @return The last total execution time of the controller
