@@ -89,10 +89,10 @@ public class ControllerManager {
     private final Map<Controller, ProfileData> profile;
 
     private final EntitySystem system;
-    
+
     private long lastProcessTime;
     private final Set<Class<?>> singletonResults;
-    
+
     private Phase currentPhase;
 
     /**
@@ -103,19 +103,20 @@ public class ControllerManager {
      * @throws NullPointerException if system is null
      */
     public ControllerManager(EntitySystem system) {
-        if (system == null)
+        if (system == null) {
             throw new NullPointerException("EntitySystem cannot be null");
-        
+        }
+
         this.system = system;
         controllers = new ArrayList<Controller>();
-        
+
         profile = new HashMap<Controller, ProfileData>();
         singletonResults = new HashSet<Class<?>>();
         lastProcessTime = -1L;
-        
+
         currentPhase = null;
     }
-    
+
     /**
      * Get an unmodifiable view of the controllers registered with this manager.
      * 
@@ -124,7 +125,7 @@ public class ControllerManager {
     public List<Controller> getControllers() {
         return Collections.unmodifiableList(controllers);
     }
-    
+
     /**
      * Report the given Result to all registered Controllers in this manager.
      * This can only be called while a Phase is being processed.
@@ -137,13 +138,15 @@ public class ControllerManager {
      *             this frame
      */
     public void report(Result result) {
-        if (currentPhase == null)
-            throw new IllegalStateException("Can only report results while processing a phase"); 
-        if (result.isSingleton()) {
-            if (!singletonResults.add(result.getClass()))
-                throw new IllegalStateException("Singleton result of type " + result.getClass() + " already reported this frame");
+        if (currentPhase == null) {
+            throw new IllegalStateException("Can only report results while processing a phase");
         }
-        
+        if (result.isSingleton()) {
+            if (!singletonResults.add(result.getClass())) {
+                throw new IllegalStateException("Singleton result of type " + result.getClass() + " already reported this frame");
+            }
+        }
+
         int ct = controllers.size();
         for (int i = 0; i < ct; i++) {
             controllers.get(i).report(result);
@@ -166,14 +169,15 @@ public class ControllerManager {
      * @throws NullPointerException if controller is null
      */
     public void addController(Controller controller) {
-        if (controller == null)
+        if (controller == null) {
             throw new NullPointerException("Controller cannot be null");
-        
+        }
+
         // remove it first - which does nothing if not in the list
         boolean removed = controllers.remove(controller);
         // now add it to the end
         controllers.add(controller);
-        
+
         if (!removed) {
             // perform initialization steps if we've never seen the controller
             profile.put(controller, new ProfileData());
@@ -190,15 +194,16 @@ public class ControllerManager {
      * @throws NullPointerException if controller is null
      */
     public void removeController(Controller controller) {
-        if (controller == null)
+        if (controller == null) {
             throw new NullPointerException("Controller cannot be null");
+        }
         boolean removed = controllers.remove(controller);
         if (removed) {
             controller.destroy();
             profile.remove(controller);
         }
     }
-    
+
     /**
      * Return the last execution time for the given controller and phase. This
      * will return 0 if the controller has not been added to the manager.
@@ -208,11 +213,12 @@ public class ControllerManager {
      * @return The last execution time of the controller in nanoseconds.
      */
     public long getExecutionTime(Controller controller, Phase phase) {
-        if (controller == null || phase == null)
+        if (controller == null || phase == null) {
             throw new NullPointerException("Arguments cannot be null");
-        
+        }
+
         ProfileData c = profile.get(controller);
-        
+
         if (c != null) {
             switch(phase) {
             case POSTPROCESS:
@@ -223,10 +229,10 @@ public class ControllerManager {
                 return c.processTime;
             }
         }
-        
+
         return 0L;
     }
-    
+
     /**
      * Return the last execution time for the given controller, for all its
      * phases, in nanoseconds.
@@ -237,7 +243,7 @@ public class ControllerManager {
     public long getExecutionTime(Controller controller) {
         return getExecutionTime(controller, Phase.PREPROCESS) + getExecutionTime(controller, Phase.POSTPROCESS) + getExecutionTime(controller, Phase.PROCESS);
     }
-    
+
     /**
      * Run all phases of the manager using the time delta from the last time the
      * post-process phase was executed. This means that the time delta is
@@ -246,10 +252,11 @@ public class ControllerManager {
      * call.
      */
     public void process() {
-        if (lastProcessTime < 0)
+        if (lastProcessTime < 0) {
             process(0);
-        else
+        } else {
             process((System.nanoTime() - lastProcessTime) / 1e9);
+        }
     }
 
     /**
@@ -276,9 +283,10 @@ public class ControllerManager {
      * @throws NullPointerException if phase is null
      */
     public void process(Phase phase, double dt) {
-        if (phase == null)
+        if (phase == null) {
             throw new NullPointerException("Phase cannot be null");
-        
+        }
+
         currentPhase = phase;
         switch(phase) {
         case PREPROCESS:
@@ -286,7 +294,7 @@ public class ControllerManager {
         case PROCESS:
             fireProcess(dt); break;
         case POSTPROCESS:
-            firePostProcess(dt); 
+            firePostProcess(dt);
             break;
         }
         currentPhase = null;
@@ -298,40 +306,44 @@ public class ControllerManager {
      * @param e The entity being added
      */
     void fireEntityAdd(Entity e) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
             controllers.get(i).onEntityAdd(e);
+        }
     }
-    
+
     /**
      * Invoke onEntityRemove() for all controllers.
      * 
      * @param e The entity being removed
      */
     void fireEntityRemove(Entity e) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
             controllers.get(i).onEntityRemove(e);
+        }
     }
-    
+
     /**
      * Invoke onComponentAdd() for all controllers.
      * 
      * @param c The component being added
      */
     void fireComponentAdd(Component<?> c) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
             controllers.get(i).onComponentAdd(c);
+        }
     }
-    
+
     /**
      * Invoke onComponentRemove() for all controllers.
      * 
      * @param c The component being removed
      */
     void fireComponentRemove(Component<?> c) {
-        for (int i = 0; i < controllers.size(); i++)
+        for (int i = 0; i < controllers.size(); i++) {
             controllers.get(i).onComponentRemove(c);
+        }
     }
-    
+
     private void firePreProcess(double dt) {
         lastProcessTime = System.nanoTime();
 
@@ -341,7 +353,7 @@ public class ControllerManager {
             profile.get(controllers.get(i)).preprocessTime = System.nanoTime() - start;
         }
     }
-    
+
     private void fireProcess(double dt) {
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
@@ -349,22 +361,22 @@ public class ControllerManager {
             profile.get(controllers.get(i)).processTime = System.nanoTime() - start;
         }
     }
-    
+
     private void firePostProcess(double dt) {
         for (int i = 0; i < controllers.size(); i++) {
             long start = System.nanoTime();
             controllers.get(i).postProcess(dt);
             profile.get(controllers.get(i)).postprocessTime = System.nanoTime() - start;
         }
-        
+
         singletonResults.clear();
     }
-    
+
     private static class ProfileData {
         private long processTime;
         private long preprocessTime;
         private long postprocessTime;
-        
+
         public ProfileData() {
             processTime = 0;
             preprocessTime = 0;

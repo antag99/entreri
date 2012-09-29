@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(CharProperty.Factory.class)
 public final class CharProperty implements Property {
     private CharDataStore store;
-    
+
     /**
      * Create an CharProperty.
      */
@@ -64,7 +64,7 @@ public final class CharProperty implements Property {
     public char[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class CharProperty implements Property {
     public void set(char val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class CharProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof CharDataStore))
+        }
+        if (!(store instanceof CharDataStore)) {
             throw new IllegalArgumentException("Store not compatible with CharProperty, wrong type: " + store.getClass());
-        
+        }
+
         CharDataStore newStore = (CharDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with CharProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create CharProperties. Properties annotated with
      * DefaultChar will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class CharProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<CharProperty> {
         private final char defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultChar.class))
+
+            if (attrs.hasAttribute(DefaultChar.class)) {
                 defaultValue = attrs.getAttribute(DefaultChar.class).value();
-            else
+            } else {
                 defaultValue = '\0';
+            }
         }
-        
+
         public Factory(char defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class CharProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default char attribute for properties.
      * @author Michael Ludwig

@@ -44,7 +44,7 @@ package com.lhkbob.entreri;
  */
 public class SimpleController implements Controller {
     private EntitySystem system;
-    
+
     @Override
     public void preProcess(double dt) {
         // do nothing in base class
@@ -62,14 +62,15 @@ public class SimpleController implements Controller {
 
     @Override
     public void init(EntitySystem system) {
-        if (this.system != null)
+        if (this.system != null) {
             throw new IllegalStateException("Controller is already used in another EntitySystem");
+        }
         this.system = system;
     }
-    
+
     @Override
     public void destroy() {
-        system = null; 
+        system = null;
     }
 
     @Override
@@ -91,7 +92,7 @@ public class SimpleController implements Controller {
     public void onComponentRemove(Component<?> c) {
         // do nothing in base class
     }
-    
+
     @Override
     public void report(Result result) {
         // do nothing in base class

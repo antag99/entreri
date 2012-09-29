@@ -56,8 +56,9 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
      * @throws IllegalArgumentException if elementSize is less than 1
      */
     public AbstractIndexedDataStore(int elementSize) {
-        if (elementSize < 1)
+        if (elementSize < 1) {
             throw new IllegalArgumentException("Element size must be at least 1");
+        }
         this.elementSize = elementSize;
     }
 
@@ -68,15 +69,18 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
 
     @Override
     public void copy(int srcOffset, int len, IndexedDataStore dest, int destOffset) {
-        if (dest == null)
+        if (dest == null) {
             throw new NullPointerException("Destination store cannot be null");
-        if (!(getClass().isInstance(dest)))
+        }
+        if (!(getClass().isInstance(dest))) {
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong type: " + dest.getClass());
-        
+        }
+
         AbstractIndexedDataStore dstStore = (AbstractIndexedDataStore) dest;
-        if (dstStore.elementSize != elementSize)
+        if (dstStore.elementSize != elementSize) {
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
-        
+        }
+
         arraycopy(getArray(), srcOffset * elementSize, dstStore.getArray(), destOffset * elementSize, len * elementSize);
     }
 
@@ -103,7 +107,7 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
     protected void arraycopy(Object oldArray, int srcOffset, Object newArray, int dstOffset, int len) {
         System.arraycopy(oldArray, srcOffset, newArray, dstOffset, len);
     }
-    
+
     /**
      * @return The array instance storing property data
      */

@@ -80,12 +80,12 @@ import java.util.Iterator;
 public class ComponentIterator {
     private final EntitySystem system;
     private boolean ignoreEnabled;
-    
+
     private int index;
-    
+
     private ComponentData<?>[] required; // all required except primary
     private ComponentData<?>[] optional;
-    
+
     private ComponentData<?> primary;
 
     /**
@@ -97,8 +97,9 @@ public class ComponentIterator {
      * @throws NullPointerException if system is null
      */
     public ComponentIterator(EntitySystem system) {
-        if (system == null)
+        if (system == null) {
             throw new NullPointerException("System cannot be null");
+        }
         this.system = system;
         required = new ComponentData<?>[0];
         optional = new ComponentData<?>[0];
@@ -135,11 +136,13 @@ public class ComponentIterator {
      *             EntitySystem of this iterator
      */
     public ComponentIterator addRequired(ComponentData<?> data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("ComponentData cannot be null");
-        if (data.owner.getEntitySystem() != system)
+        }
+        if (data.owner.getEntitySystem() != system) {
             throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
-        
+        }
+
         // check to see if the data should be the new primary
         if (primary == null) {
             // no other required components, so just set it
@@ -158,7 +161,7 @@ public class ComponentIterator {
                 required[required.length - 1] = data;
             }
         }
-        
+
         return this;
     }
 
@@ -183,15 +186,17 @@ public class ComponentIterator {
      *             EntitySystem of this iterator
      */
     public ComponentIterator addOptional(ComponentData<?> data) {
-        if (data == null)
+        if (data == null) {
             throw new NullPointerException("ComponentData cannot be null");
-        if (data.owner.getEntitySystem() != system)
+        }
+        if (data.owner.getEntitySystem() != system) {
             throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
+        }
 
         // add the data to the optional array
         optional = Arrays.copyOf(optional, optional.length + 1);
         optional[optional.length - 1] = data;
-        
+
         return this;
     }
 
@@ -219,9 +224,10 @@ public class ComponentIterator {
      *         any present optional components) have been updated to that entity
      */
     public boolean next() {
-        if (primary == null)
+        if (primary == null) {
             return false;
-        
+        }
+
         boolean found;
         int entity;
         int component;
@@ -237,8 +243,8 @@ public class ComponentIterator {
                 if (ignoreEnabled || primary.isEnabled()) {
                     for (int i = 0; i < required.length; i++) {
                         component = required[i].owner.getComponentIndex(entity);
-                        if (!required[i].setFast(component) 
-                            || (!ignoreEnabled && !required[i].isEnabled())) {
+                        if (!required[i].setFast(component)
+                                || (!ignoreEnabled && !required[i].isEnabled())) {
                             found = false;
                             break;
                         }
@@ -257,7 +263,7 @@ public class ComponentIterator {
                 }
             }
         }
-        
+
         return false;
     }
 

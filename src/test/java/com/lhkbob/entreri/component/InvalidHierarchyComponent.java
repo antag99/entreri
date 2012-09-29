@@ -33,5 +33,5 @@ package com.lhkbob.entreri.component;
  * @author Michael Ludwig
  */
 public class InvalidHierarchyComponent extends FloatComponent {
-   protected InvalidHierarchyComponent() { }
+    protected InvalidHierarchyComponent() { }
 }

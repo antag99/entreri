@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class BooleanDataStore extends AbstractIndexedDataStore {
     private final boolean[] array;
-    
+
     /**
      * Create a new BooleanDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -47,16 +47,17 @@ public class BooleanDataStore extends AbstractIndexedDataStore {
      */
     public BooleanDataStore(int elementSize, boolean[] array) {
         super(elementSize);
-        if (array.length % elementSize != 0)
+        if (array.length % elementSize != 0) {
             throw new IllegalArgumentException("Array length must be a multiple of the element size");
+        }
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return array.length;
     }
-    
+
     @Override
     public BooleanDataStore create(int size) {
         return new BooleanDataStore(elementSize, new boolean[elementSize * size]);

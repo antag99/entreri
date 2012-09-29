@@ -42,11 +42,11 @@ import com.lhkbob.entreri.PropertyFactory;
  */
 public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
     protected final Attributes attributes;
-    
+
     public AbstractPropertyFactory(Attributes attrs) {
         attributes = attrs;
     }
-    
+
     @Override
     public void clone(P src, int srcIndex, P dst, int dstIndex) {
         src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);

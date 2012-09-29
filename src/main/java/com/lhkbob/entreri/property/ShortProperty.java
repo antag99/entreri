@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(ShortProperty.Factory.class)
 public final class ShortProperty implements Property {
     private ShortDataStore store;
-    
+
     /**
      * Create an ShortProperty.
      */
@@ -64,7 +64,7 @@ public final class ShortProperty implements Property {
     public short[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class ShortProperty implements Property {
     public void set(short val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class ShortProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof ShortDataStore))
+        }
+        if (!(store instanceof ShortDataStore)) {
             throw new IllegalArgumentException("Store not compatible with ShortProperty, wrong type: " + store.getClass());
-        
+        }
+
         ShortDataStore newStore = (ShortDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with ShortProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create ShortProperties. Properties annotated with
      * DefaultShort will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class ShortProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<ShortProperty> {
         private final short defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultShort.class))
+
+            if (attrs.hasAttribute(DefaultShort.class)) {
                 defaultValue = attrs.getAttribute(DefaultShort.class).value();
-            else
+            } else {
                 defaultValue = 0;
+            }
         }
-        
+
         public Factory(short defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class ShortProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default short attribute for properties.
      * @author Michael Ludwig

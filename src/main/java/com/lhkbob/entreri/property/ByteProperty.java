@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(ByteProperty.Factory.class)
 public final class ByteProperty implements Property {
     private ByteDataStore store;
-    
+
     /**
      * Create an ByteProperty.
      */
@@ -64,7 +64,7 @@ public final class ByteProperty implements Property {
     public byte[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,26 +86,29 @@ public final class ByteProperty implements Property {
     public void set(byte val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
     }
-    
+
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof ByteDataStore))
+        }
+        if (!(store instanceof ByteDataStore)) {
             throw new IllegalArgumentException("Store not compatible with ByteProperty, wrong type: " + store.getClass());
-        
+        }
+
         ByteDataStore newStore = (ByteDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with ByteProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create ByteProperties. Properties annotated with DefaultByte
      * will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class ByteProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<ByteProperty> {
         private final byte defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultByte.class))
+
+            if (attrs.hasAttribute(DefaultByte.class)) {
                 defaultValue = attrs.getAttribute(DefaultByte.class).value();
-            else
+            } else {
                 defaultValue = 0;
+            }
         }
-        
+
         public Factory(byte defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class ByteProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default byte attribute for properties.
      * @author Michael Ludwig

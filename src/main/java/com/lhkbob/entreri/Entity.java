@@ -46,7 +46,7 @@ import java.util.NoSuchElementException;
 public final class Entity implements Iterable<Component<?>>, Comparable<Entity> {
     private final EntitySystem system;
     private final int id;
-    
+
     int index;
 
     /**
@@ -58,23 +58,25 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * @param id The unique id of the entity in the system
      */
     Entity(EntitySystem system, int index, int id) {
-        if (system == null)
+        if (system == null) {
             throw new NullPointerException("System cannot be null");
-        if (index < 0)
+        }
+        if (index < 0) {
             throw new IllegalArgumentException("Index must be at least 0, not: " + index);
-        
+        }
+
         this.system = system;
         this.index = index;
         this.id = id;
     }
-    
+
     /**
      * @return The unique (in the scope of the entity system) id of this entity
      */
     public int getId() {
         return id;
     }
-    
+
     /**
      * @return The owning EntitySystem of this entity
      */
@@ -126,11 +128,12 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
     public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId, boolean ignoreEnable) {
         ComponentRepository<T> ci = system.getRepository(componentId);
         Component<T> c = ci.getComponent(ci.getComponentIndex(index));
-        
-        if (c == null || ignoreEnable || c.isEnabled())
+
+        if (c == null || ignoreEnable || c.isEnabled()) {
             return c;
-        else
+        } else {
             return null;
+        }
     }
 
     /**
@@ -168,9 +171,10 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      *             entity system
      */
     public <T extends ComponentData<T>> boolean get(T data) {
-        if (data.owner.getEntitySystem() != getEntitySystem())
+        if (data.owner.getEntitySystem() != getEntitySystem()) {
             throw new IllegalArgumentException("ComponentData was not created by expected EntitySystem");
-        
+        }
+
         ComponentRepository<T> ci = data.owner;
         int componentIndex = ci.getComponentIndex(index);
         return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
@@ -181,7 +185,7 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * Add a new Component with a data type T to this Entity. If the Entity already has
      * component of type T attached, that component is removed and a new one is
      * created. Otherwise, a new instance is created with its default values and
-     * added to the system. 
+     * added to the system.
      * </p>
      * 
      * @param <T> The parameterized type of component being added
@@ -221,8 +225,9 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends ComponentData<T>> Component<T> add(Component<T> toClone) {
-        if (toClone == null)
+        if (toClone == null) {
             throw new NullPointerException("ComponentData template, toClone, cannot be null");
+        }
         ComponentRepository ci = system.getRepository(toClone.getTypeId());
         return ci.addComponent(index, toClone);
     }
@@ -283,28 +288,30 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         private final int entityIndex;
         private final Iterator<ComponentRepository<?>> indices;
         private final boolean ignoreEnable;
-        
+
         private ComponentRepository<?> currentIndex;
         private ComponentRepository<?> nextIndex;
-        
+
         public ComponentIterator(EntitySystem system, int entityIndex, boolean ignoreEnable) {
             this.entityIndex = entityIndex;
             this.ignoreEnable = ignoreEnable;
             indices = system.indexIterator();
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (nextIndex == null)
+            if (nextIndex == null) {
                 advance();
+            }
             return nextIndex != null;
         }
 
         @Override
         public Component<?> next() {
-            if (!hasNext())
+            if (!hasNext()) {
                 throw new NoSuchElementException();
-            
+            }
+
             currentIndex = nextIndex;
             nextIndex = null;
             return currentIndex.getComponent(currentIndex.getComponentIndex(entityIndex));
@@ -312,24 +319,28 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
 
         @Override
         public void remove() {
-            if (currentIndex == null)
+            if (currentIndex == null) {
                 throw new IllegalStateException("Must call next first");
-            
-            if (currentIndex.removeComponent(entityIndex))
+            }
+
+            if (currentIndex.removeComponent(entityIndex)) {
                 currentIndex = null; // so next call to remove() fails
-            else
+            } else {
                 throw new IllegalStateException("Already removed");
+            }
         }
-        
+
         private void advance() {
             while(indices.hasNext()) {
                 nextIndex = indices.next();
-                
+
                 int index = nextIndex.getComponentIndex(entityIndex);
-                if (index != 0 && (ignoreEnable || nextIndex.isEnabled(index)))
+                if (index != 0 && (ignoreEnable || nextIndex.isEnabled(index))) {
                     break;
-                else
+                }
+                else {
                     nextIndex = null; // must set to null if this was last element
+                }
             }
         }
     }

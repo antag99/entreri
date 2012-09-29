@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(FloatProperty.Factory.class)
 public final class FloatProperty implements Property {
     private FloatDataStore store;
-    
+
     /**
      * Create a FloatProperty.
      */
@@ -64,7 +64,7 @@ public final class FloatProperty implements Property {
     public float[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class FloatProperty implements Property {
     public void set(float val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class FloatProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof FloatDataStore))
+        }
+        if (!(store instanceof FloatDataStore)) {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong type: " + store.getClass());
-        
+        }
+
         FloatDataStore newStore = (FloatDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create FloatProperties. Properties annotated with
      * DefaultFloat will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class FloatProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<FloatProperty> {
         private final float defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultFloat.class))
+
+            if (attrs.hasAttribute(DefaultFloat.class)) {
                 defaultValue = attrs.getAttribute(DefaultFloat.class).value();
-            else
+            } else {
                 defaultValue = 0f;
+            }
         }
-        
+
         public Factory(float defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class FloatProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default float attribute for properties.
      * @author Michael Ludwig

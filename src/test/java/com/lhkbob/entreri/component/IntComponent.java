@@ -36,13 +36,13 @@ import com.lhkbob.entreri.property.IntProperty;
  */
 public class IntComponent extends ComponentData<IntComponent> {
     private IntProperty property;
-    
+
     protected IntComponent() { }
-    
+
     public int getInt() {
         return property.get(getIndex());
     }
-    
+
     public void setInt(int value) {
         property.set(value, getIndex());
     }

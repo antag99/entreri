@@ -57,11 +57,11 @@ package com.lhkbob.entreri;
 public abstract class ComponentData<T extends ComponentData<T>> {
     private int id;
     private int index;
-    
+
     // this should be considered final, but is assigned in ComponentRepository
     // to simplify implementation constructor requirements.
     ComponentRepository<T> owner;
-    
+
     protected ComponentData() { }
 
     /**
@@ -176,9 +176,10 @@ public abstract class ComponentData<T extends ComponentData<T>> {
             return setFast(0);
         } else {
             // we check repository since it is guaranteed type safe
-            if (component.getRepository() != owner)
+            if (component.getRepository() != owner) {
                 throw new IllegalArgumentException("Component not created by expected EntitySystem");
-            
+            }
+
             return setFast(component.index);
         }
     }
@@ -189,7 +190,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      * 
      * @param index The new index
      */
-    protected void onSet(int index) { 
+    protected void onSet(int index) {
         // do nothing in base class
     }
 

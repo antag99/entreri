@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class ByteDataStore extends AbstractIndexedDataStore {
     private final byte[] array;
-    
+
     /**
      * Create a new ByteDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -49,12 +49,12 @@ public class ByteDataStore extends AbstractIndexedDataStore {
         super(elementSize);
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return array.length;
     }
-    
+
     @Override
     public ByteDataStore create(int size) {
         return new ByteDataStore(elementSize, new byte[elementSize * size]);

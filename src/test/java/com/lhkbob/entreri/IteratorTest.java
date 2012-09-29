@@ -36,16 +36,16 @@ public class IteratorTest {
     public void testDisabledComponents() {
         EntitySystem system = new EntitySystem();
         IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
-        
+
         Entity e1 = system.addEntity();
         e1.add(TypeId.get(IntComponent.class)).setEnabled(true);
         Entity e2 = system.addEntity();
         e2.add(TypeId.get(IntComponent.class)).setEnabled(false);
-        
+
         ComponentIterator it = new ComponentIterator(system);
         it.addRequired(cd);
         it.reset();
-        
+
         int count = 0;
         while(it.next()) {
             count++;
@@ -53,21 +53,21 @@ public class IteratorTest {
         }
         Assert.assertEquals(1, count);
     }
-    
+
     @Test
     public void testIgnoreEnabledComponents() {
         EntitySystem system = new EntitySystem();
         IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
-        
+
         Entity e1 = system.addEntity();
         e1.add(TypeId.get(IntComponent.class)).setEnabled(true);
         Entity e2 = system.addEntity();
         e2.add(TypeId.get(IntComponent.class)).setEnabled(false);
-        
+
         ComponentIterator it = new ComponentIterator(system);
         it.addRequired(cd)
-          .setIgnoreEnabled(true)
-          .reset();
+        .setIgnoreEnabled(true)
+        .reset();
 
         boolean hasE1 = false;
         boolean hasE2 = false;

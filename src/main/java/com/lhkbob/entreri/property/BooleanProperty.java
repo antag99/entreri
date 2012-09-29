@@ -44,14 +44,14 @@ import com.lhkbob.entreri.Property;
 @Factory(BooleanProperty.Factory.class)
 public final class BooleanProperty implements Property {
     private BooleanDataStore store;
-    
+
     /**
      * Create a BooleanProperty.
      */
     public BooleanProperty() {
         store = new BooleanDataStore(1, new boolean[1]);
     }
-    
+
     /**
      * Return the backing boolean array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
@@ -64,7 +64,7 @@ public final class BooleanProperty implements Property {
     public boolean[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class BooleanProperty implements Property {
     public void set(boolean val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class BooleanProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof BooleanDataStore))
+        }
+        if (!(store instanceof BooleanDataStore)) {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong type: " + store.getClass());
-        
+        }
+
         BooleanDataStore newStore = (BooleanDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create BooleanProperties. Properties annotated with
      * DefaultBoolean will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class BooleanProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<BooleanProperty> {
         private final boolean defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultBoolean.class))
+
+            if (attrs.hasAttribute(DefaultBoolean.class)) {
                 defaultValue = attrs.getAttribute(DefaultBoolean.class).value();
-            else
+            } else {
                 defaultValue = false;
+            }
         }
-        
+
         public Factory(boolean defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class BooleanProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default boolean attribute for properties.
      * @author Michael Ludwig

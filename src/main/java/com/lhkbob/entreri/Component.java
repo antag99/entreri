@@ -47,7 +47,7 @@ package com.lhkbob.entreri;
  */
 public final class Component<T extends ComponentData<T>> {
     private final ComponentRepository<T> owner;
-    
+
     int index;
 
     /**
@@ -74,10 +74,11 @@ public final class Component<T extends ComponentData<T>> {
      */
     public T getData() {
         T data = getEntitySystem().createDataInstance(getTypeId());
-        if (data.set(this))
+        if (data.set(this)) {
             return data;
-        else
-            return null; 
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -135,21 +136,21 @@ public final class Component<T extends ComponentData<T>> {
         int entityIndex = owner.getEntityIndex(index);
         return owner.getEntitySystem().getEntityByIndex(entityIndex);
     }
-    
+
     /**
      * @return The EntitySystem that created this component
      */
     public EntitySystem getEntitySystem() {
         return owner.getEntitySystem();
     }
-    
+
     /**
      * @return The TypeId of the ComponentData for this Component
      */
     public TypeId<T> getTypeId() {
         return owner.getTypeId();
     }
-    
+
     /**
      * @return The ComponentRepository owning this Component
      */

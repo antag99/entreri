@@ -33,11 +33,11 @@ import com.lhkbob.entreri.Property;
 @Factory(NoParameterProperty.NoArgFactory.class)
 public class NoParameterProperty implements Property {
     private final IntProperty property;
-    
+
     public NoParameterProperty() {
         property = new IntProperty();
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return property.getDataStore();
@@ -47,7 +47,7 @@ public class NoParameterProperty implements Property {
     public void setDataStore(IndexedDataStore store) {
         property.setDataStore(store);
     }
-    
+
     public static class NoArgFactory extends AbstractPropertyFactory<NoParameterProperty> {
         public NoArgFactory() {
             super(null);

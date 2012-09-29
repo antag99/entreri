@@ -43,12 +43,12 @@ public interface IndexedDataStore {
      * @param size The size, in number of properties
      */
     public IndexedDataStore create(int size);
-    
+
     /**
      * @return The number of properties that can fit into this IndexedDataStore
      */
     public int size();
-    
+
     /**
      * @return Memory usage estimate of this data store
      */

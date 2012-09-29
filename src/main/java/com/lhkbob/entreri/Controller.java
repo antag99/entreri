@@ -141,7 +141,7 @@ public interface Controller {
      * @param c The component being removed
      */
     public void onComponentRemove(Component<?> c);
-    
+
     /**
      * Invoked when any other Controller reports a Result to the
      * ControllerManager of this controller. Implementations may filter based on

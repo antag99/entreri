@@ -60,7 +60,7 @@ public class ReflectionComponentDataFactoryTest {
         doValidComponentDefinitionTest(MultiPropertyComponent.class);
         doValidComponentDefinitionTest(UnmanagedFieldComponent.class);
     }
-    
+
     @Test
     public void testInvalidComponentDefinition() {
         doInvalidComponentDefinitionTest(BadConstructorComponent.class);
@@ -71,12 +71,12 @@ public class ReflectionComponentDataFactoryTest {
         doInvalidComponentDefinitionTest(InvalidFactoryMethodComponent.class);
         doInvalidComponentDefinitionTest(PublicConstructorComponent.class);
     }
-    
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void doValidComponentDefinitionTest(Class type) {
         new ReflectionComponentDataFactory(type).getPropertyFactories();
     }
-    
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private void doInvalidComponentDefinitionTest(Class type) {
         try {
@@ -86,19 +86,19 @@ public class ReflectionComponentDataFactoryTest {
             // expected
         }
     }
-    
+
     @Test
     @SuppressWarnings("unchecked")
     public void testPropertyLookup() {
         ReflectionComponentDataFactory<MultiPropertyComponent> builder = new ReflectionComponentDataFactory<MultiPropertyComponent>(MultiPropertyComponent.class);
         Map<?, PropertyFactory<?>> origProps = builder.getPropertyFactories();
-        
+
         // for this test convert it to a string key map
         Map<String, PropertyFactory<?>> props = new HashMap<String, PropertyFactory<?>>();
         for (Entry<?, PropertyFactory<?>> e: origProps.entrySet()) {
             props.put(((Field) e.getKey()).getName(), e.getValue());
         }
-        
+
         // verify that fields are mapped properly
         Assert.assertTrue(props.containsKey("longProp"));
         Assert.assertTrue(props.get("longProp").create() instanceof LongProperty);
@@ -107,7 +107,7 @@ public class ReflectionComponentDataFactoryTest {
         long[] longData = longProp.getIndexedData();
         Assert.assertEquals(1, longData.length);
         Assert.assertEquals(Long.MAX_VALUE, longData[0]);
-        
+
         Assert.assertTrue(props.containsKey("floatProp"));
         Assert.assertTrue(props.get("floatProp").create() instanceof FloatProperty);
         FloatProperty floatProp = (FloatProperty) props.get("floatProp").create();
@@ -115,7 +115,7 @@ public class ReflectionComponentDataFactoryTest {
         float[] floatData = floatProp.getIndexedData();
         Assert.assertEquals(1, floatData.length);
         Assert.assertEquals(0.5f, floatData[0], .0001f);
-        
+
         Assert.assertTrue(props.containsKey("intProp"));
         Assert.assertTrue(props.get("intProp").create() instanceof IntProperty);
         IntProperty intProp = (IntProperty) props.get("intProp").create();
@@ -123,25 +123,25 @@ public class ReflectionComponentDataFactoryTest {
         int[] intData = intProp.getIndexedData();
         Assert.assertEquals(1, intData.length);
         Assert.assertEquals(0, intData[0]);
-        
+
         Assert.assertTrue(props.containsKey("fromFactory"));
         Assert.assertTrue(props.get("fromFactory") instanceof FloatPropertyFactory);
-        
+
         Assert.assertTrue(props.containsKey("noparams"));
         Assert.assertTrue(props.get("noparams").create() instanceof NoParameterProperty);
     }
-    
+
     @Test
     public void testUnmanagedField() {
         TypeId<UnmanagedFieldComponent> id = TypeId.get(UnmanagedFieldComponent.class);
-        
+
         EntitySystem system = new EntitySystem();
         for (int i = 0; i < 4; i++) {
             UnmanagedFieldComponent c = system.addEntity().add(id).getData();
             c.setObject(i);
             c.setFloat(i);
         }
-        
+
         UnmanagedFieldComponent c = system.createDataInstance(id);
         for (Entity e: system) {
             Assert.assertTrue(e.get(c));

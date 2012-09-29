@@ -36,13 +36,13 @@ import com.lhkbob.entreri.property.ObjectProperty;
  */
 public abstract class AbstractComponent<T extends AbstractComponent<T>> extends ComponentData<T> {
     private ObjectProperty<Object> property;
-    
+
     protected AbstractComponent() {}
-    
+
     public Object getUserData() {
         return property.getIndexedData()[getIndex()];
     }
-    
+
     public void setUserData(Object value) {
         property.getIndexedData()[getIndex()] = value;
     }

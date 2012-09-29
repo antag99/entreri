@@ -38,6 +38,6 @@ import com.lhkbob.entreri.property.NoFactoryProperty;
 public class InvalidFactoryMethodComponent extends ComponentData<InvalidFactoryMethodComponent> {
     // NoFactoryProperty has no available factory method
     protected NoFactoryProperty prop;
-    
+
     protected InvalidFactoryMethodComponent() {}
 }

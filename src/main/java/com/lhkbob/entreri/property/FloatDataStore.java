@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class FloatDataStore extends AbstractIndexedDataStore {
     private final float[] array;
-    
+
     /**
      * Create a new FloatDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -49,12 +49,12 @@ public class FloatDataStore extends AbstractIndexedDataStore {
         super(elementSize);
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return 4 * array.length;
     }
-    
+
     @Override
     public FloatDataStore create(int size) {
         return new FloatDataStore(elementSize, new float[elementSize * size]);

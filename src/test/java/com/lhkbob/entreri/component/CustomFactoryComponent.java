@@ -37,7 +37,7 @@ import com.lhkbob.entreri.property.IntProperty;
 
 public class CustomFactoryComponent extends ComponentData<CustomFactoryComponent> {
     public IntProperty prop;
-    
+
     public static class CustomFactory implements ComponentDataFactory<CustomFactoryComponent> {
         @Override
         public Map<?, PropertyFactory<?>> getPropertyFactories() {

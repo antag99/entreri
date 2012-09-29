@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class CharDataStore extends AbstractIndexedDataStore {
     private final char[] array;
-    
+
     /**
      * Create a new CharDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -49,12 +49,12 @@ public class CharDataStore extends AbstractIndexedDataStore {
         super(elementSize);
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return 2 * array.length;
     }
-    
+
     @Override
     public CharDataStore create(int size) {
         return new CharDataStore(elementSize, new char[elementSize * size]);

@@ -67,12 +67,12 @@ import java.util.NoSuchElementException;
  */
 public final class EntitySystem implements Iterable<Entity> {
     private ComponentRepository<?>[] componentRepositories;
-    
+
     private Entity[] entities;
-    
+
     private int entityInsert;
     private int entityIdSeq;
-    
+
     private final ControllerManager manager;
 
     /**
@@ -82,8 +82,8 @@ public final class EntitySystem implements Iterable<Entity> {
         manager = new ControllerManager(this);
         entities = new Entity[1];
         componentRepositories = new ComponentRepository[0];
-        
-        entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0 
+
+        entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0
         entityInsert = 1;
     }
 
@@ -118,29 +118,31 @@ public final class EntitySystem implements Iterable<Entity> {
      */
     @SuppressWarnings("unchecked")
     public <T extends ComponentData<T>> void setFactory(TypeId<T> id, ComponentDataFactory<T> factory) {
-        if (id == null)
+        if (id == null) {
             throw new NullPointerException("TypeId cannot be null");
-        if (factory == null)
+        }
+        if (factory == null) {
             throw new NullPointerException("ComponentDataFactory cannot be null");
-        
+        }
+
         int index = id.getId();
         if (index >= componentRepositories.length) {
             // make sure it's the correct size
             componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
         }
-        
+
         ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i != null) {
             // a factory is already defined
             throw new IllegalStateException("A ComponentDataFactory is already assigned to the type: " + id);
         }
-        
+
         // verify that the factory creates the proper instances
         T data = factory.createInstance();
         if (!id.getType().isInstance(data)) {
             throw new IllegalArgumentException("ComponentDataFactory does not create instances of type: " + id);
         }
-        
+
         i = new ComponentRepository<T>(this, id, factory);
         i.expandEntityIndex(entities.length);
         componentRepositories[index] = i;
@@ -159,7 +161,7 @@ public final class EntitySystem implements Iterable<Entity> {
     public <T extends ComponentData<T>> T createDataInstance(TypeId<T> id) {
         return getRepository(id).createDataInstance();
     }
-    
+
     /**
      * Estimate the memory usage of the components with the given TypeId in this
      * EntitySystem. The returned long is measured in bytes. For ComponentData
@@ -179,7 +181,7 @@ public final class EntitySystem implements Iterable<Entity> {
             return 0L;
         }
     }
-    
+
     /**
      * Get all TypeIds within this EntitySystem that have types assignable to
      * the input <tt>type</tt>.
@@ -191,9 +193,10 @@ public final class EntitySystem implements Iterable<Entity> {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public <T extends ComponentData<? extends T>> Collection<TypeId<? extends T>> getTypes(Class<T> type) {
-        if (type == null)
+        if (type == null) {
             throw new NullPointerException("Type cannot be null");
-        
+        }
+
         List<TypeId<? extends T>> ids = new ArrayList<TypeId<? extends T>>();
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
@@ -206,7 +209,7 @@ public final class EntitySystem implements Iterable<Entity> {
         }
         return ids;
     }
-    
+
     /**
      * Get all TypeIds currently used by the EntitySystem. If a type has had all
      * of its components removed, it will still be returned here.
@@ -218,13 +221,13 @@ public final class EntitySystem implements Iterable<Entity> {
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
                 // check the type
-                    // this type is a subclass of the requested type
-                    ids.add(componentRepositories[i].getTypeId());
+                // this type is a subclass of the requested type
+                ids.add(componentRepositories[i].getTypeId());
             }
         }
         return ids;
     }
-    
+
     /**
      * Return the ControllerManager for this EntitySystem that can be used to
      * organize processing of the system using {@link Controller}
@@ -235,7 +238,7 @@ public final class EntitySystem implements Iterable<Entity> {
     public ControllerManager getControllerManager() {
         return manager;
     }
-    
+
     /**
      * Return an iterator over all of the entities within the system. The
      * returned iterator's remove() method will remove the entity from the
@@ -247,7 +250,7 @@ public final class EntitySystem implements Iterable<Entity> {
     public Iterator<Entity> iterator() {
         return new EntityIterator();
     }
-    
+
     /**
      * Return an iterator over all components of with the given type. The
      * returned iterator reuses a single ComponentData instance of T, so it is a
@@ -290,41 +293,43 @@ public final class EntitySystem implements Iterable<Entity> {
         for (int i = 1; i < entityInsert; i++) {
             if (entities[i] == null) {
                 // found an entity to remove
-                if (startRemove < 0)
+                if (startRemove < 0) {
                     startRemove = i;
+                }
             } else {
                 // found an entity to preserve
                 if (startRemove > 0) {
                     // we have a gap from [startRemove, i - 1] that can be compacted
                     System.arraycopy(entities, i, entities, startRemove, entityInsert - i);
-                    
+
                     // update entityInsert
                     entityInsert = entityInsert - i + startRemove;
-                    
+
                     // now reset loop
                     i = startRemove;
                     startRemove = -1;
                 }
             }
         }
-        
+
         // Build a map from oldIndex to newIndex and repair entity's index
         int[] oldToNew = new int[entities.length];
         for (int i = 1; i < entityInsert; i++) {
-                oldToNew[entities[i].index] = i;
-                entities[i].index = i;
+            oldToNew[entities[i].index] = i;
+            entities[i].index = i;
         }
-        
+
         if (entityInsert < .6f * entities.length) {
             // reduce the size of the entities/ids arrays
             int newSize = (int) (1.2f * entityInsert) + 1;
             entities = Arrays.copyOf(entities, newSize);
         }
-        
+
         // Now index and update all ComponentIndices
         for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null)
+            if (componentRepositories[i] != null) {
                 componentRepositories[i].compact(oldToNew, entityInsert);
+            }
         }
     }
 
@@ -362,29 +367,32 @@ public final class EntitySystem implements Iterable<Entity> {
     public Entity addEntity(Entity template) {
         if (template != null) {
             // validate the template before allocating a new entity
-            if (!template.isLive())
+            if (!template.isLive()) {
                 throw new IllegalStateException("Entity template is not live");
-            if (template.getEntitySystem() != this)
+            }
+            if (template.getEntitySystem() != this) {
                 throw new IllegalArgumentException("Entity template was not created by this EntitySystem");
+            }
         }
-        
+
         int entityIndex = entityInsert++;
         if (entityIndex >= entities.length) {
             entities = Arrays.copyOf(entities, (int) (entityIndex * 1.5f) + 1);
         }
-        
+
         for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null)
+            if (componentRepositories[i] != null) {
                 componentRepositories[i].expandEntityIndex(entityIndex + 1);
+            }
         }
-        
+
         Entity newEntity = new Entity(this, entityIndex, entityIdSeq++);
         entities[entityIndex] = newEntity;
-        
+
         // invoke add-event listeners now before we invoke any listeners
         // due to templating so events have proper sequencing
         manager.fireEntityAdd(newEntity);
-        
+
         if (template != null) {
             for (Component<?> c: template) {
                 addFromTemplate(entityIndex, c.getTypeId(), c);
@@ -407,19 +415,23 @@ public final class EntitySystem implements Iterable<Entity> {
      *             system, or already removed
      */
     public void removeEntity(Entity e) {
-        if (e == null)
+        if (e == null) {
             throw new NullPointerException("Cannot remove a null entity");
-        if (e.getEntitySystem() != this)
+        }
+        if (e.getEntitySystem() != this) {
             throw new IllegalArgumentException("Entity is not from this EntitySystem");
-        if (e.index == 0)
+        }
+        if (e.index == 0) {
             throw new IllegalArgumentException("Entity has already been removed");
-        
+        }
+
         // Remove all components from the entity
         for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null)
+            if (componentRepositories[i] != null) {
                 componentRepositories[i].removeComponent(e.index);
+            }
         }
-        
+
         // clear out the entity
         manager.fireEntityRemove(e);
         entities[e.index] = null;
@@ -482,7 +494,7 @@ public final class EntitySystem implements Iterable<Entity> {
             // make sure it's the correct size
             componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
         }
-        
+
         ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
@@ -490,7 +502,7 @@ public final class EntitySystem implements Iterable<Entity> {
             i.expandEntityIndex(entities.length);
             componentRepositories[index] = i;
         }
-        
+
         return i;
     }
 
@@ -505,13 +517,16 @@ public final class EntitySystem implements Iterable<Entity> {
             Class factoryType =  factoryAnnot.value();
             // check for supported constructors, priority: TypeId, Class, default
             ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id);
-            if (factory == null)
+            if (factory == null) {
                 factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id.getType());
-            if (factory == null)
+            }
+            if (factory == null) {
                 factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType);
-            if (factory == null)
+            }
+            if (factory == null) {
                 throw new IllegalComponentDefinitionException(id.getType(), "Cannot instantiate default ComponentDataFactory of type: " + factoryType);
-            
+            }
+
             return factory;
         } else {
             // use the reflection default
@@ -534,7 +549,7 @@ public final class EntitySystem implements Iterable<Entity> {
             return null;
         }
     }
-    
+
     /**
      * @return Return an iterator over the registered component indices
      */
@@ -552,7 +567,7 @@ public final class EntitySystem implements Iterable<Entity> {
     Entity getEntityByIndex(int entityIndex) {
         return entities[entityIndex];
     }
-    
+
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, TypeId typeId, Component<T> c) {
         ComponentRepository index = getRepository(typeId);
@@ -562,23 +577,25 @@ public final class EntitySystem implements Iterable<Entity> {
     private class ComponentRepositoryIterator implements Iterator<ComponentRepository<?>> {
         private int index;
         private boolean advanced;
-        
+
         public ComponentRepositoryIterator() {
             index = -1;
             advanced = false;
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (!advanced)
+            if (!advanced) {
                 advance();
+            }
             return index < componentRepositories.length;
         }
 
         @Override
         public ComponentRepository<?> next() {
-            if (!hasNext())
+            if (!hasNext()) {
                 throw new NoSuchElementException();
+            }
             advanced = false;
             return componentRepositories[index];
         }
@@ -587,7 +604,7 @@ public final class EntitySystem implements Iterable<Entity> {
         public void remove() {
             throw new UnsupportedOperationException();
         }
-        
+
         private void advance() {
             do {
                 index++;
@@ -595,23 +612,23 @@ public final class EntitySystem implements Iterable<Entity> {
             advanced = true;
         }
     }
-    
+
     private class ComponentIteratorWrapper<T extends ComponentData<T>> implements Iterator<T> {
         private final T data;
         private final ComponentIterator it;
-        
+
         private boolean nextCalled;
         private boolean hasNext;
-        
+
         public ComponentIteratorWrapper(TypeId<T> type) {
             data = createDataInstance(type);
             it = new ComponentIterator(EntitySystem.this);
             it.addRequired(data);
-            
+
             nextCalled = false;
             hasNext = false;
         }
-        
+
         @Override
         public boolean hasNext() {
             if (!nextCalled) {
@@ -623,8 +640,9 @@ public final class EntitySystem implements Iterable<Entity> {
 
         @Override
         public T next() {
-            if (!hasNext())
+            if (!hasNext()) {
                 throw new NoSuchElementException();
+            }
             nextCalled = false;
             return data;
         }
@@ -634,40 +652,44 @@ public final class EntitySystem implements Iterable<Entity> {
             throw new UnsupportedOperationException();
         }
     }
-    
+
     private class EntityIterator implements Iterator<Entity> {
         private int index;
         private boolean advanced;
-        
+
         public EntityIterator() {
             index = 0;
             advanced = false;
         }
-        
+
         @Override
         public boolean hasNext() {
-            if (!advanced)
+            if (!advanced) {
                 advance();
+            }
             return index < entityInsert;
         }
 
         @Override
         public Entity next() {
-            if (!hasNext())
+            if (!hasNext()) {
                 throw new NoSuchElementException();
+            }
             advanced = false;
             return entities[index];
         }
 
         @Override
         public void remove() {
-            if (advanced || index == 0)
+            if (advanced || index == 0) {
                 throw new IllegalStateException("Must call next() before remove()");
-            if (entities[index] == null)
+            }
+            if (entities[index] == null) {
                 throw new IllegalStateException("Entity already removed");
+            }
             removeEntity(entities[index]);
         }
-        
+
         private void advance() {
             do {
                 index++; // always advance at least 1

@@ -26,6 +26,7 @@
  */
 package com.lhkbob.entreri;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -88,27 +89,30 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
     @SuppressWarnings("unchecked")
     public ReflectionComponentDataFactory(Class<T> type) {
         // Now we actually have to build up a new TypeId - which is sort of slow
-        if (!ComponentData.class.isAssignableFrom(type))
+        if (!ComponentData.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException("Type must be a subclass of ComponentData: " + type);
-        
-        // Make sure we don't create TypedIds for abstract ComponentData types 
+        }
+
+        // Make sure we don't create TypedIds for abstract ComponentData types
         // (we don't want to try to allocate these)
-        if (Modifier.isAbstract(type.getModifiers()))
+        if (Modifier.isAbstract(type.getModifiers())) {
             throw new IllegalArgumentException("ComponentData class type cannot be abstract: " + type);
-        
+        }
+
         // Accumulate all property fields and validate type hierarchy
         List<Field> fields = new ArrayList<Field>(getFields(type));
-        
+
         Class<? super T> parent = type.getSuperclass();
         while(!ComponentData.class.equals(parent)) {
-            if (!Modifier.isAbstract(parent.getModifiers()))
+            if (!Modifier.isAbstract(parent.getModifiers())) {
                 throw new IllegalComponentDefinitionException(type, "Parent class " + parent + " is not abstract");
-            
+            }
+
             // this cast is safe since we're in the while loop
             fields.addAll(getFields((Class<? extends ComponentData<?>>) parent));
             parent = parent.getSuperclass();
         }
-        
+
         constructor = getConstructor(type);
         propertyFactories = Collections.unmodifiableMap(getPropertyFactories(fields));
     }
@@ -117,7 +121,7 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
     public Map<Field, PropertyFactory<?>> getPropertyFactories() {
         return propertyFactories;
     }
-    
+
     @Override
     public T createInstance() {
         try {
@@ -126,16 +130,18 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             throw new RuntimeException("Unable to create ComponentData instance", e);
         }
     }
-    
+
     @Override
     public void setProperty(T instance, Object key, Property property) {
-        if (instance == null || key == null || property == null)
+        if (instance == null || key == null || property == null) {
             throw new NullPointerException("Arguments cannot be null");
+        }
         Field f = (Field) key;
-        
-        if (!f.getType().isAssignableFrom(property.getClass()))
+
+        if (!f.getType().isAssignableFrom(property.getClass())) {
             throw new IllegalArgumentException("Property was not created by correct PropertyFactory for key: " + key);
-        
+        }
+
         try {
             f.set(instance, property);
         } catch (Exception e) {
@@ -150,12 +156,12 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         }
         return factories;
     }
-    
+
     @SuppressWarnings("unchecked")
     private static PropertyFactory<?> createFactory(Field field) {
         Class<? extends Property> type = (Class<? extends Property>) field.getType();
         Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field.getDeclaringClass();
-        
+
         // Check for the @Factory on the field and the type
         Class<? extends PropertyFactory<?>> factoryType;
         if (field.getAnnotation(Factory.class) != null) {
@@ -171,8 +177,9 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         // verify that the PropertyFactory actually creates the right type
         try {
             Method create = factoryType.getMethod("create");
-            if (!type.isAssignableFrom(create.getReturnType()))
+            if (!type.isAssignableFrom(create.getReturnType())) {
                 throw new IllegalComponentDefinitionException(forCType, "@Factory(" + factoryType + ") creates incorrect Property type: " + create.getReturnType() + ", required type: " + type);
+            }
         } catch (SecurityException e) {
             // should not happen
             throw new RuntimeException("Unable to inspect factory's create method", e);
@@ -180,10 +187,11 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             // should not happen
             throw new RuntimeException("Unable to inspect factory's create method", e);
         }
-        
+
         PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(field));
-        if (factory == null)
+        if (factory == null) {
             factory = invokeConstructor(factoryType);
+        }
 
         if (factory == null) {
             // unable to create a PropertyFactory
@@ -192,12 +200,13 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             return factory;
         }
     }
-    
+
     private static PropertyFactory<?> invokeConstructor(Class<? extends PropertyFactory<?>> type, Object... args) {
         Class<?>[] paramTypes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++)
+        for (int i = 0; i < args.length; i++) {
             paramTypes[i] = args[i].getClass();
-        
+        }
+
         try {
             // must use getDeclaredConstructor in case the class type is private
             // or the constructor is not public
@@ -214,28 +223,31 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             throw new RuntimeException("Unexpected exception during factory creation", e);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     private static <T extends ComponentData<?>> Constructor<T> getConstructor(Class<T> type) {
         // This assumes that type is the concrete type, so it will fail if there
         // are multiple constructors or it's not private with the correct arguments
         Constructor<?>[] ctors = type.getDeclaredConstructors();
-        if (ctors.length != 1)
+        if (ctors.length != 1) {
             throw new IllegalComponentDefinitionException(type, "ComponentData type must only define a single constructor");
-        
+        }
+
         Constructor<T> ctor = (Constructor<T>) ctors[0];
-        if (!Modifier.isPrivate(ctor.getModifiers()) && !Modifier.isProtected(ctor.getModifiers()))
+        if (!Modifier.isPrivate(ctor.getModifiers()) && !Modifier.isProtected(ctor.getModifiers())) {
             throw new IllegalComponentDefinitionException(type, "ComponentData constructor must be private or protected");
-        
+        }
+
         Class<?>[] args = ctor.getParameterTypes();
-        if (args.length != 0)
+        if (args.length != 0) {
             throw new IllegalComponentDefinitionException(type, "ComponentData constructor does not have a default constructor");
-        
+        }
+
         // Found it, now make it accessible (which might throw a SecurityException)
         ctor.setAccessible(true);
         return ctor;
     }
-    
+
     private static List<Field> getFields(Class<? extends ComponentData<?>> type) {
         Field[] declared = type.getDeclaredFields();
         List<Field> nonTransientFields = new ArrayList<Field>(declared.length);
@@ -243,25 +255,30 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         for (int i = 0; i < declared.length; i++) {
             int modifiers = declared[i].getModifiers();
             if (Modifier.isStatic(modifiers))
+            {
                 continue; // ignore static fields
-            
+            }
+
             if (declared[i].isAnnotationPresent(Unmanaged.class))
+            {
                 continue; // ignore the field
-            
+            }
+
             if (!Property.class.isAssignableFrom(declared[i].getType())) {
                 throw new IllegalComponentDefinitionException(type, "ComponentData has non-Property field that is not unmanaged: " + declared[i]);
             }
-            
-            if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers))
+
+            if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers)) {
                 throw new IllegalComponentDefinitionException(type, "Field must be private or protected: " + declared[i]);
-            
+            }
+
             nonTransientFields.add(declared[i]);
         }
-        
+
         // Make sure all fields are accessible so we can assign them
         Field[] access = new Field[nonTransientFields.size()];
         nonTransientFields.toArray(access);
-        Field.setAccessible(access, true);
+        AccessibleObject.setAccessible(access, true);
         return nonTransientFields;
     }
 }

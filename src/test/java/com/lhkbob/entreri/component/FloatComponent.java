@@ -36,13 +36,13 @@ import com.lhkbob.entreri.property.FloatProperty;
  */
 public class FloatComponent extends ComponentData<FloatComponent> {
     private FloatProperty property;
-    
-    protected FloatComponent() { } 
-    
+
+    protected FloatComponent() { }
+
     public float getFloat() {
         return property.get(getIndex());
     }
-    
+
     public void setFloat(float value) {
         property.set(value, getIndex());
     }

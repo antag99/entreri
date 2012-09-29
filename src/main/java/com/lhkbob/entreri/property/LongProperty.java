@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(LongProperty.Factory.class)
 public final class LongProperty implements Property {
     private LongDataStore store;
-    
+
     /**
      * Create an LongProperty.
      */
@@ -64,7 +64,7 @@ public final class LongProperty implements Property {
     public long[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class LongProperty implements Property {
     public void set(long val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class LongProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof LongDataStore))
+        }
+        if (!(store instanceof LongDataStore)) {
             throw new IllegalArgumentException("Store not compatible with LongProperty, wrong type: " + store.getClass());
-        
+        }
+
         LongDataStore newStore = (LongDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with LongProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create LongProperties. Properties annotated with
      * DefaultLong will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class LongProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<LongProperty> {
         private final long defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultLong.class))
+
+            if (attrs.hasAttribute(DefaultLong.class)) {
                 defaultValue = attrs.getAttribute(DefaultLong.class).value();
-            else
+            } else {
                 defaultValue = 0L;
+            }
         }
-        
+
         public Factory(long defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class LongProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default long attribute for properties.
      * @author Michael Ludwig

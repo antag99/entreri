@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class LongDataStore extends AbstractIndexedDataStore {
     private final long[] array;
-    
+
     /**
      * Create a new LongDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -49,12 +49,12 @@ public class LongDataStore extends AbstractIndexedDataStore {
         super(elementSize);
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return 8 * array.length;
     }
-    
+
     @Override
     public LongDataStore create(int size) {
         return new LongDataStore(elementSize, new long[elementSize * size]);

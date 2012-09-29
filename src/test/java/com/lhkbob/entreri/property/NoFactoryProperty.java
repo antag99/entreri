@@ -31,11 +31,11 @@ import com.lhkbob.entreri.Property;
 
 public class NoFactoryProperty implements Property {
     private final IntProperty property;
-    
+
     public NoFactoryProperty() {
         property = new IntProperty();
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return property.getDataStore();

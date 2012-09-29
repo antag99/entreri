@@ -43,7 +43,7 @@ import com.lhkbob.entreri.PropertyFactory;
 @Factory(ObjectProperty.Factory.class)
 public final class ObjectProperty<T> implements Property {
     private ObjectDataStore store;
-    
+
     /**
      * Create an ObjectProperty.
      */
@@ -62,9 +62,9 @@ public final class ObjectProperty<T> implements Property {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <T> PropertyFactory<ObjectProperty<T>> factory(T dflt) {
         PropertyFactory superRaw = new Factory(dflt);
-        return (PropertyFactory<ObjectProperty<T>>) superRaw;
+        return superRaw;
     }
-    
+
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
@@ -100,7 +100,7 @@ public final class ObjectProperty<T> implements Property {
     public void set(T val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -108,33 +108,36 @@ public final class ObjectProperty<T> implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof ObjectDataStore))
+        }
+        if (!(store instanceof ObjectDataStore)) {
             throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong type: " + store.getClass());
-        
+        }
+
         ObjectDataStore newStore = (ObjectDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
-     * Factory to create ObjectProperties. 
+     * Factory to create ObjectProperties.
      * 
      * @author Michael Ludwig
      */
     @SuppressWarnings("rawtypes")
     public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
         private final Object defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
+
             defaultValue = null;
         }
-        
+
         public Factory(Object defaultValue) {
             super(null);
             this.defaultValue = defaultValue;

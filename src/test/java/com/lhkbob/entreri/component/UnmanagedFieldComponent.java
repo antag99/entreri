@@ -32,24 +32,24 @@ import com.lhkbob.entreri.property.ObjectProperty;
 
 public class UnmanagedFieldComponent extends ComponentData<UnmanagedFieldComponent> {
     private ObjectProperty<Object> transientProperty;
-    
+
     @Unmanaged
     private float field;
-    
+
     protected UnmanagedFieldComponent() {}
 
     public void setObject(Object v) {
         transientProperty.set(v, getIndex());
     }
-    
+
     public Object getObject() {
         return transientProperty.get(getIndex());
     }
-    
+
     public float getFloat() {
         return field;
     }
-    
+
     public void setFloat(float f) {
         field = f;
     }

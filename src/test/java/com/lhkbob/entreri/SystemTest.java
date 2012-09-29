@@ -45,41 +45,41 @@ public class SystemTest {
     public void testCustomFactory() {
         EntitySystem system = new EntitySystem();
         system.setFactory(TypeId.get(CustomFactoryComponent.class), new CustomFactory());
-        
+
         // the default reflection factory will fail to create an instance
         // because the property is public. If it is created, and it's not null
         // we know the custom factory worked
         CustomFactoryComponent cd = system.createDataInstance(TypeId.get(CustomFactoryComponent.class));
         Assert.assertNotNull(cd.prop);
     }
-    
+
     @Test
     public void testDefaultFactoryOverride() {
         EntitySystem system = new EntitySystem();
-        
+
         // the default reflection factory will fail to create an instance
         // because the property is public. If it is created, and it's not null
         // we know the custom factory worked
         DefaultFactoryComponent cd = system.createDataInstance(TypeId.get(DefaultFactoryComponent.class));
         Assert.assertNotNull(cd.prop);
     }
-    
+
     @Test
     public void testAddEntity() {
         // There really isn't much to test with this one, everything else
         // is validated by other tests in this package
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        
+
         int componentCount = 0;
         for (@SuppressWarnings("unused") Component<?> c: e) {
             componentCount++;
         }
-        
+
         Assert.assertEquals(0, componentCount);
         Assert.assertEquals(system, e.getEntitySystem());
         Assert.assertTrue(e.isLive());
-        
+
         int entityCount = 0;
         for (Entity entity: system) {
             entityCount++;
@@ -87,33 +87,33 @@ public class SystemTest {
         }
         Assert.assertEquals(1, entityCount);
     }
-    
+
     @Test
     public void testAddEntityFromTemplate() {
         EntitySystem system = new EntitySystem();
         Entity template = system.addEntity();
-        
+
         Component<IntComponent> tc1 = template.add(TypeId.get(IntComponent.class));
         tc1.getData().setInt(2);
         Component<FloatComponent> tc2 = template.add(TypeId.get(FloatComponent.class));
         tc2.getData().setFloat(3f);
-        
+
         Entity fromTemplate = system.addEntity(template);
         Component<IntComponent> c1 = fromTemplate.get(TypeId.get(IntComponent.class));
         Component<FloatComponent> c2 = fromTemplate.get(TypeId.get(FloatComponent.class));
-        
+
         Assert.assertEquals(2, c1.getData().getInt());
         Assert.assertEquals(3f, c2.getData().getFloat(), .0001f);
         Assert.assertNotSame(c1, tc1);
         Assert.assertNotSame(c2, tc2);
         Assert.assertNotSame(template, fromTemplate);
     }
-    
+
     @Test
     public void testAddEntityFromTemplateInAnotherSystem() {
         EntitySystem systemTemplate = new EntitySystem();
         Entity template = systemTemplate.addEntity();
-        
+
         EntitySystem system = new EntitySystem();
         try {
             system.addEntity(template);
@@ -122,29 +122,30 @@ public class SystemTest {
             // expected
         }
     }
-    
+
     @Test
     public void testRemoveEntity() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
         Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
-        
+
         system.removeEntity(e);
         Assert.assertFalse(e.isLive());
         Assert.assertFalse(c.isLive());
         Assert.assertEquals(1, e.getId()); // it's id should remain unchanged
-        
+
         Assert.assertFalse(system.iterator().hasNext());
     }
-    
+
     @Test
     public void testCompactNoOp() {
         EntitySystem system = new EntitySystem();
-        for (int i = 0; i < 5; i++) 
+        for (int i = 0; i < 5; i++) {
             system.addEntity().add(TypeId.get(MultiPropertyComponent.class));
-        
+        }
+
         system.compact();
-        
+
         int count = 0;
         Iterator<Entity> it = system.iterator();
         while(it.hasNext()) {
@@ -152,10 +153,10 @@ public class SystemTest {
             Assert.assertNotNull(e.get(TypeId.get(MultiPropertyComponent.class)).getData());
             count++;
         }
-        
+
         Assert.assertEquals(5, count);
     }
-    
+
     @Test
     public void testCompactRepairRemoves() {
         EntitySystem system = new EntitySystem();
@@ -168,11 +169,11 @@ public class SystemTest {
             float f2 = (float) Math.random();
             c.setFloat(f);
             c.setFactoryFloat(f2);
-            
+
             cs.add(f);
             cs.add(f2);
         }
-        
+
         int i = 0;
         Iterator<Entity> it = es.iterator();
         Iterator<Float> ft = cs.iterator();
@@ -182,7 +183,7 @@ public class SystemTest {
             if (i % 2 == 0) {
                 it.remove();
                 system.removeEntity(e);
-                
+
                 ft.remove();
                 ft.next(); ft.remove(); // remove 2nd element
             } else {
@@ -190,9 +191,9 @@ public class SystemTest {
             }
             i++;
         }
-        
+
         system.compact();
-        
+
         it = es.iterator();
         Iterator<Entity> si = system.iterator();
         ft = cs.iterator();
@@ -205,7 +206,7 @@ public class SystemTest {
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());
     }
-    
+
     @Test
     public void testCompactAddRemoveRepair() {
         EntitySystem system = new EntitySystem();
@@ -218,11 +219,11 @@ public class SystemTest {
             float f2 = (float) Math.random();
             c.setFloat(f);
             c.setFactoryFloat(f2);
-            
+
             cs.add(f);
             cs.add(f2);
         }
-        
+
         // remove a bunch of components from the entities
         int i = 0;
         Iterator<Entity> it = es.iterator();
@@ -230,10 +231,10 @@ public class SystemTest {
             Entity e = it.next();
             if (i % 2 == 0) {
                 e.remove(TypeId.get(MultiPropertyComponent.class));
-            } 
+            }
             i++;
         }
-        
+
         // now add back in component values for the previously removed entities
         i = 0;
         it = es.iterator();
@@ -241,10 +242,10 @@ public class SystemTest {
         while(it.hasNext()) {
             Entity e = it.next();
             Component<MultiPropertyComponent> c = e.get(TypeId.get(MultiPropertyComponent.class));
-            
+
             float f = ft.next();
             float f2 = ft.next();
-            
+
             if (c == null) {
                 c = e.add(TypeId.get(MultiPropertyComponent.class));
                 c.getData().setFloat(f);
@@ -252,9 +253,9 @@ public class SystemTest {
             }
             i++;
         }
-        
+
         system.compact();
-        
+
         it = es.iterator();
         Iterator<Entity> si = system.iterator();
         ft = cs.iterator();

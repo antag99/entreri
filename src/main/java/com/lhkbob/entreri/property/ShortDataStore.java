@@ -34,7 +34,7 @@ package com.lhkbob.entreri.property;
  */
 public class ShortDataStore extends AbstractIndexedDataStore {
     private final short[] array;
-    
+
     /**
      * Create a new ShortDataStore with the given number of elements per
      * logical component, and backed by the given array. The array's length must
@@ -49,12 +49,12 @@ public class ShortDataStore extends AbstractIndexedDataStore {
         super(elementSize);
         this.array = array;
     }
-    
+
     @Override
     public long memory() {
         return 2 * array.length;
     }
-    
+
     @Override
     public ShortDataStore create(int size) {
         return new ShortDataStore(elementSize, new short[elementSize * size]);

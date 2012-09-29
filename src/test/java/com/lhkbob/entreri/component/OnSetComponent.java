@@ -32,12 +32,12 @@ import com.lhkbob.entreri.Unmanaged;
 public class OnSetComponent extends ComponentData<OnSetComponent> {
     @Unmanaged
     public int onsetIndex;
-    
+
     @Unmanaged
     public boolean onsetCalled;
-    
+
     protected OnSetComponent() { }
-    
+
     @Override
     protected void onSet(int index) {
         onsetIndex = index;

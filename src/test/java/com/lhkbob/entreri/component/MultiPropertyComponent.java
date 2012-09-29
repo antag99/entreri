@@ -44,54 +44,54 @@ import com.lhkbob.entreri.property.NoParameterProperty;
 public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent> {
     @DefaultLong(Long.MAX_VALUE)
     protected LongProperty longProp;
-    
+
     @DefaultFloat(0.5f)
     protected FloatProperty floatProp;
-    
+
     protected IntProperty intProp;
-    
+
     @Factory(FloatPropertyFactory.class)
     protected FloatProperty fromFactory; // should create a new FloatPropertyFactory
-    
+
     // this should find the createFactory() method
     protected NoParameterProperty noparams;
-    
+
     protected MultiPropertyComponent() {}
-    
+
     public void setLong(long i) {
         longProp.set(i, getIndex());
     }
-    
+
     public long[] getLong() {
         long[] v = new long[] { longProp.get(getIndex()) };
         return v;
     }
-    
+
     public void setInt(int i) {
         intProp.set(i, getIndex());
     }
-    
+
     public int[] getInt() {
         int[] v = new int[] { intProp.get(getIndex()) };
         return v;
     }
-    
+
     public void setFloat(float f) {
         floatProp.set(f, getIndex());
     }
-    
+
     public float getFloat() {
         return floatProp.get(getIndex());
     }
-    
+
     public NoParameterProperty getCompactProperty() {
         return noparams;
     }
-    
+
     public void setFactoryFloat(float f) {
         fromFactory.set(f, getIndex());
     }
-    
+
     public float getFactoryFloat() {
         return fromFactory.get(getIndex());
     }

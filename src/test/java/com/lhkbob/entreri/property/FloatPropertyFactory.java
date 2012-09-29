@@ -30,16 +30,16 @@ package com.lhkbob.entreri.property;
 
 public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
     public static final float DEFAULT = 5f;
-    
+
     public FloatPropertyFactory() {
         super(null);
     }
-    
+
     @Override
     public FloatProperty create() {
         return new FloatProperty();
     }
-    
+
     @Override
     public void setDefaultValue(FloatProperty p, int index) {
         p.set(DEFAULT, index);

@@ -44,7 +44,7 @@ import com.lhkbob.entreri.Property;
 @Factory(DoubleProperty.Factory.class)
 public final class DoubleProperty implements Property {
     private DoubleDataStore store;
-    
+
     /**
      * Create an DoubleProperty.
      */
@@ -64,7 +64,7 @@ public final class DoubleProperty implements Property {
     public double[] getIndexedData() {
         return store.getArray();
     }
-    
+
     /**
      * Get the value stored in this property for the given component index.
      * 
@@ -86,7 +86,7 @@ public final class DoubleProperty implements Property {
     public void set(double val, int componentIndex) {
         store.getArray()[componentIndex] = val;
     }
-    
+
     @Override
     public IndexedDataStore getDataStore() {
         return store;
@@ -94,18 +94,21 @@ public final class DoubleProperty implements Property {
 
     @Override
     public void setDataStore(IndexedDataStore store) {
-        if (store == null)
+        if (store == null) {
             throw new NullPointerException("Store cannot be null");
-        if (!(store instanceof DoubleDataStore))
+        }
+        if (!(store instanceof DoubleDataStore)) {
             throw new IllegalArgumentException("Store not compatible with DoubleProperty, wrong type: " + store.getClass());
-        
+        }
+
         DoubleDataStore newStore = (DoubleDataStore) store;
-        if (newStore.elementSize != this.store.elementSize)
+        if (newStore.elementSize != this.store.elementSize) {
             throw new IllegalArgumentException("Store not compatible with DoubleProperty, wrong element size: " + newStore.elementSize);
-        
+        }
+
         this.store = newStore;
     }
-    
+
     /**
      * Factory to create DoubleProperties. Properties annotated with
      * DefaultDouble will use that value as the default for all components.
@@ -114,16 +117,17 @@ public final class DoubleProperty implements Property {
      */
     public static class Factory extends AbstractPropertyFactory<DoubleProperty> {
         private final double defaultValue;
-        
+
         public Factory(Attributes attrs) {
             super(attrs);
-            
-            if (attrs.hasAttribute(DefaultDouble.class))
+
+            if (attrs.hasAttribute(DefaultDouble.class)) {
                 defaultValue = attrs.getAttribute(DefaultDouble.class).value();
-            else
+            } else {
                 defaultValue = 0;
+            }
         }
-        
+
         public Factory(double defaultValue) {
             super(null);
             this.defaultValue = defaultValue;
@@ -139,7 +143,7 @@ public final class DoubleProperty implements Property {
             property.set(defaultValue, index);
         }
     }
-    
+
     /**
      * Default double attribute for properties.
      * @author Michael Ludwig
