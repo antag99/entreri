@@ -36,9 +36,9 @@ public class ShortDataStore extends AbstractIndexedDataStore {
     private final short[] array;
 
     /**
-     * Create a new ShortDataStore with the given number of elements per
-     * logical component, and backed by the given array. The array's length must
-     * be a multiple of element size.
+     * Create a new ShortDataStore with the given number of elements per logical
+     * component, and backed by the given array. The array's length must be a
+     * multiple of element size.
      * 
      * @param elementSize The number of elements per component
      * @param array Backing array

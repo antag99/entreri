@@ -36,6 +36,5 @@ import com.lhkbob.entreri.EntitySystem;
  * @author Michael Ludwig
  */
 public class BadConstructorComponent extends ComponentData<BadConstructorComponent> {
-    protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {
-    }
+    protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {}
 }

@@ -36,8 +36,8 @@ import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * FloatProperty is an implementation of Property that stores a single
- * float value.
+ * FloatProperty is an implementation of Property that stores a single float
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -110,8 +110,8 @@ public final class FloatProperty implements Property {
     }
 
     /**
-     * Factory to create FloatProperties. Properties annotated with
-     * DefaultFloat will use that value as the default for all components.
+     * Factory to create FloatProperties. Properties annotated with DefaultFloat
+     * will use that value as the default for all components.
      * 
      * @author Michael Ludwig
      */
@@ -146,8 +146,9 @@ public final class FloatProperty implements Property {
 
     /**
      * Default float attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

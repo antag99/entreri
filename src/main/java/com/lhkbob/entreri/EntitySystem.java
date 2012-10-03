@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-
 /**
  * <p>
  * EntitySystem is the main container for the entities within a logical system
@@ -117,7 +116,8 @@ public final class EntitySystem implements Iterable<Entity> {
      *             for the given type
      */
     @SuppressWarnings("unchecked")
-    public <T extends ComponentData<T>> void setFactory(TypeId<T> id, ComponentDataFactory<T> factory) {
+    public <T extends ComponentData<T>> void setFactory(TypeId<T> id,
+                                                        ComponentDataFactory<T> factory) {
         if (id == null) {
             throw new NullPointerException("TypeId cannot be null");
         }
@@ -191,7 +191,7 @@ public final class EntitySystem implements Iterable<Entity> {
      *         subclasses of the input component data type
      * @throws NullPointerException if type is null
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public <T extends ComponentData<? extends T>> Collection<TypeId<? extends T>> getTypes(Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
@@ -394,7 +394,7 @@ public final class EntitySystem implements Iterable<Entity> {
         manager.fireEntityAdd(newEntity);
 
         if (template != null) {
-            for (Component<?> c: template) {
+            for (Component<?> c : template) {
                 addFromTemplate(entityIndex, c.getTypeId(), c);
             }
         }
@@ -440,10 +440,10 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * <p>
-     * Dynamically update the available properties of the given ComponentData type
-     * by adding a Property created by the given PropertyFactory. The property
-     * will be managed by the system as if it was a declared property of the
-     * component type.
+     * Dynamically update the available properties of the given ComponentData
+     * type by adding a Property created by the given PropertyFactory. The
+     * property will be managed by the system as if it was a declared property
+     * of the component type.
      * </p>
      * <p>
      * All components, current and new, will initially have their starting
@@ -459,7 +459,8 @@ public final class EntitySystem implements Iterable<Entity> {
      * @return The property that has decorated the given component type
      * @throws NullPointerException if type or factory are null
      */
-    public <T extends ComponentData<T>, P extends Property> P decorate(TypeId<T> type, PropertyFactory<P> factory) {
+    public <T extends ComponentData<T>, P extends Property> P decorate(TypeId<T> type,
+                                                                       PropertyFactory<P> factory) {
         ComponentRepository<?> index = getRepository(type);
         return index.decorate(factory);
     }
@@ -480,8 +481,8 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return the ComponentRepository associated with the given type. Fails if the
-     * type is not registered
+     * Return the ComponentRepository associated with the given type. Fails if
+     * the type is not registered
      * 
      * @param <T> The ComponentData type
      * @param id The id for the component type
@@ -510,21 +511,24 @@ public final class EntitySystem implements Iterable<Entity> {
      * Create a new ComponentDataFactory for the given id, using the default
      * annotation if available.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private <T extends ComponentData<T>> ComponentDataFactory<T> createDefaultFactory(TypeId<T> id) {
         DefaultFactory factoryAnnot = id.getType().getAnnotation(DefaultFactory.class);
         if (factoryAnnot != null) {
-            Class factoryType =  factoryAnnot.value();
+            Class factoryType = factoryAnnot.value();
             // check for supported constructors, priority: TypeId, Class, default
-            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id);
+            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType,
+                                                                                             id);
             if (factory == null) {
-                factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType, id.getType());
+                factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType,
+                                                                         id.getType());
             }
             if (factory == null) {
                 factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType);
             }
             if (factory == null) {
-                throw new IllegalComponentDefinitionException(id.getType(), "Cannot instantiate default ComponentDataFactory of type: " + factoryType);
+                throw new IllegalComponentDefinitionException(id.getType(),
+                                                              "Cannot instantiate default ComponentDataFactory of type: " + factoryType);
             }
 
             return factory;
@@ -568,8 +572,10 @@ public final class EntitySystem implements Iterable<Entity> {
         return entities[entityIndex];
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, TypeId typeId, Component<T> c) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private <T extends ComponentData<T>> void addFromTemplate(int entityIndex,
+                                                              TypeId typeId,
+                                                              Component<T> c) {
         ComponentRepository index = getRepository(typeId);
         index.addComponent(entityIndex, c);
     }
@@ -608,7 +614,7 @@ public final class EntitySystem implements Iterable<Entity> {
         private void advance() {
             do {
                 index++;
-            } while(index < componentRepositories.length && componentRepositories[index] == null);
+            } while (index < componentRepositories.length && componentRepositories[index] == null);
             advanced = true;
         }
     }
@@ -693,7 +699,7 @@ public final class EntitySystem implements Iterable<Entity> {
         private void advance() {
             do {
                 index++; // always advance at least 1
-            } while(index < entities.length && entities[index] == null);
+            } while (index < entities.length && entities[index] == null);
             advanced = true;
         }
     }

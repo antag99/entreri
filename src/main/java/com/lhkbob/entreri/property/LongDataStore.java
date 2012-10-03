@@ -36,9 +36,9 @@ public class LongDataStore extends AbstractIndexedDataStore {
     private final long[] array;
 
     /**
-     * Create a new LongDataStore with the given number of elements per
-     * logical component, and backed by the given array. The array's length must
-     * be a multiple of element size.
+     * Create a new LongDataStore with the given number of elements per logical
+     * component, and backed by the given array. The array's length must be a
+     * multiple of element size.
      * 
      * @param elementSize The number of elements per component
      * @param array Backing array

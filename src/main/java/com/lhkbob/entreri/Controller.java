@@ -79,10 +79,9 @@ public interface Controller {
     public void postProcess(double dt);
 
     /**
-     * Invoked when a Controller is added to an EntitySystem. This method
-     * should initialize any system-specific state used by the controller,
-     * such as ComponentIterators, ComponentData instances, or decorated
-     * properties.
+     * Invoked when a Controller is added to an EntitySystem. This method should
+     * initialize any system-specific state used by the controller, such as
+     * ComponentIterators, ComponentData instances, or decorated properties.
      * 
      * @param system The new EntitySystem this controller is attached to
      * @throws IllegalStateException if the controller is already attached to

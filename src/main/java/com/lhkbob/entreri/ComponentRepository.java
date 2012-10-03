@@ -38,10 +38,10 @@ import com.lhkbob.entreri.property.BooleanProperty;
 import com.lhkbob.entreri.property.IntProperty;
 
 /**
- * ComponentRepository manages storing all the componentDatas of a specific type for an
- * EntitySystem. It also controls the IndexedDataStore's for the type's set of
- * properties. It is package-private because its details are low-level and
- * complex.
+ * ComponentRepository manages storing all the componentDatas of a specific type
+ * for an EntitySystem. It also controls the IndexedDataStore's for the type's
+ * set of properties. It is package-private because its details are low-level
+ * and complex.
  * 
  * @author Michael Ludwig
  * @param <T> The type of component stored by the index
@@ -68,15 +68,16 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private int idSeq;
 
     /**
-     * Create a ComponentRepository for the given system, that will store Components
-     * of the given type.
+     * Create a ComponentRepository for the given system, that will store
+     * Components of the given type.
      * 
      * @param system The owning system
      * @param type The type of component
      * @throws NullPointerException if system or type are null
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public ComponentRepository(EntitySystem system, TypeId<T> type, ComponentDataFactory<T> factory) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public ComponentRepository(EntitySystem system, TypeId<T> type,
+                               ComponentDataFactory<T> factory) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
@@ -89,7 +90,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         declaredProperties = new ArrayList<PropertyStore<?>>();
         decoratedProperties = new ArrayList<PropertyStore<?>>(); // empty for now
-        for (Entry<?, PropertyFactory<?>> e: propertyFactories.entrySet()) {
+        for (Entry<?, PropertyFactory<?>> e : propertyFactories.entrySet()) {
             PropertyStore store = new PropertyStore(e.getValue(), e.getKey());
             declaredProperties.add(store);
         }
@@ -161,14 +162,15 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * Ensure that this ComponentRepository has enough internal space to hold its
-     * entity-to-component mapping for the given number of entities.
+     * Ensure that this ComponentRepository has enough internal space to hold
+     * its entity-to-component mapping for the given number of entities.
      * 
      * @param numEntities The new number of entities
      */
     public void expandEntityIndex(int numEntities) {
         if (entityIndexToComponentRepository.length < numEntities) {
-            entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository, (int) (numEntities * 1.5f) + 1);
+            entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository,
+                                                             (int) (numEntities * 1.5f) + 1);
         }
     }
 
@@ -279,7 +281,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      *             index
      * @throws IllegalStateException if the template is not live
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Component<T> addComponent(int entityIndex, Component<T> fromTemplate) {
         if (fromTemplate.getEntitySystem() != getEntitySystem()) {
             throw new IllegalArgumentException("Component not owned by expected EntitySystem");
@@ -470,9 +472,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
     /**
      * <p>
      * Compact the data of this ComponentRepository to account for removals and
-     * additions to the index. This will ensure that all active componentDatas are
-     * packed into the underlying arrays, and that they will be accessed in the
-     * same order as iterating over the entities directly.
+     * additions to the index. This will ensure that all active componentDatas
+     * are packed into the underlying arrays, and that they will be accessed in
+     * the same order as iterating over the entities directly.
      * </p>
      * <p>
      * The map from old to new entity index must be used to properly update the
@@ -493,8 +495,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
                     return -1; // push null o2 to end of array
                 } else if (o2 != null) {
                     return 1; // push null o1 to end of array
-                }
-                else {
+                } else {
                     return 0; // both null so they are "equal"
                 }
             }
@@ -520,7 +521,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         if (componentInsert < .6f * components.length) {
             int newSize = (int) (1.2f * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
-            componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
+            componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex,
+                                                        newSize);
             resizePropertyStores(declaredProperties, newSize);
             resizePropertyStores(decoratedProperties, newSize);
         }
@@ -539,11 +541,12 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * Decorate the type information of this ComponentRepository to add a property
-     * created by the given factory. The returned property will have default
-     * data assigned for each current Component in the index, and will have the
-     * default value assigned for each new Component. Decorators can then access
-     * the returned property to manipulate the decorated component data.
+     * Decorate the type information of this ComponentRepository to add a
+     * property created by the given factory. The returned property will have
+     * default data assigned for each current Component in the index, and will
+     * have the default value assigned for each new Component. Decorators can
+     * then access the returned property to manipulate the decorated component
+     * data.
      * 
      * @param <P> The type of property created
      * @param factory The factory that will create a unique Property instance
@@ -551,8 +554,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return The property decorated onto the type of the index
      */
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
-        int size = (declaredProperties.isEmpty() ? componentInsert
-                                                 : declaredProperties.get(0).property.getDataStore().size());
+        int size = (declaredProperties.isEmpty() ? componentInsert : declaredProperties.get(0).property.getDataStore()
+                                                                                                       .size());
 
         PropertyStore<P> pstore = new PropertyStore<P>(factory, "decorated");
 
@@ -576,7 +579,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      */
     public void undecorate(Property p) {
         Iterator<PropertyStore<?>> it = decoratedProperties.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             if (it.next().property == p) {
                 it.remove();
                 break;

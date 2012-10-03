@@ -42,8 +42,8 @@ import com.lhkbob.entreri.ControllerManager.Phase;
  * </p>
  * <p>
  * To receive computed results, Controllers override their
- * {@link Controller#report(Result)} and check incoming results for the
- * desired type of result. Every controller is notified of all results, they are
+ * {@link Controller#report(Result)} and check incoming results for the desired
+ * type of result. Every controller is notified of all results, they are
  * responsible for ignoring results they are not interested in.
  * </p>
  * 
@@ -54,11 +54,11 @@ public interface Result {
      * <p>
      * Return true if this result is a "singleton" result. A singleton result is
      * a type of result that is only supplied once during the processing of a
-     * frame (i.e. at the end of the {@link Phase#POSTPROCESS} phase, it is reset).The
-     * ControllerManager verifies that singleton results are supplied at most
-     * once. Most results should return false. The returned value should be the
-     * same for every instance of a type, it should not depend on the state of
-     * the instance.
+     * frame (i.e. at the end of the {@link Phase#POSTPROCESS} phase, it is
+     * reset).The ControllerManager verifies that singleton results are supplied
+     * at most once. Most results should return false. The returned value should
+     * be the same for every instance of a type, it should not depend on the
+     * state of the instance.
      * </p>
      * <p>
      * Singleton results should only be used when the computation of the result

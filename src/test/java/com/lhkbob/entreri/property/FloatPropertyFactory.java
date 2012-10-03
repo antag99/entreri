@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-
-
 public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
     public static final float DEFAULT = 5f;
 

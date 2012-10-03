@@ -146,8 +146,9 @@ public final class BooleanProperty implements Property {
 
     /**
      * Default boolean attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

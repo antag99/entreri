@@ -33,7 +33,6 @@ import java.lang.annotation.Target;
 
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 
-
 /**
  * <p>
  * The Factory annotation can be declared on a Property field in a ComponentData
@@ -55,7 +54,7 @@ import com.lhkbob.entreri.property.IntProperty.DefaultInt;
  * @author Michael Ludwig
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE })
+@Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Factory {
     /**
      * @return Class of the PropertyFactory to instantiate, must have an

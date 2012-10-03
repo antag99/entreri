@@ -63,7 +63,7 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     }
 
     public long[] getLong() {
-        long[] v = new long[] { longProp.get(getIndex()) };
+        long[] v = new long[] {longProp.get(getIndex())};
         return v;
     }
 
@@ -72,7 +72,7 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     }
 
     public int[] getInt() {
-        int[] v = new int[] { intProp.get(getIndex()) };
+        int[] v = new int[] {intProp.get(getIndex())};
         return v;
     }
 

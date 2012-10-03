@@ -110,8 +110,8 @@ public final class CharProperty implements Property {
     }
 
     /**
-     * Factory to create CharProperties. Properties annotated with
-     * DefaultChar will use that value as the default for all components.
+     * Factory to create CharProperties. Properties annotated with DefaultChar
+     * will use that value as the default for all components.
      * 
      * @author Michael Ludwig
      */
@@ -146,8 +146,9 @@ public final class CharProperty implements Property {
 
     /**
      * Default char attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

@@ -31,7 +31,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * Unmanaged is an annotation that can be applied to fields in a ComponentData
  * definition to make the field completely ignored by the EntitySystem creating
@@ -45,4 +44,4 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Unmanaged { }
+public @interface Unmanaged {}

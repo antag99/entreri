@@ -232,7 +232,7 @@ public class ComponentIterator {
         int entity;
         int component;
         int count = primary.owner.getMaxComponentIndex();
-        while(index < count - 1) {
+        while (index < count - 1) {
             index++; // always increment one
 
             found = true;
@@ -243,8 +243,7 @@ public class ComponentIterator {
                 if (ignoreEnabled || primary.isEnabled()) {
                     for (int i = 0; i < required.length; i++) {
                         component = required[i].owner.getComponentIndex(entity);
-                        if (!required[i].setFast(component)
-                                || (!ignoreEnabled && !required[i].isEnabled())) {
+                        if (!required[i].setFast(component) || (!ignoreEnabled && !required[i].isEnabled())) {
                             found = false;
                             break;
                         }

@@ -89,10 +89,11 @@ public class EntityTest {
         c.getData().setInt(2);
 
         int count = 0;
-        for (Entity e2: system) {
+        for (Entity e2 : system) {
             Assert.assertSame(e, e2);
             Assert.assertSame(c, e2.get(TypeId.get(IntComponent.class)));
-            Assert.assertEquals(2, e2.get(TypeId.get(IntComponent.class)).getData().getInt());
+            Assert.assertEquals(2, e2.get(TypeId.get(IntComponent.class)).getData()
+                                     .getInt());
             count++;
         }
 
@@ -152,7 +153,7 @@ public class EntityTest {
 
         boolean intFound = false;
         boolean floatFound = false;
-        for(Component<?> c: e) {
+        for (Component<?> c : e) {
             if (ic == c) {
                 Assert.assertFalse(intFound);
                 intFound = true;
@@ -182,7 +183,7 @@ public class EntityTest {
         boolean floatFound = false;
         boolean objFound = false;
         Iterator<Component<?>> it = e.iterator(true);
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Component<?> c = it.next();
             if (ic == c) {
                 Assert.assertFalse(intFound);
@@ -211,7 +212,7 @@ public class EntityTest {
         Component<FloatComponent> fc = e.add(TypeId.get(FloatComponent.class));
 
         Iterator<Component<?>> it = e.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Component<?> c = it.next();
             if (c.getTypeId() == TypeId.get(IntComponent.class)) {
                 Assert.assertSame(ic, c);

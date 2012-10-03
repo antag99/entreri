@@ -26,7 +26,6 @@
  */
 package com.lhkbob.entreri;
 
-
 /**
  * <p>
  * A PropertyFactory is a simple factory that can be used to create Property
@@ -66,9 +65,9 @@ public interface PropertyFactory<T extends Property> {
      * Copy the value from <tt>src</tt> at component index, <tt>srcIndex</tt> to
      * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is
      * created and cloned from a template with
-     * {@link Entity#add(com.lhkbob.entreri.Component)}. For many cases a
-     * plain copy-by-value or copy-by-reference is sufficient, but some
-     * component types might require more complicated cloning rules.
+     * {@link Entity#add(com.lhkbob.entreri.Component)}. For many cases a plain
+     * copy-by-value or copy-by-reference is sufficient, but some component
+     * types might require more complicated cloning rules.
      * 
      * @param src The source property that is being cloned
      * @param srcIndex The index into src of the component being cloned

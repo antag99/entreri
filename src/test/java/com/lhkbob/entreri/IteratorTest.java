@@ -47,7 +47,7 @@ public class IteratorTest {
         it.reset();
 
         int count = 0;
-        while(it.next()) {
+        while (it.next()) {
             count++;
             Assert.assertSame(e1, cd.getEntity());
         }
@@ -65,13 +65,11 @@ public class IteratorTest {
         e2.add(TypeId.get(IntComponent.class)).setEnabled(false);
 
         ComponentIterator it = new ComponentIterator(system);
-        it.addRequired(cd)
-        .setIgnoreEnabled(true)
-        .reset();
+        it.addRequired(cd).setIgnoreEnabled(true).reset();
 
         boolean hasE1 = false;
         boolean hasE2 = false;
-        while(it.next()) {
+        while (it.next()) {
             if (e1 == cd.getEntity()) {
                 Assert.assertFalse(hasE1);
                 hasE1 = true;

@@ -35,5 +35,5 @@ import com.lhkbob.entreri.ComponentData;
  */
 public class PublicConstructorComponent extends ComponentData<PublicConstructorComponent> {
 
-    public PublicConstructorComponent() { }
+    public PublicConstructorComponent() {}
 }

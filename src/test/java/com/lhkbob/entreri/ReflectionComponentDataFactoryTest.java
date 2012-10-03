@@ -72,17 +72,17 @@ public class ReflectionComponentDataFactoryTest {
         doInvalidComponentDefinitionTest(PublicConstructorComponent.class);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void doValidComponentDefinitionTest(Class type) {
         new ReflectionComponentDataFactory(type).getPropertyFactories();
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void doInvalidComponentDefinitionTest(Class type) {
         try {
             new ReflectionComponentDataFactory(type);
             Assert.fail("Expected IllegalComponentDefinitionException");
-        } catch(IllegalComponentDefinitionException e) {
+        } catch (IllegalComponentDefinitionException e) {
             // expected
         }
     }
@@ -95,7 +95,7 @@ public class ReflectionComponentDataFactoryTest {
 
         // for this test convert it to a string key map
         Map<String, PropertyFactory<?>> props = new HashMap<String, PropertyFactory<?>>();
-        for (Entry<?, PropertyFactory<?>> e: origProps.entrySet()) {
+        for (Entry<?, PropertyFactory<?>> e : origProps.entrySet()) {
             props.put(((Field) e.getKey()).getName(), e.getValue());
         }
 
@@ -103,7 +103,8 @@ public class ReflectionComponentDataFactoryTest {
         Assert.assertTrue(props.containsKey("longProp"));
         Assert.assertTrue(props.get("longProp").create() instanceof LongProperty);
         LongProperty longProp = (LongProperty) props.get("longProp").create();
-        ((PropertyFactory<LongProperty>) props.get("longProp")).setDefaultValue(longProp, 0);
+        ((PropertyFactory<LongProperty>) props.get("longProp")).setDefaultValue(longProp,
+                                                                                0);
         long[] longData = longProp.getIndexedData();
         Assert.assertEquals(1, longData.length);
         Assert.assertEquals(Long.MAX_VALUE, longData[0]);
@@ -111,7 +112,8 @@ public class ReflectionComponentDataFactoryTest {
         Assert.assertTrue(props.containsKey("floatProp"));
         Assert.assertTrue(props.get("floatProp").create() instanceof FloatProperty);
         FloatProperty floatProp = (FloatProperty) props.get("floatProp").create();
-        ((PropertyFactory<FloatProperty>) props.get("floatProp")).setDefaultValue(floatProp, 0);
+        ((PropertyFactory<FloatProperty>) props.get("floatProp")).setDefaultValue(floatProp,
+                                                                                  0);
         float[] floatData = floatProp.getIndexedData();
         Assert.assertEquals(1, floatData.length);
         Assert.assertEquals(0.5f, floatData[0], .0001f);
@@ -143,7 +145,7 @@ public class ReflectionComponentDataFactoryTest {
         }
 
         UnmanagedFieldComponent c = system.createDataInstance(id);
-        for (Entity e: system) {
+        for (Entity e : system) {
             Assert.assertTrue(e.get(c));
             float f = c.getFloat();
             Assert.assertEquals(0, f, .0001f);

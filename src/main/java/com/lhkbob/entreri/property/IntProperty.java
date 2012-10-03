@@ -54,7 +54,7 @@ public final class IntProperty implements Property {
     /**
      * Return the backing int array of this property's IndexedDataStore. The
      * array may be longer than necessary for the number of components in the
-     * system.  Data can be accessed for a component directly using the
+     * system. Data can be accessed for a component directly using the
      * component's index.
      * 
      * @return The int data for all packed properties that this property has
@@ -109,8 +109,8 @@ public final class IntProperty implements Property {
     }
 
     /**
-     * Factory to create IntProperties. Properties annotated with
-     * DefaultInt will use that value as the default for all components.
+     * Factory to create IntProperties. Properties annotated with DefaultInt
+     * will use that value as the default for all components.
      * 
      * @author Michael Ludwig
      */
@@ -145,8 +145,9 @@ public final class IntProperty implements Property {
 
     /**
      * Default int attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

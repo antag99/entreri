@@ -72,7 +72,7 @@ public class SystemTest {
         Entity e = system.addEntity();
 
         int componentCount = 0;
-        for (@SuppressWarnings("unused") Component<?> c: e) {
+        for (@SuppressWarnings("unused") Component<?> c : e) {
             componentCount++;
         }
 
@@ -81,7 +81,7 @@ public class SystemTest {
         Assert.assertTrue(e.isLive());
 
         int entityCount = 0;
-        for (Entity entity: system) {
+        for (Entity entity : system) {
             entityCount++;
             Assert.assertSame(e, entity);
         }
@@ -118,7 +118,7 @@ public class SystemTest {
         try {
             system.addEntity(template);
             Assert.fail();
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             // expected
         }
     }
@@ -148,9 +148,10 @@ public class SystemTest {
 
         int count = 0;
         Iterator<Entity> it = system.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Entity e = it.next();
-            Assert.assertNotNull(e.get(TypeId.get(MultiPropertyComponent.class)).getData());
+            Assert.assertNotNull(e.get(TypeId.get(MultiPropertyComponent.class))
+                                  .getData());
             count++;
         }
 
@@ -164,7 +165,9 @@ public class SystemTest {
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
             es.add(system.addEntity());
-            MultiPropertyComponent c = es.get(es.size() - 1).add(TypeId.get(MultiPropertyComponent.class)).getData();
+            MultiPropertyComponent c = es.get(es.size() - 1)
+                                         .add(TypeId.get(MultiPropertyComponent.class))
+                                         .getData();
             float f = (float) Math.random();
             float f2 = (float) Math.random();
             c.setFloat(f);
@@ -177,7 +180,7 @@ public class SystemTest {
         int i = 0;
         Iterator<Entity> it = es.iterator();
         Iterator<Float> ft = cs.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Entity e = it.next();
             ft.next(); // always advance once
             if (i % 2 == 0) {
@@ -185,7 +188,8 @@ public class SystemTest {
                 system.removeEntity(e);
 
                 ft.remove();
-                ft.next(); ft.remove(); // remove 2nd element
+                ft.next();
+                ft.remove(); // remove 2nd element
             } else {
                 ft.next(); // advance past 2nd element
             }
@@ -197,11 +201,15 @@ public class SystemTest {
         it = es.iterator();
         Iterator<Entity> si = system.iterator();
         ft = cs.iterator();
-        while(it.hasNext() && si.hasNext()) {
+        while (it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next().floatValue(), e.get(TypeId.get(MultiPropertyComponent.class)).getData().getFloat(), .0001f);
-            Assert.assertEquals(ft.next().floatValue(), e.get(TypeId.get(MultiPropertyComponent.class)).getData().getFactoryFloat(), .0001f);
+            Assert.assertEquals(ft.next().floatValue(),
+                                e.get(TypeId.get(MultiPropertyComponent.class)).getData()
+                                 .getFloat(), .0001f);
+            Assert.assertEquals(ft.next().floatValue(),
+                                e.get(TypeId.get(MultiPropertyComponent.class)).getData()
+                                 .getFactoryFloat(), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());
@@ -214,7 +222,9 @@ public class SystemTest {
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
             es.add(system.addEntity());
-            MultiPropertyComponent c = es.get(es.size() - 1).add(TypeId.get(MultiPropertyComponent.class)).getData();
+            MultiPropertyComponent c = es.get(es.size() - 1)
+                                         .add(TypeId.get(MultiPropertyComponent.class))
+                                         .getData();
             float f = (float) Math.random();
             float f2 = (float) Math.random();
             c.setFloat(f);
@@ -227,7 +237,7 @@ public class SystemTest {
         // remove a bunch of components from the entities
         int i = 0;
         Iterator<Entity> it = es.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Entity e = it.next();
             if (i % 2 == 0) {
                 e.remove(TypeId.get(MultiPropertyComponent.class));
@@ -239,7 +249,7 @@ public class SystemTest {
         i = 0;
         it = es.iterator();
         Iterator<Float> ft = cs.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Entity e = it.next();
             Component<MultiPropertyComponent> c = e.get(TypeId.get(MultiPropertyComponent.class));
 
@@ -259,11 +269,15 @@ public class SystemTest {
         it = es.iterator();
         Iterator<Entity> si = system.iterator();
         ft = cs.iterator();
-        while(it.hasNext() && si.hasNext()) {
+        while (it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next().floatValue(), e.get(TypeId.get(MultiPropertyComponent.class)).getData().getFloat(), .0001f);
-            Assert.assertEquals(ft.next().floatValue(), e.get(TypeId.get(MultiPropertyComponent.class)).getData().getFactoryFloat(), .0001f);
+            Assert.assertEquals(ft.next().floatValue(),
+                                e.get(TypeId.get(MultiPropertyComponent.class)).getData()
+                                 .getFloat(), .0001f);
+            Assert.assertEquals(ft.next().floatValue(),
+                                e.get(TypeId.get(MultiPropertyComponent.class)).getData()
+                                 .getFactoryFloat(), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());

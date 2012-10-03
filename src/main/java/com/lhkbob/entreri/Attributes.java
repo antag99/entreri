@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 
@@ -43,7 +42,7 @@ public class Attributes {
 
         attrs = new HashMap<Class<? extends Annotation>, Annotation>();
 
-        for (Annotation a: f.getAnnotations()) {
+        for (Annotation a : f.getAnnotations()) {
             if (a.annotationType().getAnnotation(Attribute.class) != null) {
                 // the attribute is an annotation
                 attrs.put(a.annotationType(), a);

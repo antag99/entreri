@@ -32,7 +32,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 /**
  * <p>
  * DefaultFactory is a type-level annotation that can be added to ComponentData

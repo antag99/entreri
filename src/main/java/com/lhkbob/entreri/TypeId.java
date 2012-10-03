@@ -29,11 +29,10 @@ package com.lhkbob.entreri;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 /**
  * <p>
- * TypeId is a dynamically assigned identifier unique to the desired component data
- * types. Every instance of a type T will use the same TypeId. TypeId is a
+ * TypeId is a dynamically assigned identifier unique to the desired component
+ * data types. Every instance of a type T will use the same TypeId. TypeId is a
  * glorified integer id assigned to set of class types that share a common
  * parent class. Each class will be assigned a unique id within the currently
  * executing JVM.
@@ -48,8 +47,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TypeId<T extends ComponentData<T>> {
     // Use a ConcurrentHashMap to perform reads. It is still synchronized completely to do
     // an insert to make sure a type doesn't try to use two different id values.
-    private static final ConcurrentHashMap<Class<? extends ComponentData<?>>, TypeId<? extends ComponentData<?>>> typeMap
-                                                 = new ConcurrentHashMap<Class<? extends ComponentData<?>>, TypeId<? extends ComponentData<?>>>();
+    private static final ConcurrentHashMap<Class<? extends ComponentData<?>>, TypeId<? extends ComponentData<?>>> typeMap = new ConcurrentHashMap<Class<? extends ComponentData<?>>, TypeId<? extends ComponentData<?>>>();
 
     private static int idSeq = 0;
 
@@ -123,16 +121,15 @@ public class TypeId<T extends ComponentData<T>> {
      * Return the unique TypeId instance for the given <tt>type</tt>. If a
      * TypeId hasn't yet been created a new one is instantiated with the next
      * numeric id in the internal id sequence. The new TypeId is stored for
-     * later, so that subsequent calls to {@link #get(Class)} with
-     * <tt>type</tt> will return the same instance. It is recommended that a
-     * ComponentData declare a static final <tt>ID</tt> holding its TypeId.
+     * later, so that subsequent calls to {@link #get(Class)} with <tt>type</tt>
+     * will return the same instance. It is recommended that a ComponentData
+     * declare a static final <tt>ID</tt> holding its TypeId.
      * </p>
      * <p>
      * This method does not validate the definition of the ComponentData because
-     * validation depends on the potentially customized ComponentDataFactory used
-     * by each EntitySystem.
-     * Additionally, abstract ComponentData types cannot have a TypeId assigned to
-     * them.
+     * validation depends on the potentially customized ComponentDataFactory
+     * used by each EntitySystem. Additionally, abstract ComponentData types
+     * cannot have a TypeId assigned to them.
      * </p>
      * 
      * @param <T> The ComponentData class type
@@ -153,8 +150,7 @@ public class TypeId<T extends ComponentData<T>> {
         // error checking.  If we found one, we know it passed validation the first time, otherwise
         // we'll validate it before creating a new TypeId.
         TypeId<T> id = (TypeId<T>) typeMap.get(type);
-        if (id != null)
-        {
+        if (id != null) {
             return id; // Found an existing id
         }
 
@@ -165,14 +161,13 @@ public class TypeId<T extends ComponentData<T>> {
             throw new IllegalArgumentException("Abstract classes cannot have TypeIds: " + type);
         }
 
-        synchronized(typeMap) {
+        synchronized (typeMap) {
             // Must create a new id, we lock completely to prevent concurrent get() on the
             // same type using two different ids.  One would get overridden and its returned TypeId
             // would be invalid.
             // - Double check, then, before creating a new id
             id = (TypeId<T>) typeMap.get(type);
-            if (id != null)
-            {
+            if (id != null) {
                 return id; // Someone else put in the type after we checked but before we locked
             }
 

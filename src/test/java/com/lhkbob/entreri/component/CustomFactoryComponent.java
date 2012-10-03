@@ -41,7 +41,8 @@ public class CustomFactoryComponent extends ComponentData<CustomFactoryComponent
     public static class CustomFactory implements ComponentDataFactory<CustomFactoryComponent> {
         @Override
         public Map<?, PropertyFactory<?>> getPropertyFactories() {
-            return Collections.<String, PropertyFactory<?>>singletonMap("prop", new IntProperty.Factory(0));
+            return Collections.<String, PropertyFactory<?>> singletonMap("prop",
+                                                                         new IntProperty.Factory(0));
         }
 
         @Override
@@ -50,7 +51,8 @@ public class CustomFactoryComponent extends ComponentData<CustomFactoryComponent
         }
 
         @Override
-        public void setProperty(CustomFactoryComponent instance, Object key, Property property) {
+        public void setProperty(CustomFactoryComponent instance, Object key,
+                                Property property) {
             if (key.equals("prop")) {
                 instance.prop = (IntProperty) property;
             } else {

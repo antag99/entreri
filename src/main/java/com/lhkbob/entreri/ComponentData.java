@@ -26,7 +26,6 @@
  */
 package com.lhkbob.entreri;
 
-
 /**
  * <p>
  * ComponentData is used to define types of components that can be added to
@@ -62,7 +61,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     // to simplify implementation constructor requirements.
     ComponentRepository<T> owner;
 
-    protected ComponentData() { }
+    protected ComponentData() {}
 
     /**
      * Get the Entity that owns this ComponentData. This is a convenience for

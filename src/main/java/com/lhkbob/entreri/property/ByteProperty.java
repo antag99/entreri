@@ -36,8 +36,8 @@ import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * ByteProperty is an implementation of Property that stores a single
- * byte value.
+ * ByteProperty is an implementation of Property that stores a single byte
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -146,8 +146,9 @@ public final class ByteProperty implements Property {
 
     /**
      * Default byte attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

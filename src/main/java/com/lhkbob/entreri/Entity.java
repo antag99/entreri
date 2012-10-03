@@ -29,7 +29,6 @@ package com.lhkbob.entreri;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
 /**
  * <p>
  * An Entity represents a collection of Components within an EntitySystem.
@@ -125,7 +124,8 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * @return The current Component of type T attached to this entity
      * @throws NullPointerException if id is null
      */
-    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId, boolean ignoreEnable) {
+    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId,
+                                                         boolean ignoreEnable) {
         ComponentRepository<T> ci = system.getRepository(componentId);
         Component<T> c = ci.getComponent(ci.getComponentIndex(index));
 
@@ -182,10 +182,10 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
 
     /**
      * <p>
-     * Add a new Component with a data type T to this Entity. If the Entity already has
-     * component of type T attached, that component is removed and a new one is
-     * created. Otherwise, a new instance is created with its default values and
-     * added to the system.
+     * Add a new Component with a data type T to this Entity. If the Entity
+     * already has component of type T attached, that component is removed and a
+     * new one is created. Otherwise, a new instance is created with its default
+     * values and added to the system.
      * </p>
      * 
      * @param <T> The parameterized type of component being added
@@ -223,7 +223,7 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      *             as this entity
      * @throws IllegalStateException if toClone is not a live component instance
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public <T extends ComponentData<T>> Component<T> add(Component<T> toClone) {
         if (toClone == null) {
             throw new NullPointerException("ComponentData template, toClone, cannot be null");
@@ -281,8 +281,8 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
     }
 
     /*
-     * Iterator implementation that iterates over the components
-     * attached to an entity, based on entity index rather than reference
+     * Iterator implementation that iterates over the components attached to an
+     * entity, based on entity index rather than reference
      */
     private static class ComponentIterator implements Iterator<Component<?>> {
         private final int entityIndex;
@@ -292,7 +292,8 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         private ComponentRepository<?> currentIndex;
         private ComponentRepository<?> nextIndex;
 
-        public ComponentIterator(EntitySystem system, int entityIndex, boolean ignoreEnable) {
+        public ComponentIterator(EntitySystem system, int entityIndex,
+                                 boolean ignoreEnable) {
             this.entityIndex = entityIndex;
             this.ignoreEnable = ignoreEnable;
             indices = system.indexIterator();
@@ -331,14 +332,13 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         }
 
         private void advance() {
-            while(indices.hasNext()) {
+            while (indices.hasNext()) {
                 nextIndex = indices.next();
 
                 int index = nextIndex.getComponentIndex(entityIndex);
                 if (index != 0 && (ignoreEnable || nextIndex.isEnabled(index))) {
                     break;
-                }
-                else {
+                } else {
                     nextIndex = null; // must set to null if this was last element
                 }
             }

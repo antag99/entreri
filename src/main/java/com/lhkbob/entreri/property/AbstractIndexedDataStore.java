@@ -31,7 +31,6 @@ import java.util.List;
 
 import com.lhkbob.entreri.IndexedDataStore;
 
-
 /**
  * <p>
  * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses
@@ -49,8 +48,8 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
 
     /**
      * Create an AbstractIndexedDataStore that will use <var>elementSize</var>
-     * array elements per ComponentData in the data store. This does not create a
-     * backing array, so concrete classes must allocate an initial array.
+     * array elements per ComponentData in the data store. This does not create
+     * a backing array, so concrete classes must allocate an initial array.
      * 
      * @param elementSize The number of array elements per property instance
      * @throws IllegalArgumentException if elementSize is less than 1
@@ -81,7 +80,8 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
             throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
         }
 
-        arraycopy(getArray(), srcOffset * elementSize, dstStore.getArray(), destOffset * elementSize, len * elementSize);
+        arraycopy(getArray(), srcOffset * elementSize, dstStore.getArray(),
+                  destOffset * elementSize, len * elementSize);
     }
 
     /**
@@ -104,7 +104,8 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
      * @param dstOffset The element offset into the new array
      * @param len The number of array elements to copy
      */
-    protected void arraycopy(Object oldArray, int srcOffset, Object newArray, int dstOffset, int len) {
+    protected void arraycopy(Object oldArray, int srcOffset, Object newArray,
+                             int dstOffset, int len) {
         System.arraycopy(oldArray, srcOffset, newArray, dstOffset, len);
     }
 

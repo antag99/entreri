@@ -36,8 +36,8 @@ import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * LongProperty is an implementation of Property that stores a single
- * long value.
+ * LongProperty is an implementation of Property that stores a single long
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -110,8 +110,8 @@ public final class LongProperty implements Property {
     }
 
     /**
-     * Factory to create LongProperties. Properties annotated with
-     * DefaultLong will use that value as the default for all components.
+     * Factory to create LongProperties. Properties annotated with DefaultLong
+     * will use that value as the default for all components.
      * 
      * @author Michael Ludwig
      */
@@ -146,8 +146,9 @@ public final class LongProperty implements Property {
 
     /**
      * Default long attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

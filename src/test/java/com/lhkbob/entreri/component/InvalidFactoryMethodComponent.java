@@ -30,8 +30,8 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.NoFactoryProperty;
 
 /**
- * A test component that specifies invalid or incorrect factories for
- * its properties.
+ * A test component that specifies invalid or incorrect factories for its
+ * properties.
  * 
  * @author Michael Ludwig
  */

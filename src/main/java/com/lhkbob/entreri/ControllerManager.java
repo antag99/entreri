@@ -48,24 +48,23 @@ import java.util.Set;
  */
 public class ControllerManager {
     /**
-     * The Phase enum represents the different phases of
-     * processing that an EntitySystem can go through during
-     * what is often considered a "frame".
+     * The Phase enum represents the different phases of processing that an
+     * EntitySystem can go through during what is often considered a "frame".
      */
     public static enum Phase {
         /**
          * The PREPROCESS phase is invoked before all other phases. All
          * controllers in a manager will have their
-         * {@link Controller#preProcess(double)} method called
-         * before moving to the next phase.
+         * {@link Controller#preProcess(double)} method called before moving to
+         * the next phase.
          */
         PREPROCESS,
 
         /**
          * The PROCESS phase is invoked between PREPROCESS and POSTPROCESS. All
          * controllers in the manager will have their
-         * {@link Controller#process(double)} method called before
-         * moving to the next phase.
+         * {@link Controller#process(double)} method called before moving to the
+         * next phase.
          */
         PROCESS,
 
@@ -220,7 +219,7 @@ public class ControllerManager {
         ProfileData c = profile.get(controller);
 
         if (c != null) {
-            switch(phase) {
+            switch (phase) {
             case POSTPROCESS:
                 return c.postprocessTime;
             case PREPROCESS:
@@ -241,7 +240,9 @@ public class ControllerManager {
      * @return The last total execution time of the controller
      */
     public long getExecutionTime(Controller controller) {
-        return getExecutionTime(controller, Phase.PREPROCESS) + getExecutionTime(controller, Phase.POSTPROCESS) + getExecutionTime(controller, Phase.PROCESS);
+        return getExecutionTime(controller, Phase.PREPROCESS) + getExecutionTime(controller,
+                                                                                 Phase.POSTPROCESS) + getExecutionTime(controller,
+                                                                                                                       Phase.PROCESS);
     }
 
     /**
@@ -288,11 +289,13 @@ public class ControllerManager {
         }
 
         currentPhase = phase;
-        switch(phase) {
+        switch (phase) {
         case PREPROCESS:
-            firePreProcess(dt); break;
+            firePreProcess(dt);
+            break;
         case PROCESS:
-            fireProcess(dt); break;
+            fireProcess(dt);
+            break;
         case POSTPROCESS:
             firePostProcess(dt);
             break;

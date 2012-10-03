@@ -26,12 +26,11 @@
  */
 package com.lhkbob.entreri.component;
 
-
 /**
  * A test ComponentData that extends a non-abstract component so it should fail.
  * 
  * @author Michael Ludwig
  */
 public class InvalidHierarchyComponent extends FloatComponent {
-    protected InvalidHierarchyComponent() { }
+    protected InvalidHierarchyComponent() {}
 }

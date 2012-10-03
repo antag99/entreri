@@ -63,14 +63,14 @@ public interface Property {
     /**
      * <p>
      * Return the IndexedDataStore holding this property's values. The data
-     * store may also hold other property values if the owning ComponentData is in
-     * an EntitySystem with many other components of the same type.
+     * store may also hold other property values if the owning ComponentData is
+     * in an EntitySystem with many other components of the same type.
      * </p>
      * <p>
-     * This should not be used by ComponentData implementations, and manipulating
-     * the IndexedDataStore outside of the EntitySystem code could cause
-     * unexpected behavior. Instead Property implementations should expose other
-     * ways to access their data; as an example see
+     * This should not be used by ComponentData implementations, and
+     * manipulating the IndexedDataStore outside of the EntitySystem code could
+     * cause unexpected behavior. Instead Property implementations should expose
+     * other ways to access their data; as an example see
      * {@link FloatProperty#getIndexedData()}.
      * </p>
      * <p>
@@ -90,8 +90,8 @@ public interface Property {
      * </p>
      * <p>
      * This should only be called internally by the EntitySystem. Calling it
-     * within a ComponentData implementation or otherwise will result in undefined
-     * consequences.
+     * within a ComponentData implementation or otherwise will result in
+     * undefined consequences.
      * </p>
      * <p>
      * It can be assumed that the new store is not null.

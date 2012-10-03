@@ -37,14 +37,15 @@ public class IllegalComponentDefinitionException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create an exception that specifies the leaf-level class in a ComponentData
-     * type hierarchy has some problem with its definition
+     * Create an exception that specifies the leaf-level class in a
+     * ComponentData type hierarchy has some problem with its definition
      * 
      * @param type The leaf, concrete type
      * @param problem A generic error message to be tacked to the end of the
      *            final error message
      */
-    public IllegalComponentDefinitionException(Class<? extends ComponentData<?>> type, String problem) {
+    public IllegalComponentDefinitionException(Class<? extends ComponentData<?>> type,
+                                               String problem) {
         super("Type has illegal definition: " + type + ", error: " + problem);
     }
 }

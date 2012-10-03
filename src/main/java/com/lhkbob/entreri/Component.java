@@ -51,8 +51,8 @@ public final class Component<T extends ComponentData<T>> {
     int index;
 
     /**
-     * Create a new Component stored in the given ComponentRepository, at the given
-     * array position within the ComponentRepository.
+     * Create a new Component stored in the given ComponentRepository, at the
+     * given array position within the ComponentRepository.
      * 
      * @param owner The ComponentRepository owner
      * @param index The index within the owner

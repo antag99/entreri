@@ -110,8 +110,8 @@ public final class ShortProperty implements Property {
     }
 
     /**
-     * Factory to create ShortProperties. Properties annotated with
-     * DefaultShort will use that value as the default for all components.
+     * Factory to create ShortProperties. Properties annotated with DefaultShort
+     * will use that value as the default for all components.
      * 
      * @author Michael Ludwig
      */
@@ -146,8 +146,9 @@ public final class ShortProperty implements Property {
 
     /**
      * Default short attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

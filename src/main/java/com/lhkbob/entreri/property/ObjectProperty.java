@@ -59,7 +59,7 @@ public final class ObjectProperty<T> implements Property {
      * @param dflt The default value assigned to each component and element
      * @return A PropertyFactory for ObjectProperty
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> PropertyFactory<ObjectProperty<T>> factory(T dflt) {
         PropertyFactory superRaw = new Factory(dflt);
         return superRaw;

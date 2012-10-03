@@ -38,7 +38,9 @@ public class ComponentRepositoryTest {
     @Test
     public void testFactorySetValue() {
         EntitySystem system = new EntitySystem();
-        MultiPropertyComponent c = system.addEntity().add(TypeId.get(MultiPropertyComponent.class)).getData();
+        MultiPropertyComponent c = system.addEntity()
+                                         .add(TypeId.get(MultiPropertyComponent.class))
+                                         .getData();
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
 
@@ -48,11 +50,12 @@ public class ComponentRepositoryTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(TypeId.get(IntComponent.class)).getData();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class), new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+                                                  new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         int count = 0;
-        for (Entity entity: system) {
+        for (Entity entity : system) {
             Assert.assertTrue(entity.get(c));
             count++;
 
@@ -67,7 +70,8 @@ public class ComponentRepositoryTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(TypeId.get(IntComponent.class)).getData();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class), new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+                                                  new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         Entity e2 = system.addEntity();
@@ -75,7 +79,7 @@ public class ComponentRepositoryTest {
         decorated.getIndexedData()[c2.getIndex()] = 2f;
 
         int count = 0;
-        for (Entity entity: system) {
+        for (Entity entity : system) {
             IntComponent c3 = entity.get(TypeId.get(IntComponent.class)).getData();
             count++;
 
@@ -92,7 +96,8 @@ public class ComponentRepositoryTest {
     public void testUndecorateValidProperty() {
         EntitySystem system = new EntitySystem();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class), new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+                                                  new FloatPropertyFactory());
         system.undecorate(TypeId.get(IntComponent.class), decorated);
     }
 

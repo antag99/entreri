@@ -32,8 +32,8 @@ import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 
 /**
- * A test component that mis-configures a component so it can't find
- * the necessary factory() method.
+ * A test component that mis-configures a component so it can't find the
+ * necessary factory() method.
  * 
  * @author Michael Ludwig
  */

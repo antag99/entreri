@@ -119,7 +119,7 @@ public class AdvancedIteratorTest {
 
     private void doTestIterator(Iterator<Entity> it) {
         int i = 0;
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             Assert.assertEquals(entityIds.get(i), Integer.valueOf(it.next().getId()));
             i++;
         }
@@ -130,7 +130,7 @@ public class AdvancedIteratorTest {
     // assumes it has objData in it
     private void doTestObjectComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.next()) {
+        while (it.next()) {
             Assert.assertEquals(entityObjValues.get(i), objData.getObject());
             i++;
         }
@@ -141,8 +141,9 @@ public class AdvancedIteratorTest {
     // assumes it has floatData in it
     private void doTestFloatComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.next()) {
-            Assert.assertEquals(entityFloatValues.get(i).floatValue(), floatData.getFloat(), .0001f);
+        while (it.next()) {
+            Assert.assertEquals(entityFloatValues.get(i).floatValue(),
+                                floatData.getFloat(), .0001f);
             i++;
         }
 
@@ -152,9 +153,10 @@ public class AdvancedIteratorTest {
     // assumes it has floatData and objData as required
     private void doTestBulkComponentIterator(ComponentIterator it) {
         int i = 0;
-        while(it.next()) {
+        while (it.next()) {
             Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject());
-            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(), floatData.getFloat(), .0001f);
+            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(),
+                                floatData.getFloat(), .0001f);
             i++;
         }
 
@@ -164,7 +166,7 @@ public class AdvancedIteratorTest {
     private void doIteratorRemove(Iterator<Entity> it) {
         int i = 0;
         Iterator<Integer> ids = entityIds.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             it.next();
             ids.next();
             if (i > ENTITY_COUNT / 2) {
@@ -174,7 +176,6 @@ public class AdvancedIteratorTest {
 
             i++;
         }
-
 
         // this invalidates all of the value lists, but that is okay
     }

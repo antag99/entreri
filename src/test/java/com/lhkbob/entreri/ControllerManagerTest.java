@@ -144,12 +144,12 @@ public class ControllerManagerTest {
         doTestReportResult(new SingletonResultImpl(), new ResultImpl());
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testReportMultipleSingletonResults() {
         doTestReportResult(new SingletonResultImpl(), new SingletonResultImpl());
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected = IllegalStateException.class)
     public void testReportOutOfPhase() {
         Result result = new ResultImpl();
 
@@ -174,7 +174,7 @@ public class ControllerManagerTest {
         system.getControllerManager().addController(supplier);
         system.getControllerManager().addController(receiver);
 
-        Assert.assertArrayEquals(new Result[] { result }, supplier.resultsToReport);
+        Assert.assertArrayEquals(new Result[] {result}, supplier.resultsToReport);
         Assert.assertTrue(receiver.reportedResults.isEmpty());
 
         // process twice
@@ -249,7 +249,7 @@ public class ControllerManagerTest {
 
         @Override
         public void process(double dt) {
-            for (Result r: resultsToReport) {
+            for (Result r : resultsToReport) {
                 getEntitySystem().getControllerManager().report(r);
             }
         }
@@ -294,7 +294,6 @@ public class ControllerManagerTest {
         public void report(Result result) {
             reportedResults.add(result);
         }
-
 
         @Override
         public EntitySystem getEntitySystem() {

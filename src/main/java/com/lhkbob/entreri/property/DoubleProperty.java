@@ -36,8 +36,8 @@ import com.lhkbob.entreri.IndexedDataStore;
 import com.lhkbob.entreri.Property;
 
 /**
- * DoubleProperty is an implementation of Property that stores a single
- * double value.
+ * DoubleProperty is an implementation of Property that stores a single double
+ * value.
  * 
  * @author Michael Ludwig
  */
@@ -146,8 +146,9 @@ public final class DoubleProperty implements Property {
 
     /**
      * Default double attribute for properties.
+     * 
      * @author Michael Ludwig
-     *
+     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

@@ -28,7 +28,6 @@ package com.lhkbob.entreri;
 
 import java.util.Map;
 
-
 /**
  * <p>
  * ComponentDataFactory is a factory interface used to create instances of
