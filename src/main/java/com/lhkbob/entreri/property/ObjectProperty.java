@@ -26,6 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
+import java.lang.reflect.Method;
+
 import com.lhkbob.entreri.Attributes;
 import com.lhkbob.entreri.Factory;
 import com.lhkbob.entreri.IndexedDataStore;
@@ -128,7 +130,7 @@ public final class ObjectProperty<T> implements Property {
      * 
      * @author Michael Ludwig
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
         private final Object defaultValue;
 
@@ -149,9 +151,30 @@ public final class ObjectProperty<T> implements Property {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
         public void setDefaultValue(ObjectProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(ObjectProperty src, int srcIndex, ObjectProperty dst,
+                          int dstIndex) {
+            Object orig = src.get(srcIndex);
+
+            if (clonePolicy == Clone.Policy.INVOKE_CLONE && orig instanceof Cloneable) {
+                try {
+                    // if they implemented Cloneable properly, clone() should
+                    // be public and take no arguments
+                    Method cloneMethod = orig.getClass().getMethod("clone");
+                    Object cloned = cloneMethod.invoke(orig);
+                    dst.set(cloned, dstIndex);
+                } catch (Exception e) {
+                    // if they implement Cloneable, this shouldn't fail
+                    // and if it does it's not really our fault
+                    throw new RuntimeException(e);
+                }
+            } else {
+                super.clone(src, srcIndex, dst, dstIndex);
+            }
         }
     }
 }

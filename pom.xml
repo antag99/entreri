@@ -6,9 +6,7 @@
     <version>1.5.3-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
-    <description>
-    Entreri is an entity-component framework for Java that helps manage or remove complex OO hierarchies that often form when developing games. For a useful description of an entity-component framework, see http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
-    </description>
+    <description>Entreri is an entity-component framework for Java that helps manage or remove complex OO hierarchies that often form when developing games. For a useful description of an entity-component framework, see http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/</description>
     <url>http://entreri.lhkbob.com</url>
 
     <parent>

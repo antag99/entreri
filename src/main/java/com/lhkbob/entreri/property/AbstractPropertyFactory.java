@@ -42,13 +42,33 @@ import com.lhkbob.entreri.PropertyFactory;
  */
 public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
     protected final Attributes attributes;
+    protected final Clone.Policy clonePolicy;
 
     public AbstractPropertyFactory(Attributes attrs) {
         attributes = attrs;
+
+        if (attrs != null && attrs.hasAttribute(Clone.class)) {
+            clonePolicy = attrs.getAttribute(Clone.class).value();
+        } else {
+            clonePolicy = Clone.Policy.JAVA_DEFAULT;
+        }
     }
 
     @Override
     public void clone(P src, int srcIndex, P dst, int dstIndex) {
-        src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);
+        switch (clonePolicy) {
+        case DISABLE:
+            // assign default value
+            setDefaultValue(dst, dstIndex);
+            break;
+        case INVOKE_CLONE:
+            // fall through, since default implementation of INVOKE_CLONE is to
+            // just function like JAVA_DEFAULT
+        case JAVA_DEFAULT:
+            src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);
+            break;
+        default:
+            throw new UnsupportedOperationException("Enum value not supported: " + clonePolicy);
+        }
     }
 }
