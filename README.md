@@ -47,6 +47,8 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
 * Simplify Phase enum and usage to not need ALL value.
 * Fix bug with time delta calculation.
 * Improve Result API in ControllerManage to not cause a type explosion.
+* Add @Clone attribute to allow more flexibility in `PropertyFactory.clone()`
+  without requiring you to implement an entire PropertyFactory.
 
 ### 1.5.2
 * Improve PropertyFactory API to better support custom Property definitions 
