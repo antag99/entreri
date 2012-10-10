@@ -31,7 +31,7 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
     <dependency>
       <groupId>com.lhkbob.entreri</groupId>
       <artifactId>entreri</artifactId>
-      <version>1.5.2</version>
+      <version>1.5.3</version>
     </dependency>
     
 [Maven]: http://maven.apache.org
