@@ -61,8 +61,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private Component<T>[] components;
     private int componentInsert;
 
-    private final List<PropertyStore<?>> declaredProperties;
-    private final List<WeakPropertyStore<?>> decoratedProperties;
+    private final List<DeclaredPropertyStore<?>> declaredProperties;
+    private final List<DecoratedPropertyStore<?>> decoratedProperties;
 
     private final BooleanProperty enabledProperty; // this is also contained in decoratedProperties
     private final IntProperty componentIdProperty; // this is contained in decoratedProperties
@@ -89,10 +89,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         Map<?, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
 
-        declaredProperties = new ArrayList<PropertyStore<?>>();
-        decoratedProperties = new ArrayList<WeakPropertyStore<?>>(); // empty for now
+        declaredProperties = new ArrayList<DeclaredPropertyStore<?>>();
+        decoratedProperties = new ArrayList<DecoratedPropertyStore<?>>(); // empty for now
         for (Entry<?, PropertyFactory<?>> e : propertyFactories.entrySet()) {
-            PropertyStore store = new PropertyStore(e.getValue(), e.getKey());
+            DeclaredPropertyStore store = new DeclaredPropertyStore(e.getValue(),
+                                                                    e.getKey());
             declaredProperties.add(store);
         }
 
@@ -171,7 +172,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     public void expandEntityIndex(int numEntities) {
         if (entityIndexToComponentRepository.length < numEntities) {
             entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository,
-                                                             (int) (numEntities * 1.5f) + 1);
+                                                             (int) (numEntities * 1.5) + 1);
         }
     }
 
@@ -179,16 +180,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return Estimated memory usage of this component repository
      */
     public long estimateMemory() {
-        long total = 0L;
-        for (int i = 0; i < declaredProperties.size(); i++) {
-            total += declaredProperties.get(i).property.getDataStore().memory();
-        }
-        for (int i = 0; i < decoratedProperties.size(); i++) {
-            Property prop = decoratedProperties.get(i).property.get();
-            if (prop != null) {
-                total += prop.getDataStore().memory();
-            }
-        }
+        long total = estimateMemory(declaredProperties) + estimateMemory(decoratedProperties);
 
         // also add in an estimate for other structures used by
         // this repository
@@ -199,6 +191,18 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // 4 bytes for its index, 4 bytes for its repository reference
         total += 12 * components.length;
 
+        return total;
+    }
+
+    private long estimateMemory(List<? extends PropertyStore<?>> properties) {
+        long total = 0L;
+        int ct = properties.size();
+        for (int i = 0; i < ct; i++) {
+            Property p = properties.get(i).getProperty();
+            if (p != null) {
+                total += p.getDataStore().memory();
+            }
+        }
         return total;
     }
 
@@ -237,11 +241,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
             return;
         }
 
-        int size = (int) (numComponents * 1.5f) + 1;
+        int size = (int) (numComponents * 1.5) + 1;
 
         // Expand the indexed data stores for the properties
         resizePropertyStores(declaredProperties, size);
-        resizeWeakPropertyStores(decoratedProperties, size);
+        resizePropertyStores(decoratedProperties, size);
 
         // Expand the canonical component array
         components = Arrays.copyOf(components, size);
@@ -254,26 +258,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * Convenience to create a new data store for each property with the given
      * size, copy the old data over, and assign it back to the property.
      */
-    private void resizePropertyStores(List<PropertyStore<?>> properties, int size) {
+    private void resizePropertyStores(List<? extends PropertyStore<?>> properties,
+                                      int size) {
         int ct = properties.size();
         for (int i = 0; i < ct; i++) {
-            IndexedDataStore oldStore = properties.get(i).property.getDataStore();
-            IndexedDataStore newStore = oldStore.create(size);
-            oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
-            properties.get(i).property.setDataStore(newStore);
-        }
-    }
-
-    private void resizeWeakPropertyStores(List<WeakPropertyStore<?>> properties, int size) {
-        int ct = properties.size();
-        for (int i = 0; i < ct; i++) {
-            Property p = properties.get(i).property.get();
-            if (p != null) {
-                IndexedDataStore oldStore = p.getDataStore();
-                IndexedDataStore newStore = oldStore.create(size);
-                oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
-                p.setDataStore(newStore);
-            }
+            properties.get(i).resize(size);
         }
     }
 
@@ -312,7 +301,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         Component<T> instance = addComponent(entityIndex);
         for (int i = 0; i < declaredProperties.size(); i++) {
-            PropertyStore store = declaredProperties.get(i);
+            DeclaredPropertyStore store = declaredProperties.get(i);
             store.clone(fromTemplate.index, store.property, instance.index);
         }
 
@@ -387,7 +376,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         // assign all property values
         for (int i = 0; i < declaredProperties.size(); i++) {
-            PropertyStore<?> p = declaredProperties.get(i);
+            DeclaredPropertyStore<?> p = declaredProperties.get(i);
             factory.setProperty(t, p.key, p.property);
         }
 
@@ -425,26 +414,15 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * Update all component data in the list of properties. If possible the data
      * store in swap is reused.
      */
-    private void update(List<PropertyStore<?>> properties, Component<T>[] newToOldMap) {
+    private void update(List<? extends PropertyStore<?>> properties,
+                        Component<T>[] newToOldMap) {
         for (int i = 0; i < properties.size(); i++) {
-            PropertyStore<?> p = properties.get(i);
-            IndexedDataStore origStore = p.property.getDataStore();
-
-            p.property.setDataStore(update(origStore, p.swap, newToOldMap));
-            p.swap = origStore;
-        }
-    }
-
-    private void updateWeak(List<WeakPropertyStore<?>> properties,
-                            Component<T>[] newToOldMap) {
-        for (int i = 0; i < properties.size(); i++) {
-            WeakPropertyStore<?> p = properties.get(i);
-            Property prop = p.property.get();
-            if (prop != null) {
-                IndexedDataStore origStore = prop.getDataStore();
-
-                prop.setDataStore(update(origStore, p.swap, newToOldMap));
-                p.swap = origStore;
+            PropertyStore<?> store = properties.get(i);
+            Property p = store.getProperty();
+            if (p != null) {
+                IndexedDataStore origStore = p.getDataStore();
+                p.setDataStore(update(origStore, store.swap, newToOldMap));
+                store.swap = origStore;
             }
         }
     }
@@ -526,16 +504,16 @@ final class ComponentRepository<T extends ComponentData<T>> {
         });
 
         // Remove all WeakPropertyStores that no longer have a property
-        Iterator<WeakPropertyStore<?>> it = decoratedProperties.iterator();
+        Iterator<DecoratedPropertyStore<?>> it = decoratedProperties.iterator();
         while (it.hasNext()) {
-            if (it.next().property.get() == null) {
+            if (it.next().getProperty() == null) {
                 it.remove();
             }
         }
 
         // Update all of the property stores to match up with the componentDatas new positions
         update(declaredProperties, components);
-        updateWeak(decoratedProperties, components);
+        update(decoratedProperties, components);
 
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
@@ -550,19 +528,19 @@ final class ComponentRepository<T extends ComponentData<T>> {
         componentIndexToEntityIndex = newComponentRepository;
 
         // Possibly compact the component data
-        if (componentInsert < .6f * components.length) {
-            int newSize = (int) (1.2f * componentInsert) + 1;
+        if (componentInsert < .6 * components.length) {
+            int newSize = (int) (1.2 * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
             componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex,
                                                         newSize);
             resizePropertyStores(declaredProperties, newSize);
-            resizeWeakPropertyStores(decoratedProperties, newSize);
+            resizePropertyStores(decoratedProperties, newSize);
         }
 
         // Repair entityIndexToComponentRepository - and possible shrink the index
         // based on the number of packed entities
-        if (numEntities < .6f * entityIndexToComponentRepository.length) {
-            entityIndexToComponentRepository = new int[(int) (1.2f * numEntities) + 1];
+        if (numEntities < .6 * entityIndexToComponentRepository.length) {
+            entityIndexToComponentRepository = new int[(int) (1.2 * numEntities) + 1];
         } else {
             Arrays.fill(entityIndexToComponentRepository, 0);
         }
@@ -589,7 +567,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         int size = (declaredProperties.isEmpty() ? componentInsert : declaredProperties.get(0).property.getDataStore()
                                                                                                        .size());
         P prop = factory.create();
-        WeakPropertyStore<P> pstore = new WeakPropertyStore<P>(factory, prop);
+        DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<P>(factory, prop);
 
         // Set values from factory to all component slots
         IndexedDataStore newStore = prop.getDataStore().create(size);
@@ -606,47 +584,66 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * Type wrapping a key, property, and factory, as well as an auxiliary data
      * store for compaction.
      */
-    private static class PropertyStore<P extends Property> {
+    private static abstract class PropertyStore<P extends Property> {
+        final PropertyFactory<P> creator;
+        IndexedDataStore swap; // may be null;
+
+        PropertyStore(PropertyFactory<P> creator) {
+            this.creator = creator;
+            swap = null;
+        }
+
+        void setValue(int index) {
+            P prop = getProperty();
+            if (prop != null) {
+                creator.setDefaultValue(prop, index);
+            }
+        }
+
+        void resize(int size) {
+            P property = getProperty();
+            if (property != null) {
+                IndexedDataStore oldStore = property.getDataStore();
+                IndexedDataStore newStore = oldStore.create(size);
+                oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
+                property.setDataStore(newStore);
+            }
+        }
+
+        abstract P getProperty();
+    }
+
+    private static class DeclaredPropertyStore<P extends Property> extends PropertyStore<P> {
         final Object key;
         final P property;
-        final PropertyFactory<P> creator;
-        IndexedDataStore swap; // may be null
 
-        public PropertyStore(PropertyFactory<P> creator, Object key) {
-            this.creator = creator;
+        public DeclaredPropertyStore(PropertyFactory<P> creator, Object key) {
+            super(creator);
             this.key = key;
             property = creator.create();
         }
 
-        private void clone(int srcIndex, P dst, int dstIndex) {
+        void clone(int srcIndex, P dst, int dstIndex) {
             creator.clone(property, srcIndex, dst, dstIndex);
         }
 
-        private void setValue(int index) {
-            creator.setDefaultValue(property, index);
+        @Override
+        P getProperty() {
+            return property;
         }
     }
 
-    /*
-     * Type wrapping a key, property, and factory, as well as an auxiliary data
-     * store for compaction, but with a WeakReference on the Property for use as
-     * a decorated property
-     */
-    private static class WeakPropertyStore<P extends Property> {
+    private static class DecoratedPropertyStore<P extends Property> extends PropertyStore<P> {
         final WeakReference<P> property;
-        final PropertyFactory<P> creator;
-        IndexedDataStore swap; // may be null
 
-        public WeakPropertyStore(PropertyFactory<P> creator, P property) {
-            this.creator = creator;
+        public DecoratedPropertyStore(PropertyFactory<P> creator, P property) {
+            super(creator);
             this.property = new WeakReference<P>(property);
         }
 
-        private void setValue(int index) {
-            P prop = property.get();
-            if (prop != null) {
-                creator.setDefaultValue(prop, index);
-            }
+        @Override
+        P getProperty() {
+            return property.get();
         }
     }
 }
