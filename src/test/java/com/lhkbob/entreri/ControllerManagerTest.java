@@ -33,8 +33,11 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.lhkbob.entreri.ControllerManager.Phase;
 import com.lhkbob.entreri.component.IntComponent;
+import com.lhkbob.entreri.task.Task;
+import com.lhkbob.entreri.task.Result;
+import com.lhkbob.entreri.task.AbstractTask;
+import com.lhkbob.entreri.task.Scheduler.Phase;
 
 public class ControllerManagerTest {
     @Test
@@ -240,7 +243,7 @@ public class ControllerManagerTest {
         Assert.assertTrue(i == ctrl.lastRemovedComponent);
     }
 
-    private static class ResultSupplyingController extends SimpleController {
+    private static class ResultSupplyingController extends AbstractTask {
         private final Result[] resultsToReport;
 
         public ResultSupplyingController(Result... results) {
@@ -270,7 +273,7 @@ public class ControllerManagerTest {
     }
 
     // explicitly not a listener
-    private static class ControllerImpl implements Controller {
+    private static class ControllerImpl implements Task {
         private boolean preprocessed;
         private boolean processed;
         private boolean postprocessed;

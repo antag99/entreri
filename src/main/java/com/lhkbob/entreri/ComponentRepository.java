@@ -299,8 +299,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
             store.clone(fromTemplate.index, store.property, instance.index);
         }
 
-        // fire add-event listener after cloning is completed
-        system.getControllerManager().fireComponentAdd(instance);
         return instance;
     }
 
@@ -317,9 +315,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
      */
     public Component<T> addComponent(int entityIndex) {
         Component<T> instance = allocateComponent(entityIndex);
-
-        // fire add-event listener after initialization is completed
-        system.getControllerManager().fireComponentAdd(instance);
         return instance;
     }
 
@@ -397,8 +392,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // This code works even if componentIndex is 0
         Component<T> oldComponent = components[componentIndex];
         if (oldComponent != null) {
-            // perform component clean up before data is invalidated
-            system.getControllerManager().fireComponentRemove(oldComponent);
             oldComponent.index = 0;
         }
 

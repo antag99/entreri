@@ -24,9 +24,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ControllerManager.Phase;
 
 /**
  * <p>
@@ -38,13 +37,13 @@ import com.lhkbob.entreri.ControllerManager.Phase;
  * Controllers that wish to expose results define classes that implement Result
  * and expose the actual result data. During processing of a controller, result
  * instances are created and supplied to all controllers by calling
- * {@link ControllerManager#report(Result)}
+ * {@link Scheduler#report(Result)}
  * </p>
  * <p>
  * To receive computed results, Controllers override their
- * {@link Controller#report(Result)} and check incoming results for the desired
- * type of result. Every controller is notified of all results, they are
- * responsible for ignoring results they are not interested in.
+ * {@link Task#report(Result)} and check incoming results for the desired type
+ * of result. Every controller is notified of all results, they are responsible
+ * for ignoring results they are not interested in.
  * </p>
  * 
  * @author Michael Ludwig
@@ -53,9 +52,8 @@ public interface Result {
     /**
      * <p>
      * Return true if this result is a "singleton" result. A singleton result is
-     * a type of result that is only supplied once during the processing of a
-     * frame (i.e. at the end of the {@link Phase#POSTPROCESS} phase, it is
-     * reset).The ControllerManager verifies that singleton results are supplied
+     * a type of result that is can only be reported once per execution of a
+     * job. The ControllerManager verifies that singleton results are supplied
      * at most once. Most results should return false. The returned value should
      * be the same for every instance of a type, it should not depend on the
      * state of the instance.

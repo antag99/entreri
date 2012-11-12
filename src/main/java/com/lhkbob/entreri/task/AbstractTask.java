@@ -24,7 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.task;
+
+import com.lhkbob.entreri.EntitySystem;
 
 /**
  * <p>
@@ -42,64 +44,18 @@ package com.lhkbob.entreri;
  * 
  * @author Michael Ludwig
  */
-public class SimpleController implements Controller {
-    private EntitySystem system;
+public abstract class AbstractTask implements Task {
 
     @Override
-    public void preProcess(double dt) {
-        // do nothing in base class
+    public Task process(EntitySystem system, Job job) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
-    public void process(double dt) {
-        // do nothing in base class
+    public void reset() {
+        // TODO Auto-generated method stub
+
     }
 
-    @Override
-    public void postProcess(double dt) {
-        // do nothing in base class
-    }
-
-    @Override
-    public void init(EntitySystem system) {
-        if (this.system != null) {
-            throw new IllegalStateException("Controller is already used in another EntitySystem");
-        }
-        this.system = system;
-    }
-
-    @Override
-    public void destroy() {
-        system = null;
-    }
-
-    @Override
-    public void onEntityAdd(Entity e) {
-        // do nothing in base class
-    }
-
-    @Override
-    public void onEntityRemove(Entity e) {
-        // do nothing in base class
-    }
-
-    @Override
-    public void onComponentAdd(Component<?> c) {
-        // do nothing in base class
-    }
-
-    @Override
-    public void onComponentRemove(Component<?> c) {
-        // do nothing in base class
-    }
-
-    @Override
-    public void report(Result result) {
-        // do nothing in base class
-    }
-
-    @Override
-    public EntitySystem getEntitySystem() {
-        return system;
-    }
 }

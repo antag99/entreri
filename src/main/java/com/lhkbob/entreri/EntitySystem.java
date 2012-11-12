@@ -34,6 +34,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import com.lhkbob.entreri.task.Scheduler;
+import com.lhkbob.entreri.task.Task;
+
 /**
  * <p>
  * EntitySystem is the main container for the entities within a logical system
@@ -49,10 +52,10 @@ import java.util.NoSuchElementException;
  * used to process your data.
  * </p>
  * <p>
- * The {@link ControllerManager} of an EntitySystem can be used to register
- * Controllers that will process the entities within an entity system in an
- * organized fashion. Generally, the processing of all controllers through their
- * different phases constitutes a complete "frame".
+ * The {@link Scheduler} of an EntitySystem can be used to register Controllers
+ * that will process the entities within an entity system in an organized
+ * fashion. Generally, the processing of all controllers through their different
+ * phases constitutes a complete "frame".
  * </p>
  * <p>
  * When Entities are created by an EntitySystem, the created instance is
@@ -72,13 +75,13 @@ public final class EntitySystem implements Iterable<Entity> {
     private int entityInsert;
     private int entityIdSeq;
 
-    private final ControllerManager manager;
+    private final Scheduler manager;
 
     /**
      * Create a new EntitySystem that has no entities added.
      */
     public EntitySystem() {
-        manager = new ControllerManager(this);
+        manager = new Scheduler(this);
         entities = new Entity[1];
         componentRepositories = new ComponentRepository[0];
 
@@ -230,12 +233,11 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Return the ControllerManager for this EntitySystem that can be used to
-     * organize processing of the system using {@link Controller}
-     * implementations.
+     * organize processing of the system using {@link Task} implementations.
      * 
      * @return The ControllerManager for this system
      */
-    public ControllerManager getControllerManager() {
+    public Scheduler getControllerManager() {
         return manager;
     }
 
@@ -389,10 +391,6 @@ public final class EntitySystem implements Iterable<Entity> {
         Entity newEntity = new Entity(this, entityIndex, entityIdSeq++);
         entities[entityIndex] = newEntity;
 
-        // invoke add-event listeners now before we invoke any listeners
-        // due to templating so events have proper sequencing
-        manager.fireEntityAdd(newEntity);
-
         if (template != null) {
             for (Component<?> c : template) {
                 addFromTemplate(entityIndex, c.getTypeId(), c);
@@ -433,7 +431,6 @@ public final class EntitySystem implements Iterable<Entity> {
         }
 
         // clear out the entity
-        manager.fireEntityRemove(e);
         entities[e.index] = null;
         e.index = 0;
     }
