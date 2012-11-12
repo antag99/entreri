@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.TypeId;
 
 public abstract class SimpleTask implements Task {
     @Target(ElementType.PARAMETER)
@@ -107,7 +106,7 @@ public abstract class SimpleTask implements Task {
         if (iterator == null) {
             iterator = new ComponentIterator(system);
             for (int i = 0; i < optional.length; i++) {
-                ComponentData<?> data = system.createDataInstance(TypeId.get((Class) processMethod.getParameterTypes()[i]));
+                ComponentData<?> data = system.createDataInstance((Class) processMethod.getParameterTypes()[i]);
                 if (optional[i]) {
                     iterator.addOptional(data);
                 } else {

@@ -11,14 +11,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.lhkbob.entreri.TypeId;
+import com.lhkbob.entreri.ComponentData;
 
 public class Job implements Runnable {
     private final Task[] tasks;
     private final Map<Class<? extends Result>, List<ResultReporter>> resultMethods;
 
     private final boolean needsExclusiveLock;
-    private final List<TypeId<?>> locks;
+    private final List<Class<? extends ComponentData<?>>> locks;
 
     private final Scheduler scheduler;
     private final String name;
@@ -35,7 +35,7 @@ public class Job implements Runnable {
         resultMethods = new HashMap<Class<? extends Result>, List<ResultReporter>>();
 
         boolean exclusive = false;
-        Set<TypeId<?>> typeLocks = new HashSet<TypeId<?>>();
+        Set<Class<? extends ComponentData<?>>> typeLocks = new HashSet<Class<? extends ComponentData<?>>>();
         for (int i = 0; i < tasks.length; i++) {
             this.tasks[i] = tasks[i];
 
@@ -44,7 +44,7 @@ public class Job implements Runnable {
             if (tasks[i] instanceof ParallelAware) {
                 ParallelAware pa = (ParallelAware) tasks[i];
                 exclusive |= pa.isEntitySetModified();
-                typeLocks.addAll(pa.getAccessedComponentes());
+                typeLocks.addAll(pa.getAccessedComponents());
             } else {
                 // must assume it could touch anything
                 exclusive = true;
@@ -75,12 +75,13 @@ public class Job implements Runnable {
             locks = null;
         } else {
             needsExclusiveLock = false;
-            locks = new ArrayList<TypeId<?>>(typeLocks);
+            locks = new ArrayList<Class<? extends ComponentData<?>>>(typeLocks);
             // give locks a consistent ordering
-            Collections.sort(locks, new Comparator<TypeId<?>>() {
+            Collections.sort(locks, new Comparator<Class<? extends ComponentData<?>>>() {
                 @Override
-                public int compare(TypeId<?> o1, TypeId<?> o2) {
-                    return o1.getId() - o2.getId();
+                public int compare(Class<? extends ComponentData<?>> o1,
+                                   Class<? extends ComponentData<?>> o2) {
+                    return o1.getName().compareTo(o2.getName());
                 }
             });
         }

@@ -35,8 +35,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.EntitySystem;
-import com.lhkbob.entreri.TypeId;
 
 public class Scheduler {
     private final ThreadGroup schedulerGroup;
@@ -47,7 +47,7 @@ public class Scheduler {
 
     // locks per component data type, this map is filled
     // dynamically the first time each type is requested
-    private final ConcurrentHashMap<TypeId<?>, ReentrantLock> typeLocks;
+    private final ConcurrentHashMap<Class<? extends ComponentData<?>>, ReentrantLock> typeLocks;
 
     private final EntitySystem system;
 
@@ -56,7 +56,7 @@ public class Scheduler {
 
         schedulerGroup = new ThreadGroup("job-scheduler");
         exclusiveLock = new ReentrantReadWriteLock();
-        typeLocks = new ConcurrentHashMap<TypeId<?>, ReentrantLock>();
+        typeLocks = new ConcurrentHashMap<Class<? extends ComponentData<?>>, ReentrantLock>();
     }
 
     public EntitySystem getEntitySystem() {
@@ -67,7 +67,7 @@ public class Scheduler {
         return exclusiveLock;
     }
 
-    ReentrantLock getTypeLock(TypeId<?> id) {
+    ReentrantLock getTypeLock(Class<? extends ComponentData<?>> id) {
         ReentrantLock lock = typeLocks.get(id);
         if (lock == null) {
             // this will either return the newly constructed lock, or 
