@@ -463,21 +463,6 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Remove the property, <tt>p</tt>, that was previously decorated onto the
-     * given type by the method {@link #decorate(TypeId, PropertyFactory)}. If
-     * the property has not been decorated onto that type or is no longer
-     * decorated, this does nothing.
-     * 
-     * @param type The component type to undecorate
-     * @param p The property to remove from the dynamic type definition
-     * @throws NullPointerException if type is null
-     */
-    public <T extends ComponentData<T>> void undecorate(TypeId<T> type, Property p) {
-        ComponentRepository<?> index = getRepository(type);
-        index.undecorate(p);
-    }
-
-    /**
      * Return the ComponentRepository associated with the given type. Fails if
      * the type is not registered
      * 

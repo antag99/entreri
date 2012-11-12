@@ -26,6 +26,7 @@
  */
 package com.lhkbob.entreri;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -61,7 +62,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private int componentInsert;
 
     private final List<PropertyStore<?>> declaredProperties;
-    private final List<PropertyStore<?>> decoratedProperties;
+    private final List<WeakPropertyStore<?>> decoratedProperties;
 
     private final BooleanProperty enabledProperty; // this is also contained in decoratedProperties
     private final IntProperty componentIdProperty; // this is contained in decoratedProperties
@@ -89,7 +90,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         Map<?, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
 
         declaredProperties = new ArrayList<PropertyStore<?>>();
-        decoratedProperties = new ArrayList<PropertyStore<?>>(); // empty for now
+        decoratedProperties = new ArrayList<WeakPropertyStore<?>>(); // empty for now
         for (Entry<?, PropertyFactory<?>> e : propertyFactories.entrySet()) {
             PropertyStore store = new PropertyStore(e.getValue(), e.getKey());
             declaredProperties.add(store);
@@ -183,7 +184,10 @@ final class ComponentRepository<T extends ComponentData<T>> {
             total += declaredProperties.get(i).property.getDataStore().memory();
         }
         for (int i = 0; i < decoratedProperties.size(); i++) {
-            total += decoratedProperties.get(i).property.getDataStore().memory();
+            Property prop = decoratedProperties.get(i).property.get();
+            if (prop != null) {
+                total += prop.getDataStore().memory();
+            }
         }
 
         // also add in an estimate for other structures used by
@@ -237,7 +241,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         // Expand the indexed data stores for the properties
         resizePropertyStores(declaredProperties, size);
-        resizePropertyStores(decoratedProperties, size);
+        resizeWeakPropertyStores(decoratedProperties, size);
 
         // Expand the canonical component array
         components = Arrays.copyOf(components, size);
@@ -257,6 +261,19 @@ final class ComponentRepository<T extends ComponentData<T>> {
             IndexedDataStore newStore = oldStore.create(size);
             oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
             properties.get(i).property.setDataStore(newStore);
+        }
+    }
+
+    private void resizeWeakPropertyStores(List<WeakPropertyStore<?>> properties, int size) {
+        int ct = properties.size();
+        for (int i = 0; i < ct; i++) {
+            Property p = properties.get(i).property.get();
+            if (p != null) {
+                IndexedDataStore oldStore = p.getDataStore();
+                IndexedDataStore newStore = oldStore.create(size);
+                oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
+                p.setDataStore(newStore);
+            }
         }
     }
 
@@ -418,6 +435,20 @@ final class ComponentRepository<T extends ComponentData<T>> {
         }
     }
 
+    private void updateWeak(List<WeakPropertyStore<?>> properties,
+                            Component<T>[] newToOldMap) {
+        for (int i = 0; i < properties.size(); i++) {
+            WeakPropertyStore<?> p = properties.get(i);
+            Property prop = p.property.get();
+            if (prop != null) {
+                IndexedDataStore origStore = prop.getDataStore();
+
+                prop.setDataStore(update(origStore, p.swap, newToOldMap));
+                p.swap = origStore;
+            }
+        }
+    }
+
     /*
      * Update all component data in src to be in dst by shuffling it to match
      * newToOldMap.
@@ -494,9 +525,17 @@ final class ComponentRepository<T extends ComponentData<T>> {
             }
         });
 
+        // Remove all WeakPropertyStores that no longer have a property
+        Iterator<WeakPropertyStore<?>> it = decoratedProperties.iterator();
+        while (it.hasNext()) {
+            if (it.next().property.get() == null) {
+                it.remove();
+            }
+        }
+
         // Update all of the property stores to match up with the componentDatas new positions
         update(declaredProperties, components);
-        update(decoratedProperties, components);
+        updateWeak(decoratedProperties, components);
 
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
@@ -517,7 +556,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
             componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex,
                                                         newSize);
             resizePropertyStores(declaredProperties, newSize);
-            resizePropertyStores(decoratedProperties, newSize);
+            resizeWeakPropertyStores(decoratedProperties, newSize);
         }
 
         // Repair entityIndexToComponentRepository - and possible shrink the index
@@ -549,35 +588,18 @@ final class ComponentRepository<T extends ComponentData<T>> {
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
         int size = (declaredProperties.isEmpty() ? componentInsert : declaredProperties.get(0).property.getDataStore()
                                                                                                        .size());
-
-        PropertyStore<P> pstore = new PropertyStore<P>(factory, "decorated");
+        P prop = factory.create();
+        WeakPropertyStore<P> pstore = new WeakPropertyStore<P>(factory, prop);
 
         // Set values from factory to all component slots
-        IndexedDataStore newStore = pstore.property.getDataStore().create(size);
-        pstore.property.setDataStore(newStore);
+        IndexedDataStore newStore = prop.getDataStore().create(size);
+        prop.setDataStore(newStore);
         for (int i = 1; i < size; i++) {
             pstore.setValue(i);
         }
 
         decoratedProperties.add(pstore);
-        return pstore.property;
-    }
-
-    /**
-     * Remove the given property from the set of decorated properties on this
-     * index's type. If the property is invalid or not a decorated property for
-     * the index, this does nothing.
-     * 
-     * @param p The property to remove
-     */
-    public void undecorate(Property p) {
-        Iterator<PropertyStore<?>> it = decoratedProperties.iterator();
-        while (it.hasNext()) {
-            if (it.next().property == p) {
-                it.remove();
-                break;
-            }
-        }
+        return prop;
     }
 
     /*
@@ -602,6 +624,29 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         private void setValue(int index) {
             creator.setDefaultValue(property, index);
+        }
+    }
+
+    /*
+     * Type wrapping a key, property, and factory, as well as an auxiliary data
+     * store for compaction, but with a WeakReference on the Property for use as
+     * a decorated property
+     */
+    private static class WeakPropertyStore<P extends Property> {
+        final WeakReference<P> property;
+        final PropertyFactory<P> creator;
+        IndexedDataStore swap; // may be null
+
+        public WeakPropertyStore(PropertyFactory<P> creator, P property) {
+            this.creator = creator;
+            this.property = new WeakReference<P>(property);
+        }
+
+        private void setValue(int index) {
+            P prop = property.get();
+            if (prop != null) {
+                creator.setDefaultValue(prop, index);
+            }
         }
     }
 }
