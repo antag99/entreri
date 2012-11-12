@@ -99,17 +99,17 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * </p>
      * <p>
      * If the entity has a component of the given type, but it has been marked
-     * as disabled, this will return null. Use {@link #get(TypeId, boolean)} to
+     * as disabled, this will return null. Use {@link #get(Class, boolean)} to
      * override this behavior and return disabled components.
      * </p>
      * 
      * @param <T> The parameterized type of ComponentData of the component
-     * @param componentId The TypeId representing the given type
+     * @param componentType The given type
      * @return The current Component of type T attached to this entity
      * @throws NullPointerException if id is null
      */
-    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId) {
-        return get(componentId, false);
+    public <T extends ComponentData<T>> Component<T> get(Class<T> componentType) {
+        return get(componentType, false);
     }
 
     /**
@@ -118,15 +118,15 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * be returned as well.
      * 
      * @param <T> The parameterized type of ComponentData of the component
-     * @param componentId The TypeId representing the data type
+     * @param componentType The data type
      * @param ignoreEnable True if disabled components should be returned as
      *            well
      * @return The current Component of type T attached to this entity
-     * @throws NullPointerException if id is null
+     * @throws NullPointerException if componentType is null
      */
-    public <T extends ComponentData<T>> Component<T> get(TypeId<T> componentId,
+    public <T extends ComponentData<T>> Component<T> get(Class<T> componentType,
                                                          boolean ignoreEnable) {
-        ComponentRepository<T> ci = system.getRepository(componentId);
+        ComponentRepository<T> ci = system.getRepository(componentType);
         Component<T> c = ci.getComponent(ci.getComponentIndex(index));
 
         if (c == null || ignoreEnable || c.isEnabled()) {
@@ -189,12 +189,12 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * </p>
      * 
      * @param <T> The parameterized type of component being added
-     * @param componentId The TypeId of the component type
+     * @param componentType The component type
      * @return A new component of type T
      * @throws NullPointerException if componentId is null
      */
-    public <T extends ComponentData<T>> Component<T> add(TypeId<T> componentId) {
-        ComponentRepository<T> ci = system.getRepository(componentId);
+    public <T extends ComponentData<T>> Component<T> add(Class<T> componentType) {
+        ComponentRepository<T> ci = system.getRepository(componentType);
         return ci.addComponent(index);
     }
 
@@ -228,7 +228,7 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         if (toClone == null) {
             throw new NullPointerException("ComponentData template, toClone, cannot be null");
         }
-        ComponentRepository ci = system.getRepository(toClone.getTypeId());
+        ComponentRepository ci = system.getRepository(toClone.getType());
         return ci.addComponent(index, toClone);
     }
 
@@ -240,12 +240,12 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * component even if the component has been disabled.
      * 
      * @param <T> The parameterized type of component to remove
-     * @param componentId The TypeId of the component type
+     * @param componentType The component type
      * @return True if a component was removed
      * @throws NullPointerException if componentId is null
      */
-    public <T extends ComponentData<T>> boolean remove(TypeId<T> componentId) {
-        ComponentRepository<T> ci = system.getRepository(componentId);
+    public <T extends ComponentData<T>> boolean remove(Class<T> componentType) {
+        ComponentRepository<T> ci = system.getRepository(componentType);
         return ci.removeComponent(index);
     }
 

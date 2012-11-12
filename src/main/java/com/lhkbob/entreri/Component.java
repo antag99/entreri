@@ -73,7 +73,7 @@ public final class Component<T extends ComponentData<T>> {
      *         component is not live
      */
     public T getData() {
-        T data = getEntitySystem().createDataInstance(getTypeId());
+        T data = getEntitySystem().createDataInstance(getType());
         if (data.set(this)) {
             return data;
         } else {
@@ -147,8 +147,8 @@ public final class Component<T extends ComponentData<T>> {
     /**
      * @return The TypeId of the ComponentData for this Component
      */
-    public TypeId<T> getTypeId() {
-        return owner.getTypeId();
+    public Class<T> getType() {
+        return owner.getType();
     }
 
     /**

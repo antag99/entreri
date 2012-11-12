@@ -49,7 +49,7 @@ import com.lhkbob.entreri.property.IntProperty;
  */
 final class ComponentRepository<T extends ComponentData<T>> {
     private final EntitySystem system;
-    private final TypeId<T> type;
+    private final Class<T> type;
 
     private final ComponentDataFactory<T> factory;
 
@@ -77,7 +77,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @throws NullPointerException if system or type are null
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public ComponentRepository(EntitySystem system, TypeId<T> type,
+    public ComponentRepository(EntitySystem system, Class<T> type,
                                ComponentDataFactory<T> factory) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
@@ -115,7 +115,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     /**
      * @return The type of component data stored by this component index
      */
-    public TypeId<T> getTypeId() {
+    public Class<T> getType() {
         return type;
     }
 
@@ -292,7 +292,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         if (fromTemplate.getEntitySystem() != getEntitySystem()) {
             throw new IllegalArgumentException("Component not owned by expected EntitySystem");
         }
-        if (!fromTemplate.getTypeId().equals(type)) {
+        if (!fromTemplate.getClass().equals(type)) {
             throw new IllegalArgumentException("Component not of expected type, expected: " + type + ", but was: " + type);
         }
         if (!fromTemplate.isLive()) {
