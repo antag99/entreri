@@ -138,10 +138,10 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
 
     /**
      * <p>
-     * Get the component of type T attached to this entity, but setting the
-     * given data's reference. This will return true if the data instance has
-     * been set to a valid component and that component is enabled. This is a
-     * shortcut for:
+     * Get the component of type T attached to this entity, by setting the given
+     * data's reference. This will return true if the data instance has been set
+     * to a valid component and that component is enabled. This is a shortcut
+     * for:
      * 
      * <pre>
      * Component&lt;T&gt; c = entity.get(TypeId.get(T.class));
@@ -155,9 +155,9 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * </p>
      * <p>
      * Note that there is no equivalent {@link #get(TypeId, boolean)} that takes
-     * a ComponentData. This is because the data instance will always be set to
-     * a valid component, even if that component is disabled. It is possible to
-     * identify this case if get() returns false but isValid() returns true.
+     * a ComponentData. This is because the data instance will still be set to a
+     * valid component even when it's disabled. It is possible to identify this
+     * case if get() returns false but isValid() returns true.
      * </p>
      * 
      * @param <T> The component data type
@@ -178,6 +178,44 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         ComponentRepository<T> ci = data.owner;
         int componentIndex = ci.getComponentIndex(index);
         return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
+    }
+
+    /**
+     * <p>
+     * Get the component of type T attached to this entity only if the entity
+     * has a component of type T, it is enabled, and it's version is different
+     * than <tt>priorVersion</tt>. This method is a convenience method to easily
+     * retrieve the component data only if the data has changed.
+     * <p>
+     * If the entity has a component of type T, that is enabled, and has a
+     * version not equal to <tt>priorVersion</tt>, then <tt>data</tt> will be
+     * set to access the component and true will be returned. In any other case,
+     * false is returned. Unlike {@link #get(ComponentData)}, it's not possible
+     * to inspect the data instance to determine why false was returned.
+     * 
+     * @param <T> The component data type
+     * @param data The data instance used to access the component if available
+     * @param priorVersion The previously valid version
+     * @return True if the entity has an enabled component of type T that has
+     *         been modified since <tt>priorVersion</tt>
+     * @throws NullPointerException if data is null
+     * @throws IllegalArgumentException if data was created by another entity
+     *             system
+     */
+    public <T extends ComponentData<T>> boolean getIfModified(T data, int priorVersion) {
+        if (data.owner.getEntitySystem() != getEntitySystem()) {
+            throw new IllegalArgumentException("ComponentData was not created by expected EntitySystem");
+        }
+
+        ComponentRepository<T> ci = data.owner;
+        int componentIndex = ci.getComponentIndex(index);
+
+        if (ci.getVersion(componentIndex) != priorVersion) {
+            return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
+        } else {
+            // note that in this situation, the component data is invalid
+            return false;
+        }
     }
 
     /**

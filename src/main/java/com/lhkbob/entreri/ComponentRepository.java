@@ -64,8 +64,10 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private final List<DeclaredPropertyStore<?>> declaredProperties;
     private final List<DecoratedPropertyStore<?>> decoratedProperties;
 
-    private final BooleanProperty enabledProperty; // this is also contained in decoratedProperties
-    private final IntProperty componentIdProperty; // this is contained in decoratedProperties
+    // this is contained in decoratedProperties
+    private final BooleanProperty enabledProperty;
+    private final IntProperty componentIdProperty;
+    private final IntProperty componentVersionProperty;
     private int idSeq;
 
     /**
@@ -108,7 +110,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
         // decorate the component data with a boolean property to track enabled status
         enabledProperty = decorate(new BooleanProperty.Factory(true));
-        componentIdProperty = decorate(new IntProperty.Factory(0)); // we'll not assign a default value, since we change the id each time
+        componentIdProperty = decorate(new IntProperty.Factory(0)); // we set a unique id for every component
+        componentVersionProperty = decorate(new IntProperty.Factory(0));
+
         idSeq = 1; // start at 1, just like entity id sequences
     }
 
@@ -230,6 +234,24 @@ final class ComponentRepository<T extends ComponentData<T>> {
      */
     public int getId(int componentIndex) {
         return componentIdProperty.get(componentIndex);
+    }
+
+    /**
+     * @param componentIndex The component index
+     * @return The component version of the component at the given index
+     */
+    public int getVersion(int componentIndex) {
+        return componentVersionProperty.get(componentIndex);
+    }
+
+    /**
+     * Increment the component's version at the given index.
+     * 
+     * @param componentIndex
+     */
+    public void incrementVersion(int componentIndex) {
+        componentVersionProperty.set(componentVersionProperty.get(componentIndex) + 1,
+                                     componentIndex);
     }
 
     /*

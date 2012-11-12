@@ -135,6 +135,35 @@ public abstract class ComponentData<T extends ComponentData<T>> {
     }
 
     /**
+     * <p>
+     * Get the current version of the data accessed by this ComponentData. When
+     * data is mutated by a ComponentData, implementations increment its
+     * associated component's version so comparing a previously cached version
+     * number can be used to determine when changes have been made.
+     * <p>
+     * If the
+     * 
+     * @return The current version
+     */
+    public final int getVersion() {
+        return owner.getVersion(index);
+    }
+
+    /**
+     * Increment the version of the component accessed by this instance. It is
+     * recommended for component data implementations to call this automatically
+     * from within their exposed mutators, but if necessary it can be invoked
+     * manually as well.
+     * 
+     * @see #getVersion()
+     */
+    public final void updateVersion() {
+        if (isValid()) {
+            owner.incrementVersion(index);
+        }
+    }
+
+    /**
      * Return the Component that this data reads and writes to. If
      * {@link #isValid()} returns false, the returned Component is undefined. It
      * may be the proper component, another component in the system, or null, or
