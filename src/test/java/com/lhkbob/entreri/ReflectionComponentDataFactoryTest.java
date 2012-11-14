@@ -135,16 +135,16 @@ public class ReflectionComponentDataFactoryTest {
 
     @Test
     public void testUnmanagedField() {
-        TypeId<UnmanagedFieldComponent> id = TypeId.get(UnmanagedFieldComponent.class);
-
         EntitySystem system = new EntitySystem();
         for (int i = 0; i < 4; i++) {
-            UnmanagedFieldComponent c = system.addEntity().add(id).getData();
+            UnmanagedFieldComponent c = system.addEntity()
+                                              .add(UnmanagedFieldComponent.class)
+                                              .getData();
             c.setObject(i);
             c.setFloat(i);
         }
 
-        UnmanagedFieldComponent c = system.createDataInstance(id);
+        UnmanagedFieldComponent c = system.createDataInstance(UnmanagedFieldComponent.class);
         for (Entity e : system) {
             Assert.assertTrue(e.get(c));
             float f = c.getFloat();

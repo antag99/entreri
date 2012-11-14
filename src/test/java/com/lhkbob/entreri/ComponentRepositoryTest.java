@@ -26,6 +26,11 @@
  */
 package com.lhkbob.entreri;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,8 +43,7 @@ public class ComponentRepositoryTest {
     @Test
     public void testFactorySetValue() {
         EntitySystem system = new EntitySystem();
-        MultiPropertyComponent c = system.addEntity()
-                                         .add(TypeId.get(MultiPropertyComponent.class))
+        MultiPropertyComponent c = system.addEntity().add(MultiPropertyComponent.class)
                                          .getData();
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
@@ -48,9 +52,9 @@ public class ComponentRepositoryTest {
     public void testDecorateProperty() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(TypeId.get(IntComponent.class)).getData();
+        IntComponent c = e.add(IntComponent.class).getData();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+        FloatProperty decorated = system.decorate(IntComponent.class,
                                                   new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
@@ -68,19 +72,19 @@ public class ComponentRepositoryTest {
     public void testDecoratePropertyAddComponent() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(TypeId.get(IntComponent.class)).getData();
+        IntComponent c = e.add(IntComponent.class).getData();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+        FloatProperty decorated = system.decorate(IntComponent.class,
                                                   new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         Entity e2 = system.addEntity();
-        IntComponent c2 = e2.add(TypeId.get(IntComponent.class)).getData();
+        IntComponent c2 = e2.add(IntComponent.class).getData();
         decorated.getIndexedData()[c2.getIndex()] = 2f;
 
         int count = 0;
         for (Entity entity : system) {
-            IntComponent c3 = entity.get(TypeId.get(IntComponent.class)).getData();
+            IntComponent c3 = entity.get(IntComponent.class).getData();
             count++;
 
             if (c3.getIndex() == c.getIndex()) {
@@ -93,19 +97,41 @@ public class ComponentRepositoryTest {
     }
 
     @Test
-    public void testUndecorateValidProperty() {
+    @SuppressWarnings("unused")
+    public void testUndecorateValidProperty() throws Exception {
+        // This is an ugly ugly test case since it has to verify that the
+        // property gets garbage collected. The only way it can get at that
+        // is to use reflection to inspect the component repository
         EntitySystem system = new EntitySystem();
+        ComponentRepository<IntComponent> cr = system.getRepository(IntComponent.class);
+        int count = getDecoratedProperties(cr).size();
 
-        FloatProperty decorated = system.decorate(TypeId.get(IntComponent.class),
+        FloatProperty decorated = system.decorate(IntComponent.class,
                                                   new FloatPropertyFactory());
-        system.undecorate(TypeId.get(IntComponent.class), decorated);
+
+        Assert.assertEquals(count + 1, getDecoratedProperties(cr).size());
+
+        decorated = null;
+        System.gc();
+        Thread.sleep(100);
+
+        system.compact();
+
+        Assert.assertEquals(count, getDecoratedProperties(cr).size());
     }
 
-    @Test
-    public void testUndecorateInvalidProperty() {
-        FloatProperty prop = new FloatProperty();
-        EntitySystem system = new EntitySystem();
-        system.undecorate(TypeId.get(IntComponent.class), prop);
-        // should not fail
+    @SuppressWarnings("unchecked")
+    private static List<Property> getDecoratedProperties(ComponentRepository<?> cr) throws Exception {
+        Field decorated = ComponentRepository.class.getDeclaredField("decoratedProperties");
+        decorated.setAccessible(true);
+        List<?> value = (List<?>) decorated.get(cr);
+
+        List<Property> converted = new ArrayList<Property>();
+        for (Object o : value) {
+            Field ref = o.getClass().getDeclaredField("property");
+            ref.setAccessible(true);
+            converted.add(((WeakReference<? extends Property>) ref.get(o)).get());
+        }
+        return converted;
     }
 }

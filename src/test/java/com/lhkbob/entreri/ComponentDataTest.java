@@ -35,24 +35,24 @@ import com.lhkbob.entreri.component.OnSetComponent;
 
 public class ComponentDataTest {
     @Test
-    public void testInvalidComponentRemove() {
+    public void testIsValidComponentRemove() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
+        Component<IntComponent> c = e.add(IntComponent.class);
         IntComponent cd = c.getData();
 
         Assert.assertTrue(cd.isValid()); // sanity check
-        e.remove(TypeId.get(IntComponent.class));
+        e.remove(IntComponent.class);
         Assert.assertFalse(cd.isValid());
     }
 
     @Test
-    public void testInvalidEntityRemove() {
+    public void testIsValidEntityRemove() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
+        Component<IntComponent> c = e.add(IntComponent.class);
         IntComponent cd = c.getData();
 
         Assert.assertTrue(cd.isValid()); // sanity check
@@ -61,20 +61,20 @@ public class ComponentDataTest {
     }
 
     @Test
-    public void testInvalidCompact() {
+    public void testIsValidCompact() {
         EntitySystem system = new EntitySystem();
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
         Entity e3 = system.addEntity();
 
-        e1.add(TypeId.get(IntComponent.class)); // removed
-        e2.add(TypeId.get(IntComponent.class)); // will shift over
-        e3.add(TypeId.get(IntComponent.class)); // will shift over
-        IntComponent cd = e2.get(TypeId.get(IntComponent.class)).getData();
+        e1.add(IntComponent.class); // removed
+        e2.add(IntComponent.class); // will shift over
+        e3.add(IntComponent.class); // will shift over
+        IntComponent cd = e2.get(IntComponent.class).getData();
 
         Assert.assertTrue(cd.isValid()); // sanity check
 
-        e1.remove(TypeId.get(IntComponent.class));
+        e1.remove(IntComponent.class);
         system.compact(); // since e1's component was moved, this shifts e2
 
         Assert.assertFalse(cd.isValid());
@@ -85,7 +85,7 @@ public class ComponentDataTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
+        Component<IntComponent> c = e.add(IntComponent.class);
         IntComponent cd = c.getData();
 
         Assert.assertTrue(cd.isValid()); // sanity check
@@ -97,9 +97,9 @@ public class ComponentDataTest {
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
 
-        e1.add(TypeId.get(IntComponent.class));
-        e2.add(TypeId.get(IntComponent.class));
-        IntComponent cd = e2.get(TypeId.get(IntComponent.class)).getData();
+        e1.add(IntComponent.class);
+        e2.add(IntComponent.class);
+        IntComponent cd = e2.get(IntComponent.class).getData();
 
         Assert.assertTrue(cd.isValid()); // sanity check
         system.compact(); // no changes
@@ -111,9 +111,9 @@ public class ComponentDataTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
+        Component<IntComponent> c = e.add(IntComponent.class);
 
-        IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
+        IntComponent cd = system.createDataInstance(IntComponent.class);
         Assert.assertFalse(cd.isValid());
         Assert.assertTrue(cd.set(c));
         Assert.assertTrue(cd.isValid());
@@ -124,17 +124,17 @@ public class ComponentDataTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(TypeId.get(IntComponent.class));
-        IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
+        Component<IntComponent> c = e.add(IntComponent.class);
+        IntComponent cd = system.createDataInstance(IntComponent.class);
 
-        e.remove(TypeId.get(IntComponent.class));
+        e.remove(IntComponent.class);
 
         Assert.assertFalse(cd.set(c));
         Assert.assertFalse(cd.isValid());
         Assert.assertFalse(cd.set(null));
         Assert.assertFalse(cd.isValid());
 
-        cd.set(e.add(TypeId.get(IntComponent.class)));
+        cd.set(e.add(IntComponent.class));
         Assert.assertTrue(cd.isValid());
     }
 
@@ -143,8 +143,8 @@ public class ComponentDataTest {
         // must test both public set() and default setFast()
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        Component<OnSetComponent> c = e.add(TypeId.get(OnSetComponent.class));
-        OnSetComponent cd = system.createDataInstance(TypeId.get(OnSetComponent.class));
+        Component<OnSetComponent> c = e.add(OnSetComponent.class);
+        OnSetComponent cd = system.createDataInstance(OnSetComponent.class);
 
         // sanity checks (onset gets called once during initialization)
         Assert.assertEquals(0, cd.onsetIndex);
@@ -169,5 +169,41 @@ public class ComponentDataTest {
         Assert.assertEquals(c.index, cd.onsetIndex);
         Assert.assertEquals(cd.getIndex(), cd.onsetIndex);
         Assert.assertTrue(cd.onsetCalled);
+    }
+
+    @Test
+    public void testInitialVersion() {
+        EntitySystem system = new EntitySystem();
+
+        Entity e = system.addEntity();
+        Assert.assertEquals(0, e.add(IntComponent.class).getData().getVersion());
+        // ensure that overrides properly set it too
+        Assert.assertEquals(0, e.add(IntComponent.class).getData().getVersion());
+    }
+
+    @Test
+    public void testVersionUpdate() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        IntComponent cd = e.add(IntComponent.class).getData();
+
+        Assert.assertEquals(0, cd.getVersion());
+        cd.updateVersion();
+        Assert.assertEquals(1, cd.getVersion());
+    }
+
+    @Test
+    public void testGetIfModified() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        IntComponent cd = e.add(IntComponent.class).getData();
+        IntComponent access = system.createDataInstance(IntComponent.class);
+
+        Assert.assertEquals(0, cd.getVersion());
+        Assert.assertFalse(e.getIfModified(access, 0));
+
+        cd.updateVersion();
+        Assert.assertTrue(e.getIfModified(access, 0));
     }
 }

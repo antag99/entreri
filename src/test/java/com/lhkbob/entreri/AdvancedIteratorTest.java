@@ -52,17 +52,11 @@ public class AdvancedIteratorTest {
     private int countWithFloat;
     private int countWithBoth;
 
-    private TypeId<ObjectComponent> objId;
-    private TypeId<FloatComponent> floatId;
-
     private ObjectComponent objData;
     private FloatComponent floatData;
 
     @Before
     public void setup() {
-        objId = TypeId.get(ObjectComponent.class);
-        floatId = TypeId.get(FloatComponent.class);
-
         entityIds = new ArrayList<Integer>();
         entityObjValues = new ArrayList<Object>();
         entityFloatValues = new ArrayList<Float>();
@@ -71,8 +65,8 @@ public class AdvancedIteratorTest {
 
         system = new EntitySystem();
 
-        objData = system.createDataInstance(objId);
-        floatData = system.createDataInstance(floatId);
+        objData = system.createDataInstance(ObjectComponent.class);
+        floatData = system.createDataInstance(FloatComponent.class);
 
         for (int i = 0; i < ENTITY_COUNT; i++) {
             Entity e = system.addEntity();
@@ -82,13 +76,13 @@ public class AdvancedIteratorTest {
             double c = Math.random();
             if (c > .8) {
                 // both components to add
-                objData.set(e.add(objId));
+                objData.set(e.add(ObjectComponent.class));
                 Object v = new Object();
                 entityObjValues.add(v);
                 entityCombinedObjValues.add(v);
                 objData.setObject(v);
 
-                floatData.set(e.add(floatId));
+                floatData.set(e.add(FloatComponent.class));
                 float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 entityCombinedFloatValues.add(fv);
@@ -99,7 +93,7 @@ public class AdvancedIteratorTest {
                 countWithFloat++;
             } else if (c > .4) {
                 // just float component
-                floatData.set(e.add(floatId));
+                floatData.set(e.add(FloatComponent.class));
                 float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 floatData.setFloat(fv);
@@ -107,7 +101,7 @@ public class AdvancedIteratorTest {
                 countWithFloat++;
             } else {
                 // just object component
-                objData.set(e.add(objId));
+                objData.set(e.add(ObjectComponent.class));
                 Object v = new Object();
                 entityObjValues.add(v);
                 objData.setObject(v);

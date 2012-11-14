@@ -1,0 +1,201 @@
+package com.lhkbob.entreri;
+
+import junit.framework.Assert;
+
+import org.junit.Test;
+
+import com.lhkbob.entreri.component.FloatComponent;
+import com.lhkbob.entreri.component.IntComponent;
+
+public class OwnershipTest {
+
+    @Test
+    public void testEntitySetOwner() {
+        EntitySystem system = new EntitySystem();
+
+        Entity e1 = system.addEntity();
+        Entity e2 = system.addEntity();
+
+        Assert.assertNull(e1.getOwner());
+        Assert.assertNull(e2.getOwner());
+
+        e1.setOwner(e2);
+
+        Assert.assertSame(e2, e1.getOwner());
+        Assert.assertNull(e2.getOwner());
+
+        Component<IntComponent> c2 = e2.add(IntComponent.class);
+        e1.setOwner(c2);
+
+        Assert.assertSame(c2, e1.getOwner());
+    }
+
+    @Test
+    public void testComponentSetOwner() {
+        EntitySystem system = new EntitySystem();
+
+        Entity e1 = system.addEntity();
+        Entity e2 = system.addEntity();
+
+        Component<IntComponent> c1a = e1.add(IntComponent.class);
+        Component<FloatComponent> c1b = e1.add(FloatComponent.class);
+
+        Assert.assertNull(c1a.getOwner());
+        Assert.assertNull(c1b.getOwner());
+
+        c1a.setOwner(c1b);
+
+        Assert.assertSame(c1b, c1a.getOwner());
+        Assert.assertNull(c1b.getOwner());
+
+        c1a.setOwner(e2);
+
+        Assert.assertSame(e2, c1a.getOwner());
+    }
+
+    @Test
+    public void testOwnedEntityRemoval() {
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+
+        final boolean[] revoked = new boolean[1];
+
+        e1.setOwner(new Owner() {
+            @Override
+            public void notifyOwnershipGranted(Ownable obj) {}
+
+            @Override
+            public void notifyOwnershipRevoked(Ownable obj) {
+                revoked[0] = true;
+            }
+        });
+
+        system.removeEntity(e1);
+        Assert.assertTrue(revoked[0]);
+    }
+
+    @Test
+    public void testOwnedComponentRemoval() {
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+        Component<IntComponent> c1 = e1.add(IntComponent.class);
+
+        final boolean[] revoked = new boolean[1];
+
+        c1.setOwner(new Owner() {
+            @Override
+            public void notifyOwnershipGranted(Ownable obj) {}
+
+            @Override
+            public void notifyOwnershipRevoked(Ownable obj) {
+                revoked[0] = true;
+            }
+        });
+
+        e1.remove(IntComponent.class);
+        Assert.assertTrue(revoked[0]);
+    }
+
+    @Test
+    public void testOwnedComponentAdd() {
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+
+        Component<IntComponent> c1 = e1.add(IntComponent.class);
+
+        final boolean[] revoked = new boolean[1];
+
+        c1.setOwner(new Owner() {
+            @Override
+            public void notifyOwnershipGranted(Ownable obj) {}
+
+            @Override
+            public void notifyOwnershipRevoked(Ownable obj) {
+                revoked[0] = true;
+            }
+        });
+
+        Component<IntComponent> c2 = e1.add(IntComponent.class);
+        Assert.assertTrue(revoked[0]);
+        Assert.assertNull(c2.getOwner());
+    }
+
+    @Test
+    public void testEntityRemovalCleanup() {
+        EntitySystem system = new EntitySystem();
+
+        Entity owner = system.addEntity();
+
+        Entity spare = system.addEntity();
+        Component<IntComponent> ownedC = spare.add(IntComponent.class);
+        ownedC.setOwner(owner);
+
+        Entity ownedE = system.addEntity();
+        ownedE.setOwner(owner);
+
+        system.removeEntity(owner);
+        Assert.assertFalse(ownedC.isLive());
+        Assert.assertFalse(ownedE.isLive());
+        Assert.assertTrue(spare.isLive());
+    }
+
+    @Test
+    public void testComponentRemovalCleanup() {
+        EntitySystem system = new EntitySystem();
+
+        Entity e1 = system.addEntity();
+
+        Component<IntComponent> owner = e1.add(IntComponent.class);
+        Component<FloatComponent> ownedC = e1.add(FloatComponent.class);
+        ownedC.setOwner(owner);
+
+        Entity ownedE = system.addEntity();
+        ownedE.setOwner(owner);
+
+        e1.remove(IntComponent.class);
+        Assert.assertFalse(ownedC.isLive());
+        Assert.assertFalse(ownedE.isLive());
+    }
+
+    @Test
+    public void testComplexOwnershipHierarchyCleanup() {
+        EntitySystem system = new EntitySystem();
+
+        Entity e1 = system.addEntity();
+        Component<IntComponent> c1 = e1.add(IntComponent.class);
+
+        Entity e2 = system.addEntity();
+        Component<IntComponent> c2 = e2.add(IntComponent.class);
+
+        Entity e3 = system.addEntity();
+        Component<IntComponent> c3 = e3.add(IntComponent.class);
+
+        e1.setOwner(e2);
+        e2.setOwner(e3);
+        e3.setOwner(c1);
+        c1.setOwner(c2);
+        c2.setOwner(c3);
+
+        e3.remove(IntComponent.class);
+
+        Assert.assertFalse(e1.isLive());
+        Assert.assertFalse(e2.isLive());
+        Assert.assertFalse(e3.isLive());
+        Assert.assertFalse(c1.isLive());
+        Assert.assertFalse(c2.isLive());
+        Assert.assertFalse(c3.isLive());
+    }
+
+    @Test
+    public void testComponentOwningParentEntityRemoval() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        Component<IntComponent> c = e.add(IntComponent.class);
+
+        e.setOwner(c);
+
+        system.removeEntity(e);
+        Assert.assertFalse(e.isLive());
+        Assert.assertFalse(c.isLive());
+    }
+}

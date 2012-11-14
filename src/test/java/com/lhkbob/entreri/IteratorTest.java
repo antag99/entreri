@@ -35,12 +35,12 @@ public class IteratorTest {
     @Test
     public void testDisabledComponents() {
         EntitySystem system = new EntitySystem();
-        IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
+        IntComponent cd = system.createDataInstance(IntComponent.class);
 
         Entity e1 = system.addEntity();
-        e1.add(TypeId.get(IntComponent.class)).setEnabled(true);
+        e1.add(IntComponent.class).setEnabled(true);
         Entity e2 = system.addEntity();
-        e2.add(TypeId.get(IntComponent.class)).setEnabled(false);
+        e2.add(IntComponent.class).setEnabled(false);
 
         ComponentIterator it = new ComponentIterator(system);
         it.addRequired(cd);
@@ -57,12 +57,12 @@ public class IteratorTest {
     @Test
     public void testIgnoreEnabledComponents() {
         EntitySystem system = new EntitySystem();
-        IntComponent cd = system.createDataInstance(TypeId.get(IntComponent.class));
+        IntComponent cd = system.createDataInstance(IntComponent.class);
 
         Entity e1 = system.addEntity();
-        e1.add(TypeId.get(IntComponent.class)).setEnabled(true);
+        e1.add(IntComponent.class).setEnabled(true);
         Entity e2 = system.addEntity();
-        e2.add(TypeId.get(IntComponent.class)).setEnabled(false);
+        e2.add(IntComponent.class).setEnabled(false);
 
         ComponentIterator it = new ComponentIterator(system);
         it.addRequired(cd).setIgnoreEnabled(true).reset();
