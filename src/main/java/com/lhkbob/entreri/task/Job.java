@@ -55,6 +55,7 @@ public class Job implements Runnable {
                 if (m.getName().equals("report")) {
                     if (m.getReturnType().equals(void.class) && m.getParameterTypes().length == 1 && Result.class.isAssignableFrom(m.getParameterTypes()[0])) {
                         // found a valid report method
+                        m.setAccessible(true);
                         ResultReporter reporter = new ResultReporter(m, i);
                         Class<? extends Result> type = reporter.getResultType();
 

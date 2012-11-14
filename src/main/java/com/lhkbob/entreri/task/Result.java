@@ -26,7 +26,6 @@
  */
 package com.lhkbob.entreri.task;
 
-
 /**
  * <p>
  * Result represents a computed result, preferably that of a bulk computation,
@@ -48,7 +47,7 @@ package com.lhkbob.entreri.task;
  * 
  * @author Michael Ludwig
  */
-public interface Result {
+public class Result {
     /**
      * <p>
      * Return true if this result is a "singleton" result. A singleton result is
@@ -73,9 +72,14 @@ public interface Result {
      * of visible entities is a self-contained result, other views or cameras do
      * not affect the PVS results.
      * </p>
+     * <p>
+     * The default implementation returns false. Subtypes are free to override
+     * it, but it must return the same value for all instances of a given type.
      * 
      * @return True if this result should only be supplied at most once during
      *         each frame
      */
-    public boolean isSingleton();
+    public boolean isSingleton() {
+        return false;
+    }
 }
