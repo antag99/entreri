@@ -417,18 +417,17 @@ public final class EntitySystem implements Iterable<Entity> {
      * entity's components will become invalid until assigned to a new
      * component.
      * <p>
-     * If the entity has a non-null owner, the removal does not occur and false
-     * is returned. When an entity is removed, all entities and components that
-     * it owns are also removed.
+     * <p>
+     * When an entity is removed, it will set its owner to null, and disown all
+     * of its owned objects. If any of those owned objects are entities or
+     * components, they are removed from the system as well.
      * 
      * @param e The entity to remove
-     * @return True if the entity was removed, false if the entity has an owner
-     *         preventing its removal
      * @throws NullPointerException if e is null
      * @throws IllegalArgumentException if the entity was not created by this
      *             system, or already removed
      */
-    public boolean removeEntity(Entity e) {
+    public void removeEntity(Entity e) {
         if (e == null) {
             throw new NullPointerException("Cannot remove a null entity");
         }
@@ -439,12 +438,8 @@ public final class EntitySystem implements Iterable<Entity> {
             throw new IllegalArgumentException("Entity has already been removed");
         }
 
-        if (e.getOwner() != null) {
-            // already owned, so abort
-            return false;
-        }
-
         // Handle ownership removals
+        e.setOwner(null);
         e.delegate.disownAndRemoveChildren();
 
         // Remove all components from the entity (that weren't removed
@@ -458,8 +453,6 @@ public final class EntitySystem implements Iterable<Entity> {
         // clear out the entity
         entities[e.index] = null;
         e.index = 0;
-
-        return true;
     }
 
     /**

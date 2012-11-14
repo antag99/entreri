@@ -314,8 +314,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         if (fromTemplate.getEntitySystem() != getEntitySystem()) {
             throw new IllegalArgumentException("Component not owned by expected EntitySystem");
         }
-        if (!fromTemplate.getClass().equals(type)) {
-            throw new IllegalArgumentException("Component not of expected type, expected: " + type + ", but was: " + type);
+        if (!fromTemplate.getType().equals(type)) {
+            throw new IllegalArgumentException("Component not of expected type, expected: " + type + ", but was: " + fromTemplate.getType());
         }
         if (!fromTemplate.isLive()) {
             throw new IllegalStateException("Template component is not live");
@@ -351,11 +351,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      */
     private Component<T> allocateComponent(int entityIndex) {
         if (entityIndexToComponentRepository[entityIndex] != 0) {
-            if (!removeComponent(entityIndex)) {
-                // could not remove it because it was owned, so we abort
-                // the addition
-                return null;
-            }
+            removeComponent(entityIndex);
         }
 
         int componentIndex = componentInsert++;
@@ -424,13 +420,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // This code works even if componentIndex is 0
         Component<T> oldComponent = components[componentIndex];
         if (oldComponent != null) {
-            if (oldComponent.getOwner() != null) {
-                // halt removal
-                return false;
-            } else {
-                oldComponent.delegate.disownAndRemoveChildren();
-                oldComponent.index = 0;
-            }
+            oldComponent.setOwner(null);
+            oldComponent.delegate.disownAndRemoveChildren();
+            oldComponent.index = 0;
         }
 
         components[componentIndex] = null;

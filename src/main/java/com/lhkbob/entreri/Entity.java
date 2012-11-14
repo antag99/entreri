@@ -225,16 +225,13 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
     /**
      * <p>
      * Add a new Component with a data type T to this Entity. If there already
-     * exists a component of type T and it is not owned, it is removed first,
-     * and a new one is instantiated. If there is an existing component that is
-     * owned, it is not removed and the addition fails. To designate this, null
-     * is returned.
+     * exists a component of type T, it is removed first, and a new one is
+     * instantiated.
      * </p>
      * 
      * @param <T> The parameterized type of component being added
      * @param componentType The component type
-     * @return A new component of type T, or null if there was an existing
-     *         component of type T and it is owned
+     * @return A new component of type T
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> Component<T> add(Class<T> componentType) {
@@ -247,10 +244,7 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
      * Add a new Component with a data of type T to this Entity, but the new
      * component's state will be cloned from the given Component instance. The
      * <tt>toClone</tt> instance must still be live. If there already exists a
-     * component of type T and it is not owned, it is removed first, and a new
-     * one is instantiated. If there is an existing component that is owned, it
-     * is not removed and the addition fails. To designate this, null is
-     * returned.
+     * component of type T, it is removed first, and a new one is instantiated.
      * </p>
      * <p>
      * The new component is initialized by cloning the property values from
@@ -263,8 +257,7 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
      * 
      * @param <T> The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
-     * @return A new component of type T, or null if there was an existing
-     *         component of type T and it is owned
+     * @return A new component of type T
      * @throws NullPointerException if toClone is null
      * @throws IllegalArgumentException if toClone is not from the same system
      *             as this entity
@@ -287,14 +280,13 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
      * return false from {@link Component#isLive()}. This will remove the
      * component even if the component has been disabled.
      * <p>
-     * However, if the component is has a non-null owner, it is not removed and
-     * false is returned. When a component is removed, all entities and
-     * components that it owns are also removed.
+     * When a Component is removed, it will set its owner to null, and disown
+     * all of its owned objects. If any of those owned objects are entities or
+     * components, they are removed from the system as well.
      * 
      * @param <T> The parameterized type of component to remove
      * @param componentType The component type
-     * @return True if a component was removed, false if there was no component
-     *         or if the component has an owner
+     * @return True if a component was removed
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> boolean remove(Class<T> componentType) {
