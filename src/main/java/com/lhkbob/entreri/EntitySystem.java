@@ -410,18 +410,25 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
+     * <p>
      * Remove the given entity from this system. The entity and its attached
      * components are removed from the system. This will cause the entity and
      * its components to no longer be alive. Any ComponentData's referencing the
      * entity's components will become invalid until assigned to a new
      * component.
+     * <p>
+     * If the entity has a non-null owner, the removal does not occur and false
+     * is returned. When an entity is removed, all entities and components that
+     * it owns are also removed.
      * 
      * @param e The entity to remove
+     * @return True if the entity was removed, false if the entity has an owner
+     *         preventing its removal
      * @throws NullPointerException if e is null
-     * @throws IllegalArgumentException if the entity is not owned by this
+     * @throws IllegalArgumentException if the entity was not created by this
      *             system, or already removed
      */
-    public void removeEntity(Entity e) {
+    public boolean removeEntity(Entity e) {
         if (e == null) {
             throw new NullPointerException("Cannot remove a null entity");
         }
@@ -432,7 +439,16 @@ public final class EntitySystem implements Iterable<Entity> {
             throw new IllegalArgumentException("Entity has already been removed");
         }
 
-        // Remove all components from the entity
+        if (e.getOwner() != null) {
+            // already owned, so abort
+            return false;
+        }
+
+        // Handle ownership removals
+        e.delegate.disownAndRemoveChildren();
+
+        // Remove all components from the entity (that weren't removed
+        // by ownership rules)
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
                 componentRepositories[i].removeComponent(e.index);
@@ -442,6 +458,8 @@ public final class EntitySystem implements Iterable<Entity> {
         // clear out the entity
         entities[e.index] = null;
         e.index = 0;
+
+        return true;
     }
 
     /**

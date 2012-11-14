@@ -42,9 +42,11 @@ import java.util.NoSuchElementException;
  * 
  * @author Michael Ludwig
  */
-public final class Entity implements Iterable<Component<?>>, Comparable<Entity> {
+public final class Entity implements Iterable<Component<?>>, Comparable<Entity>, Ownable, Owner {
     private final EntitySystem system;
     private final int id;
+
+    final OwnerSupport delegate;
 
     int index;
 
@@ -67,6 +69,8 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
         this.system = system;
         this.index = index;
         this.id = id;
+
+        delegate = new OwnerSupport(this);
     }
 
     /**
@@ -220,15 +224,17 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
 
     /**
      * <p>
-     * Add a new Component with a data type T to this Entity. If the Entity
-     * already has component of type T attached, that component is removed and a
-     * new one is created. Otherwise, a new instance is created with its default
-     * values and added to the system.
+     * Add a new Component with a data type T to this Entity. If there already
+     * exists a component of type T and it is not owned, it is removed first,
+     * and a new one is instantiated. If there is an existing component that is
+     * owned, it is not removed and the addition fails. To designate this, null
+     * is returned.
      * </p>
      * 
      * @param <T> The parameterized type of component being added
      * @param componentType The component type
-     * @return A new component of type T
+     * @return A new component of type T, or null if there was an existing
+     *         component of type T and it is owned
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> Component<T> add(Class<T> componentType) {
@@ -241,8 +247,10 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * Add a new Component with a data of type T to this Entity, but the new
      * component's state will be cloned from the given Component instance. The
      * <tt>toClone</tt> instance must still be live. If there already exists a
-     * component of type T in this entity, it is removed first, and a new one is
-     * instantiated.
+     * component of type T and it is not owned, it is removed first, and a new
+     * one is instantiated. If there is an existing component that is owned, it
+     * is not removed and the addition fails. To designate this, null is
+     * returned.
      * </p>
      * <p>
      * The new component is initialized by cloning the property values from
@@ -255,7 +263,8 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
      * 
      * @param <T> The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
-     * @return A new component of type T
+     * @return A new component of type T, or null if there was an existing
+     *         component of type T and it is owned
      * @throws NullPointerException if toClone is null
      * @throws IllegalArgumentException if toClone is not from the same system
      *             as this entity
@@ -271,15 +280,21 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
     }
 
     /**
+     * <p>
      * Remove any attached Component with the data type, T, from this Entity.
      * True is returned if a component was removed, and false otherwise. If a
      * component is removed, the component should no longer be used and it will
      * return false from {@link Component#isLive()}. This will remove the
      * component even if the component has been disabled.
+     * <p>
+     * However, if the component is has a non-null owner, it is not removed and
+     * false is returned. When a component is removed, all entities and
+     * components that it owns are also removed.
      * 
      * @param <T> The parameterized type of component to remove
      * @param componentType The component type
-     * @return True if a component was removed
+     * @return True if a component was removed, false if there was no component
+     *         or if the component has an owner
      * @throws NullPointerException if componentId is null
      */
     public <T extends ComponentData<T>> boolean remove(Class<T> componentType) {
@@ -386,5 +401,25 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity> 
     @Override
     public int compareTo(Entity o) {
         return id - o.id;
+    }
+
+    @Override
+    public void notifyOwnershipGranted(Ownable obj) {
+        delegate.notifyOwnershipGranted(obj);
+    }
+
+    @Override
+    public void notifyOwnershipRevoked(Ownable obj) {
+        delegate.notifyOwnershipRevoked(obj);
+    }
+
+    @Override
+    public void setOwner(Owner owner) {
+        delegate.setOwner(owner);
+    }
+
+    @Override
+    public Owner getOwner() {
+        return delegate.getOwner();
     }
 }

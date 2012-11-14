@@ -45,8 +45,10 @@ package com.lhkbob.entreri;
  * @author Michael Ludwig
  * @param <T> The ComponentData type defining the data of this component
  */
-public final class Component<T extends ComponentData<T>> {
+public final class Component<T extends ComponentData<T>> implements Ownable, Owner {
     private final ComponentRepository<T> owner;
+
+    final OwnerSupport delegate;
 
     int index;
 
@@ -60,6 +62,7 @@ public final class Component<T extends ComponentData<T>> {
     Component(ComponentRepository<T> owner, int index) {
         this.owner = owner;
         this.index = index;
+        delegate = new OwnerSupport(this);
     }
 
     /**
@@ -156,5 +159,25 @@ public final class Component<T extends ComponentData<T>> {
      */
     ComponentRepository<T> getRepository() {
         return owner;
+    }
+
+    @Override
+    public void notifyOwnershipGranted(Ownable obj) {
+        delegate.notifyOwnershipGranted(obj);
+    }
+
+    @Override
+    public void notifyOwnershipRevoked(Ownable obj) {
+        delegate.notifyOwnershipRevoked(obj);
+    }
+
+    @Override
+    public void setOwner(Owner owner) {
+        delegate.setOwner(owner);
+    }
+
+    @Override
+    public Owner getOwner() {
+        return delegate.getOwner();
     }
 }

@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+// FIXME document
 public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 

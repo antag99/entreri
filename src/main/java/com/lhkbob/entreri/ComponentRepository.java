@@ -351,7 +351,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
      */
     private Component<T> allocateComponent(int entityIndex) {
         if (entityIndexToComponentRepository[entityIndex] != 0) {
-            removeComponent(entityIndex);
+            if (!removeComponent(entityIndex)) {
+                // could not remove it because it was owned, so we abort
+                // the addition
+                return null;
+            }
         }
 
         int componentIndex = componentInsert++;
@@ -420,7 +424,13 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // This code works even if componentIndex is 0
         Component<T> oldComponent = components[componentIndex];
         if (oldComponent != null) {
-            oldComponent.index = 0;
+            if (oldComponent.getOwner() != null) {
+                // halt removal
+                return false;
+            } else {
+                oldComponent.delegate.disownAndRemoveChildren();
+                oldComponent.index = 0;
+            }
         }
 
         components[componentIndex] = null;
