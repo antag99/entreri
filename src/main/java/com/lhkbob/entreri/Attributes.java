@@ -47,24 +47,35 @@ public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 
     /**
+     * Construct a new set of attributes from the given annotations. Only
+     * annotations that have the Attribute annotation are kept.
+     * 
+     * @param attrs
+     * @throws NullPointerException if attrs is null or contains null elements
+     */
+    public Attributes(Annotation... attrs) {
+        if (attrs == null) {
+            throw new NullPointerException("Attributes cannot be null");
+        }
+        this.attrs = new HashMap<Class<? extends Annotation>, Annotation>();
+
+        for (Annotation a : attrs) {
+            if (a.annotationType().getAnnotation(Attribute.class) != null) {
+                // the attribute is an annotation
+                this.attrs.put(a.annotationType(), a);
+            }
+        }
+    }
+
+    /**
      * Create a new Attributes that collects all annotations that have been
      * annotated with {@link Attribute} on the given field.
      * 
      * @param f The field to build the set of attributes from
+     * @throws NullPointerException if f is null
      */
     public Attributes(Field f) {
-        if (f == null) {
-            throw new NullPointerException("Field cannot be null");
-        }
-
-        attrs = new HashMap<Class<? extends Annotation>, Annotation>();
-
-        for (Annotation a : f.getAnnotations()) {
-            if (a.annotationType().getAnnotation(Attribute.class) != null) {
-                // the attribute is an annotation
-                attrs.put(a.annotationType(), a);
-            }
-        }
+        this(f.getAnnotations());
     }
 
     /**
