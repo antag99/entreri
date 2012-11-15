@@ -32,7 +32,21 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-// FIXME document
+import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.IntProperty.DefaultInt;
+
+/**
+ * Attribute is used to declare that other annotation types are 'attributes' of
+ * a Property declaration in a ComponentData type definition. They can then be
+ * accessed by custom {@link PropertyFactory factories} to configure the
+ * specific property. Examples include describing cloning behavior and default
+ * values.
+ * 
+ * @see IntProperty.Factory
+ * @see DefaultInt
+ * @author Michael Ludwig
+ * 
+ */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)

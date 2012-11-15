@@ -34,8 +34,10 @@ package com.lhkbob.entreri;
  * instance.
  * </p>
  * <p>
- * To be used with the {@link Factory} annotation when defining a ComponentData
- * type, the PropertyFactory must have an accessible, no-argument constructor.
+ * When using the {@link ReflectionComponentDataFactory}, PropertyFactory
+ * implementations must have a no-argument constructor or a constructor that
+ * takes an {@link Attributes} as its only argument. The constructor does not
+ * need to be public.
  * </p>
  * 
  * @author Michael Ludwig

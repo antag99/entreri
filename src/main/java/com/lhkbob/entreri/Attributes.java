@@ -32,10 +32,26 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-// FIXME document
+/**
+ * Attributes represents the collection of attributes that have been provided on
+ * a property declaration within a ComponentData definition. To work with
+ * {@link ReflectionComponentDataFactory}, {@link PropertyFactory}
+ * implementations should have a constructor that takes a single Attributes
+ * instance.
+ * 
+ * @see PropertyFactory
+ * @author Michael Ludwig
+ * 
+ */
 public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 
+    /**
+     * Create a new Attributes that collects all annotations that have been
+     * annotated with {@link Attribute} on the given field.
+     * 
+     * @param f The field to build the set of attributes from
+     */
     public Attributes(Field f) {
         if (f == null) {
             throw new NullPointerException("Field cannot be null");
@@ -51,6 +67,13 @@ public class Attributes {
         }
     }
 
+    /**
+     * Get the attribute annotation of type T. If there is no attribute for the
+     * given type, then null is returned.
+     * 
+     * @param cls The attribute annotation class type
+     * @return The associated attribute instance
+     */
     @SuppressWarnings("unchecked")
     public <T extends Annotation> T getAttribute(Class<T> cls) {
         if (cls == null) {
@@ -59,6 +82,14 @@ public class Attributes {
         return (T) attrs.get(cls);
     }
 
+    /**
+     * Get whether or not this set of attributes has an attribute of the given
+     * type. If an attribute does not have any variables, this is sufficient
+     * instead of getting the actual instance.
+     * 
+     * @param cls The annotation class type
+     * @return True if the associated attribute exists
+     */
     public boolean hasAttribute(Class<? extends Annotation> cls) {
         if (cls == null) {
             throw new NullPointerException("Annotation class cannot be null");
@@ -66,6 +97,9 @@ public class Attributes {
         return attrs.containsKey(cls);
     }
 
+    /**
+     * @return All annotation attributes in this set
+     */
     public Collection<Annotation> getAttributes() {
         return attrs.values();
     }
