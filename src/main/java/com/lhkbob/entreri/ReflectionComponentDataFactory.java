@@ -34,8 +34,10 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>
@@ -70,6 +72,7 @@ import java.util.Map;
 public final class ReflectionComponentDataFactory<T extends ComponentData<T>> implements ComponentDataFactory<T> {
     private final Constructor<T> constructor;
     private final Map<Field, PropertyFactory<?>> propertyFactories;
+    private final Set<Class<? extends ComponentData<?>>> requiredTypes;
 
     /**
      * Create a new ReflectionComponentDataFactory for the given type of
@@ -100,6 +103,7 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
 
         // Accumulate all property fields and validate type hierarchy
         List<Field> fields = new ArrayList<Field>(getFields(type));
+        Set<Class<? extends ComponentData<?>>> required = new HashSet<Class<? extends ComponentData<?>>>(getRequiredTypes(type));
 
         Class<? super T> parent = type.getSuperclass();
         while (!ComponentData.class.equals(parent)) {
@@ -110,11 +114,14 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
 
             // this cast is safe since we're in the while loop
             fields.addAll(getFields((Class<? extends ComponentData<?>>) parent));
+            required.addAll(getRequiredTypes((Class<? extends ComponentData<?>>) parent));
+
             parent = parent.getSuperclass();
         }
 
         constructor = getConstructor(type);
         propertyFactories = Collections.unmodifiableMap(getPropertyFactories(fields));
+        requiredTypes = Collections.unmodifiableSet(required);
     }
 
     @Override
@@ -147,6 +154,25 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         } catch (Exception e) {
             throw new RuntimeException("Unable to inject Property", e);
         }
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getRequiredComponentTypes() {
+        return requiredTypes;
+    }
+
+    private static Set<Class<? extends ComponentData<?>>> getRequiredTypes(Class<? extends ComponentData<?>> type) {
+        Set<Class<? extends ComponentData<?>>> required = new HashSet<Class<? extends ComponentData<?>>>();
+
+        Requires req = type.getAnnotation(Requires.class);
+        if (req != null) {
+            Class<? extends ComponentData<?>>[] types = req.value();
+            for (int i = 0; i < types.length; i++) {
+                required.add(types[i]);
+            }
+        }
+
+        return required;
     }
 
     private static <T extends ComponentData<?>> Map<Field, PropertyFactory<?>> getPropertyFactories(List<Field> fields) {

@@ -14,6 +14,10 @@ import java.lang.annotation.Target;
  * specify this relationship and reduce the amount of explicit configuration
  * during entity initialization.
  * <p>
+ * If a component type extends an additional abstract component type that also
+ * is annotated with Requires, the union of the required types is the effective
+ * set of types.
+ * <p>
  * When a component type that has been annotated with this annotation is added
  * to an entity, all required component types that are not already attached to
  * the entity are added. All newly added components have their owner set to the

@@ -52,6 +52,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private final Class<T> type;
 
     private final ComponentDataFactory<T> factory;
+    private final Class<? extends ComponentData<?>>[] requiredTypes;
 
     // These three arrays have a special value of 0 or null stored in the 0th
     // index, which allows us to lookup componentDatas or entities when they
@@ -88,6 +89,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         this.system = system;
         this.factory = factory;
         this.type = type;
+        requiredTypes = factory.getRequiredComponentTypes().toArray(new Class[0]);
 
         Map<?, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
 
@@ -347,8 +349,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /*
-     * Allocate and store a new component, but don't initialize it yet.
+     * Allocate and store a new component and initialize it to its default state
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private Component<T> allocateComponent(int entityIndex) {
         if (entityIndexToComponentRepository[entityIndex] != 0) {
             removeComponent(entityIndex);
@@ -378,6 +381,15 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // although there could be a custom PropertyFactory for setting the id,
         // it's easier to assign a new id here
         componentIdProperty.set(idSeq++, componentIndex);
+
+        // ensure required components are added as well
+        Entity entity = system.getEntityByIndex(entityIndex);
+        for (int i = 0; i < requiredTypes.length; i++) {
+            if (entity.get((Class) requiredTypes[i]) == null) {
+                Component<?> added = entity.add((Class) requiredTypes[i]);
+                added.setOwner(instance);
+            }
+        }
 
         return instance;
     }

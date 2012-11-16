@@ -27,6 +27,7 @@
 package com.lhkbob.entreri;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>
@@ -83,4 +84,16 @@ public interface ComponentDataFactory<T extends ComponentData<T>> {
      * @throws NullPointerException if any argument is null
      */
     public void setProperty(T instance, Object key, Property property);
+
+    /**
+     * Get any additional component types that are required by the component
+     * type created by this factory instance. Most likely this will involve
+     * inspecting the type for a {@link Requires} annotation, but factory's
+     * might provide some other way of specifying or determining required
+     * component types.
+     * 
+     * @return The set of required component types, or empty if no other types
+     *         are required
+     */
+    public Set<Class<? extends ComponentData<?>>> getRequiredComponentTypes();
 }

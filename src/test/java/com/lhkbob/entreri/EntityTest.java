@@ -34,6 +34,8 @@ import org.junit.Test;
 import com.lhkbob.entreri.component.FloatComponent;
 import com.lhkbob.entreri.component.IntComponent;
 import com.lhkbob.entreri.component.ObjectComponent;
+import com.lhkbob.entreri.component.RequiresAComponent;
+import com.lhkbob.entreri.component.RequiresBComponent;
 
 public class EntityTest {
     @Test
@@ -42,6 +44,63 @@ public class EntityTest {
         Entity e = system.addEntity();
 
         Assert.assertEquals(system, e.getEntitySystem());
+    }
+
+    @Test
+    public void testGetIfModified() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        IntComponent cd = e.add(IntComponent.class).getData();
+        IntComponent access = system.createDataInstance(IntComponent.class);
+
+        Assert.assertEquals(0, cd.getVersion());
+        Assert.assertFalse(e.getIfModified(access, 0));
+
+        cd.updateVersion();
+        Assert.assertTrue(e.getIfModified(access, 0));
+    }
+
+    @Test
+    public void testAddWithRequiredComponents() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        Component<RequiresBComponent> rb = e.add(RequiresBComponent.class);
+        Component<RequiresAComponent> ra = e.get(RequiresAComponent.class);
+        Assert.assertNotNull(ra);
+        Assert.assertNotNull(e.get(IntComponent.class));
+        Assert.assertNotNull(e.get(FloatComponent.class));
+
+        Assert.assertSame(rb, ra.getOwner());
+        Assert.assertSame(ra, e.get(IntComponent.class).getOwner());
+        Assert.assertSame(ra, e.get(FloatComponent.class).getOwner());
+
+        e.remove(RequiresBComponent.class);
+
+        Assert.assertNull(e.get(RequiresAComponent.class));
+        Assert.assertNull(e.get(IntComponent.class));
+        Assert.assertNull(e.get(FloatComponent.class));
+    }
+
+    @Test
+    public void testAddWithRequiredComponentsAlreadyPresent() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        Component<IntComponent> ci = e.add(IntComponent.class);
+
+        Component<RequiresAComponent> ra = e.add(RequiresAComponent.class);
+        Assert.assertSame(ci, e.get(IntComponent.class));
+        Assert.assertNotNull(e.get(FloatComponent.class));
+
+        Assert.assertNull(ci.getOwner());
+        Assert.assertSame(ra, e.get(FloatComponent.class).getOwner());
+
+        e.remove(RequiresAComponent.class);
+
+        Assert.assertSame(ci, e.get(IntComponent.class));
+        Assert.assertNull(e.get(FloatComponent.class));
     }
 
     @Test

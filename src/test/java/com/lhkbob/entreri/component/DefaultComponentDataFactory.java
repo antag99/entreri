@@ -28,7 +28,9 @@ package com.lhkbob.entreri.component;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentDataFactory;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.PropertyFactory;
@@ -54,5 +56,10 @@ public class DefaultComponentDataFactory implements ComponentDataFactory<Default
         } else {
             throw new RuntimeException();
         }
+    }
+
+    @Override
+    public Set<Class<? extends ComponentData<?>>> getRequiredComponentTypes() {
+        return Collections.emptySet();
     }
 }
