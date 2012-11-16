@@ -37,6 +37,43 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 
+/**
+ * <p>
+ * SimpleTask extends Task adds logic to simplify the creation of tasks that
+ * perform the same operations on each entity that matches a specific component
+ * configuration. Subclasses of SimpleTask should define a single method named
+ * 'processEntity' that takes as its only parameters, any number of
+ * ComponentData instances of specific types. An example might be:
+ * 
+ * <pre>
+ * public class ExampleTask extends SimpleTask {
+ *     // c1 and c2 are required types
+ *     // c3 is an optional component type
+ *     protected void processEntities(TypeA c1, TypeB c2, @Optional TypeC c3) {
+ *         // perform operations on c1 and c2
+ *         if (c3 != null) {
+ *             // perform additional operations on c3
+ *         }
+ *     }
+ * 
+ *     public Task process(EntitySystem system, Job job) {
+ *         // this will invoke processEntities() for each entity in the system
+ *         // that has a TypeA and TypeB component. If the entity also has
+ *         // a TypeC component, it is passed in too, otherwise it's null
+ *         processEntities(system);
+ *         return null;
+ *     }
+ * }
+ * </pre>
+ * <p>
+ * In the task's {@link #process(EntitySystem, Job)} method, it can then invoke
+ * {@link #processEntities(EntitySystem)} to perform the automated iteration
+ * over matching entities within the system. SimpleTask will call the identified
+ * 'processEntity' method for each matched entity.
+ * 
+ * @author Michael Ludwig
+ * 
+ */
 public abstract class SimpleTask implements Task {
     @Target(ElementType.PARAMETER)
     @Retention(RetentionPolicy.RUNTIME)
@@ -48,8 +85,9 @@ public abstract class SimpleTask implements Task {
     // filled with instances after first call to processEntities
     private final ComponentData<?>[] componentDatas;
 
-    // "final" after the first call to processEntities()
+    // "final" after the first call to processEntities() or until the system changes
     private ComponentIterator iterator;
+    private EntitySystem lastSystem;
 
     public SimpleTask() {
         Method processMethod = null;
@@ -101,9 +139,15 @@ public abstract class SimpleTask implements Task {
         }
     }
 
+    /**
+     * Process all entities that fit the component profile mandated by the
+     * defined 'processEntity()' method in the subclass.
+     * 
+     * @param system The system to process
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void processEntities(EntitySystem system) {
-        if (iterator == null) {
+        if (iterator == null || lastSystem != system) {
             iterator = new ComponentIterator(system);
             for (int i = 0; i < optional.length; i++) {
                 ComponentData<?> data = system.createDataInstance((Class) processMethod.getParameterTypes()[i]);
@@ -114,6 +158,8 @@ public abstract class SimpleTask implements Task {
                 }
                 componentDatas[i] = data;
             }
+
+            lastSystem = system;
         }
 
         try {

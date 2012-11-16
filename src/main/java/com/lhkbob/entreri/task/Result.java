@@ -29,20 +29,19 @@ package com.lhkbob.entreri.task;
 /**
  * <p>
  * Result represents a computed result, preferably that of a bulk computation,
- * performed by a Controller. Results allow Controllers to easily pass data to
- * other controllers that might be interested in their computations.
+ * performed by a Task. Results allow Taskss to easily pass data to other tasks
+ * in the same job that might be interested in their computations.
  * </p>
  * <p>
- * Controllers that wish to expose results define classes that implement Result
- * and expose the actual result data. During processing of a controller, result
- * instances are created and supplied to all controllers by calling
- * {@link Scheduler#report(Result)}
+ * Tasks that wish to expose results define classes that extend Result and
+ * provide the actual result data. During processing of a task, result instances
+ * are created and supplied to all future tasks by calling
+ * {@link Job#report(Result)}
  * </p>
  * <p>
- * To receive computed results, Controllers override their
- * {@link Task#report(Result)} and check incoming results for the desired type
- * of result. Every controller is notified of all results, they are responsible
- * for ignoring results they are not interested in.
+ * To receive computed results, Tasks define
+ * <code>public void report(T extends Result)</code> methods that are invoked
+ * through reflection by the job when a compatible result is reported.
  * </p>
  * 
  * @author Michael Ludwig
@@ -52,10 +51,10 @@ public class Result {
      * <p>
      * Return true if this result is a "singleton" result. A singleton result is
      * a type of result that is can only be reported once per execution of a
-     * job. The ControllerManager verifies that singleton results are supplied
-     * at most once. Most results should return false. The returned value should
-     * be the same for every instance of a type, it should not depend on the
-     * state of the instance.
+     * job. The job verifies that singleton results are supplied at most once
+     * per job execution. Most results should return false. The returned value
+     * should be the same for every instance of a type, it should not depend on
+     * the state of the instance.
      * </p>
      * <p>
      * Singleton results should only be used when the computation of the result
@@ -75,6 +74,7 @@ public class Result {
      * <p>
      * The default implementation returns false. Subtypes are free to override
      * it, but it must return the same value for all instances of a given type.
+     * </p>
      * 
      * @return True if this result should only be supplied at most once during
      *         each frame

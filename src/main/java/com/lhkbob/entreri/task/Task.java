@@ -49,14 +49,14 @@ import com.lhkbob.entreri.EntitySystem;
  * <p>
  * A task can communicate with the remaining tasks of a job by
  * {@link Job#report(Result) reporting} results. The results are only reported
- * to tasks within the owning job, and are executed after the current task. Thus
- * tasks that have already completed their processing will not receive new
+ * to tasks within the owning job, and that are executed after the current task.
+ * Thus tasks that have already completed their processing will not receive new
  * results.
  * <p>
  * A task receives results by defining any number of methods with the signature
  * <code>public void report(T extends Result)</code>. When a result is reported
  * to the job, it will invoke using reflection any <code>report()</code> method
- * that takes a result of compatible type.
+ * that takes a result of the compatible type.
  * <p>
  * Task instances should only ever be used with a single job and entity system.
  * If the task needs to be performed in multiple jobs or systems, new instances
