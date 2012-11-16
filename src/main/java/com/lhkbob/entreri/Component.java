@@ -41,6 +41,13 @@ package com.lhkbob.entreri;
  * specific components. ComponentData's can change which component they
  * reference multiple times throughout their life time.
  * </p>
+ * <p>
+ * Component implements both {@link Ownable} and {@link Owner}. This can be used
+ * to create hierarchies of both components and entities that share a lifetime.
+ * When a component is removed from an entity, all of its owned objects are
+ * disowned. If any of them were entities or components, they are also removed
+ * from the system.
+ * </p>
  * 
  * @author Michael Ludwig
  * @param <T> The ComponentData type defining the data of this component
@@ -148,7 +155,7 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * @return The TypeId of the ComponentData for this Component
+     * @return The class type of the ComponentData for this Component
      */
     public Class<T> getType() {
         return owner.getType();

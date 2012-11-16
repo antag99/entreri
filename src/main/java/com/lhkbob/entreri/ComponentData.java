@@ -45,7 +45,7 @@ package com.lhkbob.entreri;
  * created and configured by a {@link ComponentDataFactory}. These factories may
  * impose certain restrictions or requirements in what constructors or fields
  * are valid. ComponentData implementations can define a default
- * ComponentDataFactory type with the {@link DefaultFactory} annoation. By
+ * ComponentDataFactory type with the {@link DefaultFactory} annotation. By
  * default ComponentData implementations are created using The
  * {@link ReflectionComponentDataFactory}
  * </p>

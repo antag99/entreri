@@ -39,6 +39,13 @@ import java.util.NoSuchElementException;
  * Entities use instance equality, just like {@link Component}. Once created the
  * Entity object will not change its identity.
  * </p>
+ * <p>
+ * Entity implements both {@link Ownable} and {@link Owner}. This can be used to
+ * create hierarchies of both components and entities that share a lifetime.
+ * When an entity is removed from the system, all of its owned objects are
+ * disowned. If any of them were entities or components, they are also removed
+ * from the system.
+ * </p>
  * 
  * @author Michael Ludwig
  */
