@@ -39,6 +39,22 @@ import java.util.Set;
 
 import com.lhkbob.entreri.ComponentData;
 
+/**
+ * <p>
+ * Job represents a list of {@link Task tasks} that must be executed in a
+ * particular order so that they produce a meaningful computation over an entity
+ * system. Examples of a job might be to render a frame, which could then be
+ * decomposed into tasks for computing the visible objects, occluded objects,
+ * the optimal rendering order, and shadow computations, etc.
+ * <p>
+ * Jobs are created by first getting the {@link Scheduler} from a particular
+ * EntitySystem, and then calling {@link Scheduler#createJob(String, Task...)}.
+ * The name of a job is primarily used to for informational purposes and does
+ * not affect its behavior.
+ * 
+ * @author Michael Ludwig
+ * 
+ */
 public class Job implements Runnable {
     private final Task[] tasks;
     private final Map<Class<? extends Result>, List<ResultReporter>> resultMethods;
@@ -52,17 +68,34 @@ public class Job implements Runnable {
     private final Set<Class<? extends Result>> singletonResults;
     private int taskIndex;
 
+    /**
+     * Create a new job with the given name and tasks.
+     * 
+     * @param name The name of the job
+     * @param scheduler The owning scheduler
+     * @param tasks The tasks in order of execution
+     * @throws NullPointerException if name is null, tasks is null or contains
+     *             null elements
+     */
     Job(String name, Scheduler scheduler, Task... tasks) {
+        if (name == null) {
+            throw new NullPointerException("Name cannot be null");
+        }
         this.scheduler = scheduler;
         this.tasks = new Task[tasks.length];
         this.name = name;
 
         singletonResults = new HashSet<Class<? extends Result>>();
         resultMethods = new HashMap<Class<? extends Result>, List<ResultReporter>>();
+        taskIndex = -1;
 
         boolean exclusive = false;
         Set<Class<? extends ComponentData<?>>> typeLocks = new HashSet<Class<? extends ComponentData<?>>>();
         for (int i = 0; i < tasks.length; i++) {
+            if (tasks[i] == null) {
+                throw new NullPointerException("Task cannot be null");
+            }
+
             this.tasks[i] = tasks[i];
 
             // collect parallelization info (which should not change over
@@ -114,14 +147,30 @@ public class Job implements Runnable {
         }
     }
 
+    /**
+     * @return The designated name of this job
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return The Scheduler that created this job
+     */
     public Scheduler getScheduler() {
         return scheduler;
     }
 
+    /**
+     * <p>
+     * Invoke all tasks in this job. This method is thread-safe and will use its
+     * owning scheduler to coordinate the locks necessary to safely execute its
+     * tasks.
+     * <p>
+     * Although {@link Scheduler} has convenience methods to repeatedly invoke a
+     * job, this method can be called directly if a more controlled job
+     * execution scheme is required.
+     */
     @Override
     public void run() {
         // repeatedly run jobs until no task produces a post-process task
@@ -160,6 +209,10 @@ public class Job implements Runnable {
                 }
             }
 
+            // set this to negative so that report() can fail now that
+            // we're not executing tasks anymore
+            taskIndex = -1;
+
             if (postProcess.isEmpty()) {
                 // nothing to process afterwards
                 return null;
@@ -180,7 +233,25 @@ public class Job implements Runnable {
         }
     }
 
+    /**
+     * Report the given result instance to all tasks yet to be executed by this
+     * job, that have declared a public method named 'report' that takes a
+     * Result sub-type that is compatible with <tt>r</tt>'s type.
+     * 
+     * @param r The result to report
+     * @throws NullPointerException if r is null
+     * @throws IllegalStateException if r is a singleton result whose type has
+     *             already been reported by another task in this job, or if the
+     *             job is not currently executing tasks
+     */
     public void report(Result r) {
+        if (r == null) {
+            throw new NullPointerException("Cannot report null results");
+        }
+        if (taskIndex < 0) {
+            throw new IllegalStateException("Can only be invoked by a task from within run()");
+        }
+
         if (r.isSingleton()) {
             // make sure this is the first we've seen the result
             if (!singletonResults.add(r.getClass())) {
@@ -203,6 +274,11 @@ public class Job implements Runnable {
 
             type = type.getSuperclass();
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Job(" + name + ", # tasks=" + tasks.length + ")";
     }
 
     private class ResultReporter {
