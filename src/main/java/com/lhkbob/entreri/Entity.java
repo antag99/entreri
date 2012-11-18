@@ -421,4 +421,19 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
     public Owner getOwner() {
         return delegate.getOwner();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("Entity(");
+        sb.append(id);
+
+        Iterator<Component<?>> it = iterator();
+        while (it.hasNext()) {
+            sb.append(", ");
+            sb.append(it.next().getType().getSimpleName());
+        }
+
+        sb.append(")");
+        return sb.toString();
+    }
 }

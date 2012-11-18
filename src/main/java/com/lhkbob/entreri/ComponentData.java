@@ -212,6 +212,17 @@ public abstract class ComponentData<T extends ComponentData<T>> {
         }
     }
 
+    @Override
+    public String toString() {
+        if (index == 0) {
+            return "ComponentData(" + getClass().getSimpleName() + ")";
+        } else {
+            int entityId = owner.getEntitySystem()
+                                .getEntityByIndex(owner.getEntityIndex(index)).getId();
+            return "ComponentData(" + getClass().getSimpleName() + ", entity=" + entityId + ")";
+        }
+    }
+
     /**
      * Event hook called when this ComponentData is assigned to a valid
      * component at the provided non-zero index.

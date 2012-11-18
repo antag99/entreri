@@ -187,4 +187,15 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     public Owner getOwner() {
         return delegate.getOwner();
     }
+
+    @Override
+    public String toString() {
+        if (index == 0) {
+            return "Component(" + getType().getSimpleName() + ")";
+        } else {
+            int entityId = owner.getEntitySystem()
+                                .getEntityByIndex(owner.getEntityIndex(index)).getId();
+            return "Component(" + getType().getSimpleName() + ", entity=" + entityId + ")";
+        }
+    }
 }
