@@ -309,7 +309,7 @@ public final class EntitySystem implements Iterable<Entity> {
                 }
             } else {
                 // found an entity to preserve
-                if (startRemove > 0) {
+                if (startRemove >= 0) {
                     // we have a gap from [startRemove, i - 1] that can be compacted
                     System.arraycopy(entities, i, entities, startRemove, entityInsert - i);
 
@@ -321,6 +321,12 @@ public final class EntitySystem implements Iterable<Entity> {
                     startRemove = -1;
                 }
             }
+        }
+
+        if (startRemove >= 0) {
+            // the last gap of entities to remove is at the end of the array,
+            // so all we have to do is update the size
+            entityInsert = startRemove;
         }
 
         // Build a map from oldIndex to newIndex and repair entity's index
