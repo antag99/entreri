@@ -172,7 +172,7 @@ public class SchedulerTest {
         }
 
         @Override
-        public void reset() {
+        public void reset(EntitySystem system) {
             reset = true;
         }
     }
@@ -203,9 +203,9 @@ public class SchedulerTest {
         }
 
         @Override
-        public void reset() {
+        public void reset(EntitySystem system) {
             aReceiveCount = 0;
-            super.reset();
+            super.reset(system);
         }
 
         @SuppressWarnings("unused")
@@ -223,9 +223,9 @@ public class SchedulerTest {
         }
 
         @Override
-        public void reset() {
+        public void reset(EntitySystem system) {
             bReceiveCount = 0;
-            super.reset();
+            super.reset(system);
         }
 
         @SuppressWarnings("unused")
@@ -244,11 +244,11 @@ public class SchedulerTest {
         }
 
         @Override
-        public void reset() {
+        public void reset(EntitySystem system) {
             aReceiveCount = 0;
             bReceiveCount = 0;
             receiveCount = 0;
-            super.reset();
+            super.reset(system);
         }
 
         @SuppressWarnings("unused")

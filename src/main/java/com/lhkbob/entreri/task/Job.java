@@ -196,7 +196,7 @@ public class Job implements Runnable {
             taskIndex = 0;
             singletonResults.clear();
             for (int i = 0; i < tasks.length; i++) {
-                tasks[i].reset();
+                tasks[i].reset(scheduler.getEntitySystem());
             }
 
             // process all tasks and collect all returned tasks, in order

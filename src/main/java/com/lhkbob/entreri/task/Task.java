@@ -95,6 +95,9 @@ public interface Task {
      * Examples of how this can be used is if a spatial index is built up
      * per-frame, or if decorated properties cache computed results. By using
      * reset(), it's not necessary to re-decorate or allocate again.
+     * 
+     * @param system The EntitySystem that will be processed, which will always
+     *            be the same for a given Task instance
      */
-    public void reset();
+    public void reset(EntitySystem system);
 }
