@@ -1,5 +1,9 @@
 package com.lhkbob.entreri.task;
 
+import java.util.Collections;
+import java.util.Set;
+
+import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.EntitySystem;
 
 public final class Timers {
@@ -12,7 +16,7 @@ public final class Timers {
         return new MeasuredDeltaTask();
     }
 
-    private static class FixedDeltaTask implements Task {
+    private static class FixedDeltaTask implements Task, ParallelAware {
         private final ElapsedTimeResult delta;
 
         public FixedDeltaTask(double dt) {
@@ -29,9 +33,19 @@ public final class Timers {
         public void reset(EntitySystem system) {
             // do nothing
         }
+
+        @Override
+        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public boolean isEntitySetModified() {
+            return false;
+        }
     }
 
-    private static class MeasuredDeltaTask implements Task {
+    private static class MeasuredDeltaTask implements Task, ParallelAware {
         private long lastStart = -1L;
 
         @Override
@@ -50,6 +64,16 @@ public final class Timers {
         @Override
         public void reset(EntitySystem system) {
             // do nothing
+        }
+
+        @Override
+        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public boolean isEntitySetModified() {
+            return false;
         }
     }
 }
