@@ -118,7 +118,12 @@ public class Scheduler {
             // this will either return the newly constructed lock, or 
             // the lock inserted from another thread after we tried to fetch it,
             // in either case, the lock is valid
-            lock = typeLocks.putIfAbsent(id, new ReentrantLock());
+            ReentrantLock newLock = new ReentrantLock();
+            lock = typeLocks.putIfAbsent(id, newLock);
+            if (lock == null) {
+                // newLock was the assigned one
+                lock = newLock;
+            }
         }
         return lock;
     }
