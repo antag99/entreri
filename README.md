@@ -1,10 +1,10 @@
 # Entreri
 
 Entreri is a data-oriented entity-component framework designed for high 
-performance applications and games. It scales well to tens of thousands of instances,
-in both memory and performance, and fits data models that require many similar
-objects of the same type, objects with composable types at runtime, and
-combinations thereof.
+performance applications and games. It scales well to tens of thousands of 
+instances, in both memory and performance, and fits data models that require 
+many similar objects of the same type, objects with composable types at runtime
+, and combinations thereof.
 
 Using annotations and minor limitations to type definitions, component data
 is packed into primitive arrays to improve cache locality. Fly-weight instances
@@ -12,14 +12,14 @@ are then used to access the packed data.
 
 Java's garbage collection can move objects around, hurting locality when using 
 Object arrays or collections. By using primitive arrays or buffers storing
-managed data in blocks, all of your game data will be automatically stored in a 
+managed data in blocks, all of your game data will be automatically stored in a
 cache friendly, and iteration friendly manner.
 
 In addition, this requires less memory per instance because the actual
 component data is stored in packed structures, avoiding the Java Object model
 overhead normally associated with complex classes.
 
-In off-the-cuff performance tests, garbage collection in other entity-component 
+In off-the-cuff performance tests, garbage collection in other entity-component
 frameworks could cause performance to slow down by a factor of 2 to 4, while 
 Entreri remained consistently fast (pre-GC performances near identical).
 
@@ -31,13 +31,28 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
     <dependency>
       <groupId>com.lhkbob.entreri</groupId>
       <artifactId>entreri</artifactId>
-      <version>1.5.3</version>
+      <version>1.6.0</version>
     </dependency>
     
 [Maven]: http://maven.apache.org
 [m2e]: http://eclipse.org/m2e
 
 ## Release Notes
+
+### 1.6.0
+* Completely replace old Controller API with a multi-threading oriented Task 
+  and Job API.
+* Add versioning to components so that properly implemented types report when 
+  their data is changed.
+* Entities and components can now be owned by each other (and other types 
+  implementing Owner), allowing components to be grouped together and have the
+  same lifetime automatically.
+* Add `Required` annotation to support component type dependencies. When a 
+  component is added to an entity, all required components are also added, and
+  are owned by the initiating component.
+* Improve toString() methods for Component and Entity.
+* Add `SharedInstance` documentation annotation for when unmanaged instances
+  are reused by a ComponentData instance.
 
 ### 1.5.3
 * Improve performance in default Property implementations by restricting them
