@@ -70,6 +70,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     private final IntProperty componentIdProperty;
     private final IntProperty componentVersionProperty;
     private int idSeq;
+    private int versionSeq;
 
     /**
      * Create a ComponentRepository for the given system, that will store
@@ -116,6 +117,11 @@ final class ComponentRepository<T extends ComponentData<T>> {
         componentVersionProperty = decorate(new IntProperty.Factory(0));
 
         idSeq = 1; // start at 1, just like entity id sequences
+        versionSeq = 0;
+
+        // initialize enabled and version for the 0th index
+        enabledProperty.set(false, 0);
+        componentVersionProperty.set(-1, 0);
     }
 
     /**
@@ -222,12 +228,16 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
     /**
      * Set whether or not the component at <tt>componentIndex</tt> is enabled.
+     * This does nothing if the index is 0, preserving the guarantee that
+     * invalid component is considered disabled.
      * 
      * @param componentIndex The component index
      * @param enabled True if the component is enabled
      */
     public void setEnabled(int componentIndex, boolean enabled) {
-        enabledProperty.set(enabled, componentIndex);
+        if (componentIndex != 0) {
+            enabledProperty.set(enabled, componentIndex);
+        }
     }
 
     /**
@@ -247,13 +257,18 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * Increment the component's version at the given index.
+     * Increment the component's version at the given index. This does nothing
+     * if the index is 0, preserving the guarantee that an invalid component has
+     * a negative version.
      * 
      * @param componentIndex
      */
     public void incrementVersion(int componentIndex) {
-        componentVersionProperty.set(componentVersionProperty.get(componentIndex) + 1,
-                                     componentIndex);
+        if (componentIndex != 0) {
+            // clamp it to be above 0, instead of going negative
+            int newVersion = (0xefffffff & (versionSeq++));
+            componentVersionProperty.set(newVersion, componentIndex);
+        }
     }
 
     /*
@@ -371,16 +386,19 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // this is needed because we might be overwriting a previously removed
         // component, or the factory might be doing something tricky
         for (int i = 0; i < declaredProperties.size(); i++) {
-            declaredProperties.get(i).setValue(componentIndex);
+            declaredProperties.get(i).setDefaultValue(componentIndex);
         }
 
         for (int i = 0; i < decoratedProperties.size(); i++) {
-            decoratedProperties.get(i).setValue(componentIndex);
+            decoratedProperties.get(i).setDefaultValue(componentIndex);
         }
 
         // although there could be a custom PropertyFactory for setting the id,
         // it's easier to assign a new id here
         componentIdProperty.set(idSeq++, componentIndex);
+
+        // start with a unique version as well
+        incrementVersion(componentIndex);
 
         // ensure required components are added as well
         Entity entity = system.getEntityByIndex(entityIndex);
@@ -609,7 +627,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         IndexedDataStore newStore = prop.getDataStore().create(size);
         prop.setDataStore(newStore);
         for (int i = 1; i < size; i++) {
-            pstore.setValue(i);
+            pstore.setDefaultValue(i);
         }
 
         decoratedProperties.add(pstore);
@@ -629,7 +647,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
             swap = null;
         }
 
-        void setValue(int index) {
+        void setDefaultValue(int index) {
             P prop = getProperty();
             if (prop != null) {
                 creator.setDefaultValue(prop, index);

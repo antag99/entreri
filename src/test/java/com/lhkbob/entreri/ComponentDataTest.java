@@ -172,16 +172,6 @@ public class ComponentDataTest {
     }
 
     @Test
-    public void testInitialVersion() {
-        EntitySystem system = new EntitySystem();
-
-        Entity e = system.addEntity();
-        Assert.assertEquals(0, e.add(IntComponent.class).getData().getVersion());
-        // ensure that overrides properly set it too
-        Assert.assertEquals(0, e.add(IntComponent.class).getData().getVersion());
-    }
-
-    @Test
     public void testVersionUpdate() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
@@ -190,5 +180,48 @@ public class ComponentDataTest {
         Assert.assertEquals(0, cd.getVersion());
         cd.updateVersion();
         Assert.assertEquals(1, cd.getVersion());
+    }
+
+    @Test
+    public void testUniqueVersionUpdate() {
+        EntitySystem system = new EntitySystem();
+        IntComponent cd1 = system.addEntity().add(IntComponent.class).getData();
+        IntComponent cd2 = system.addEntity().add(IntComponent.class).getData();
+
+        Assert.assertEquals(0, cd1.getVersion());
+        Assert.assertEquals(1, cd2.getVersion());
+
+        cd1.updateVersion();
+        cd2.updateVersion();
+
+        Assert.assertEquals(2, cd1.getVersion());
+        Assert.assertEquals(3, cd2.getVersion());
+    }
+
+    @Test
+    public void testInvalidComponentVersion() {
+        EntitySystem system = new EntitySystem();
+        IntComponent cd = system.createDataInstance(IntComponent.class);
+
+        // sanity check
+        Assert.assertEquals(0, cd.getIndex());
+
+        int oldVersion = cd.getVersion();
+        Assert.assertTrue(oldVersion < 0);
+        cd.updateVersion();
+        Assert.assertEquals(oldVersion, cd.getVersion());
+    }
+
+    @Test
+    public void testInvalidComponentEnabled() {
+        EntitySystem system = new EntitySystem();
+        IntComponent cd = system.createDataInstance(IntComponent.class);
+
+        // sanity check
+        Assert.assertEquals(0, cd.getIndex());
+
+        Assert.assertFalse(cd.isEnabled());
+        cd.setEnabled(true);
+        Assert.assertFalse(cd.isEnabled());
     }
 }

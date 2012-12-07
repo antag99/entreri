@@ -193,44 +193,6 @@ public final class Entity implements Iterable<Component<?>>, Comparable<Entity>,
 
     /**
      * <p>
-     * Get the component of type T attached to this entity only if the entity
-     * has a component of type T, it is enabled, and it's version is different
-     * than <tt>priorVersion</tt>. This method is a convenience method to easily
-     * retrieve the component data only if the data has changed.
-     * <p>
-     * If the entity has a component of type T, that is enabled, and has a
-     * version not equal to <tt>priorVersion</tt>, then <tt>data</tt> will be
-     * set to access the component and true will be returned. In any other case,
-     * false is returned. Unlike {@link #get(ComponentData)}, it's not possible
-     * to inspect the data instance to determine why false was returned.
-     * 
-     * @param <T> The component data type
-     * @param data The data instance used to access the component if available
-     * @param priorVersion The previously valid version
-     * @return True if the entity has an enabled component of type T that has
-     *         been modified since <tt>priorVersion</tt>
-     * @throws NullPointerException if data is null
-     * @throws IllegalArgumentException if data was created by another entity
-     *             system
-     */
-    public <T extends ComponentData<T>> boolean getIfModified(T data, int priorVersion) {
-        if (data.owner.getEntitySystem() != getEntitySystem()) {
-            throw new IllegalArgumentException("ComponentData was not created by expected EntitySystem");
-        }
-
-        ComponentRepository<T> ci = data.owner;
-        int componentIndex = ci.getComponentIndex(index);
-
-        if (ci.getVersion(componentIndex) != priorVersion) {
-            return data.setFast(componentIndex) && ci.isEnabled(componentIndex);
-        } else {
-            // note that in this situation, the component data is invalid
-            return false;
-        }
-    }
-
-    /**
-     * <p>
      * Add a new Component with a data type T to this Entity. If there already
      * exists a component of type T, it is removed first, and a new one is
      * instantiated.

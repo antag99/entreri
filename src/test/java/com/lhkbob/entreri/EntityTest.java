@@ -47,21 +47,6 @@ public class EntityTest {
     }
 
     @Test
-    public void testGetIfModified() {
-        EntitySystem system = new EntitySystem();
-        Entity e = system.addEntity();
-
-        IntComponent cd = e.add(IntComponent.class).getData();
-        IntComponent access = system.createDataInstance(IntComponent.class);
-
-        Assert.assertEquals(0, cd.getVersion());
-        Assert.assertFalse(e.getIfModified(access, 0));
-
-        cd.updateVersion();
-        Assert.assertTrue(e.getIfModified(access, 0));
-    }
-
-    @Test
     public void testAddWithRequiredComponents() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();

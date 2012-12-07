@@ -120,7 +120,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      * @return True if the component is enabled, false if disabled or invalid
      */
     public final boolean isEnabled() {
-        return index != 0 && owner.isEnabled(index);
+        return owner.isEnabled(index);
     }
 
     /**
@@ -141,9 +141,11 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      * associated component's version so comparing a previously cached version
      * number can be used to determine when changes have been made.
      * <p>
-     * If the
+     * Additionally, for a given component type, versions will be unique. Thus
+     * it is possible to identify when the components are replaced by new
+     * components as well.
      * 
-     * @return The current version
+     * @return The current version, or a negative number if the data is invalid
      */
     public final int getVersion() {
         return owner.getVersion(index);

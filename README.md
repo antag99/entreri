@@ -39,6 +39,11 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
 
 ## Release Notes
 
+### 1.6.1
+* Remove `Entity.getIfModified()` method because its semantics were vague and unhelpful.
+* Make version numbers unique within a component type.
+* Simplify `isEnabled()` and `getVersion()` logic for invalid components.
+
 ### 1.6.0
 * Completely replace old Controller API with a multi-threading oriented Task 
   and Job API.
