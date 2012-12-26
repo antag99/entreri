@@ -162,6 +162,19 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
+     * Get the underlying index of this component used to access its properties.
+     * In most cases you can just use {@link ComponentData#getIndex()} because
+     * you'll have a ComponentData instance on hand. However, it can be useful
+     * to use this method to access decorated data to avoid setting the
+     * component data to a particular component just to get its index.
+     * 
+     * @return The current index of component
+     */
+    public int getIndex() {
+        return index;
+    }
+
+    /**
      * @return The ComponentRepository owning this Component
      */
     ComponentRepository<T> getRepository() {
