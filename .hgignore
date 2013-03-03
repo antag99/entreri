@@ -1,4 +1,3 @@
-
 syntax: regexp
 ^\.project$
 syntax: regexp
@@ -9,3 +8,9 @@ syntax: regexp
 ^\.settings$
 syntax: regexp
 ^target$
+syntax: regexp
+^\.idea$
+syntax: regexp
+^.*\.iml$
+syntax: regexp
+^.DS_Store$

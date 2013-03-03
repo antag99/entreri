@@ -30,14 +30,15 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.NoFactoryProperty;
 
 /**
- * A test component that specifies invalid or incorrect factories for its
- * properties.
- * 
+ * A test component that specifies invalid or incorrect factories for its properties.
+ *
  * @author Michael Ludwig
  */
-public class InvalidFactoryMethodComponent extends ComponentData<InvalidFactoryMethodComponent> {
+public class InvalidFactoryMethodComponent
+        extends ComponentData<InvalidFactoryMethodComponent> {
     // NoFactoryProperty has no available factory method
     protected NoFactoryProperty prop;
 
-    protected InvalidFactoryMethodComponent() {}
+    protected InvalidFactoryMethodComponent() {
+    }
 }

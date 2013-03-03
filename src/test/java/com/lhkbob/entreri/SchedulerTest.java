@@ -26,12 +26,11 @@
  */
 package com.lhkbob.entreri;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import com.lhkbob.entreri.task.Job;
 import com.lhkbob.entreri.task.Result;
 import com.lhkbob.entreri.task.Task;
+import org.junit.Assert;
+import org.junit.Test;
 
 // NOTE: this does not test the thread-safety aspects of a job, because
 // it's a little too difficult to right a unit test for that
@@ -40,10 +39,8 @@ public class SchedulerTest {
     public void testResultsReportedToFutureTasksOnly() {
         EntitySystem system = new EntitySystem();
 
-        ResultReportingTask t1 = new ResultReportingTask(null,
-                                                         new ResultA(),
-                                                         new ResultA(),
-                                                         new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
+                                                         new ResultA(), new ResultB());
         ResultAListeningTask t2 = new ResultAListeningTask(null);
         ResultBListeningTask t3 = new ResultBListeningTask(null);
         AllResultListeningTask t4 = new AllResultListeningTask(null);
@@ -89,10 +86,8 @@ public class SchedulerTest {
     public void testMultipleSingletonResultsReported() {
         EntitySystem system = new EntitySystem();
 
-        ResultReportingTask t1 = new ResultReportingTask(null,
-                                                         new ResultA(),
-                                                         new ResultB(),
-                                                         new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
+                                                         new ResultB(), new ResultB());
 
         Job j = system.getScheduler().createJob("test", t1);
         j.run();
@@ -102,10 +97,8 @@ public class SchedulerTest {
     public void testResultsReported() {
         EntitySystem system = new EntitySystem();
 
-        ResultReportingTask t1 = new ResultReportingTask(null,
-                                                         new ResultA(),
-                                                         new ResultA(),
-                                                         new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
+                                                         new ResultA(), new ResultB());
         ResultAListeningTask t2 = new ResultAListeningTask(null);
         ResultBListeningTask t3 = new ResultBListeningTask(null);
         AllResultListeningTask t4 = new AllResultListeningTask(null);

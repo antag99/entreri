@@ -26,19 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.*;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-
 /**
- * ByteProperty is an implementation of Property that stores a single byte
- * value.
- * 
+ * ByteProperty is an implementation of Property that stores a single byte value.
+ *
  * @author Michael Ludwig
  */
 @Factory(ByteProperty.Factory.class)
@@ -53,13 +48,12 @@ public final class ByteProperty implements Property {
     }
 
     /**
-     * Return the backing byte array of this property's IndexedDataStore. The
-     * array may be longer than necessary for the number of components in the
-     * system. Data can be accessed for a component directly using the
-     * component's index.
-     * 
-     * @return The byte data for all packed properties that this property has
-     *         been packed with
+     * Return the backing byte array of this property's IndexedDataStore. The array may be
+     * longer than necessary for the number of components in the system. Data can be
+     * accessed for a component directly using the component's index.
+     *
+     * @return The byte data for all packed properties that this property has been packed
+     *         with
      */
     public byte[] getIndexedData() {
         return store.getArray();
@@ -67,9 +61,11 @@ public final class ByteProperty implements Property {
 
     /**
      * Get the value stored in this property for the given component index.
-     * 
+     *
      * @param componentIndex The component's index
+     *
      * @return The object at the given offset for the given component
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public byte get(int componentIndex) {
@@ -78,9 +74,10 @@ public final class ByteProperty implements Property {
 
     /**
      * Store <tt>val</tt> in this property for the given component index.
-     * 
-     * @param val The value to store
+     *
+     * @param val            The value to store
      * @param componentIndex The index of the component being modified
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(byte val, int componentIndex) {
@@ -98,21 +95,25 @@ public final class ByteProperty implements Property {
             throw new NullPointerException("Store cannot be null");
         }
         if (!(store instanceof ByteDataStore)) {
-            throw new IllegalArgumentException("Store not compatible with ByteProperty, wrong type: " + store.getClass());
+            throw new IllegalArgumentException(
+                    "Store not compatible with ByteProperty, wrong type: " +
+                    store.getClass());
         }
 
         ByteDataStore newStore = (ByteDataStore) store;
         if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException("Store not compatible with ByteProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Store not compatible with ByteProperty, wrong element size: " +
+                    newStore.elementSize);
         }
 
         this.store = newStore;
     }
 
     /**
-     * Factory to create ByteProperties. Properties annotated with DefaultByte
-     * will use that value as the default for all components.
-     * 
+     * Factory to create ByteProperties. Properties annotated with DefaultByte will use
+     * that value as the default for all components.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<ByteProperty> {
@@ -146,9 +147,8 @@ public final class ByteProperty implements Property {
 
     /**
      * Default byte attribute for properties.
-     * 
+     *
      * @author Michael Ludwig
-     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

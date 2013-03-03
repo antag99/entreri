@@ -26,17 +26,15 @@
  */
 package com.lhkbob.entreri;
 
-import junit.framework.Assert;
-
-import org.junit.Test;
-
 import com.lhkbob.entreri.property.Clone;
 import com.lhkbob.entreri.property.Clone.Policy;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
+import junit.framework.Assert;
+import org.junit.Test;
 
-@SuppressWarnings({"unused", "rawtypes", "unchecked"})
+@SuppressWarnings({ "unused", "rawtypes", "unchecked" })
 public class PropertyTest {
     /*
      * ObjectProperty fields for Attributes creation
@@ -74,7 +72,8 @@ public class PropertyTest {
 
     @Test
     public void testObjectPropertyCloneNoPolicy() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyNoPolicy"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(
+                createAttributes("objectPropertyNoPolicy"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -96,7 +95,8 @@ public class PropertyTest {
 
     @Test
     public void testObjectPropertyCloneDisabled() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDisabled"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(
+                createAttributes("objectPropertyDisabled"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -118,7 +118,8 @@ public class PropertyTest {
 
     @Test
     public void testObjectPropertyCloneJavaDefault() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDefault"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(
+                createAttributes("objectPropertyDefault"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -140,7 +141,8 @@ public class PropertyTest {
 
     @Test
     public void testObjectPropertyCloneInvoke() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyInvoke"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(
+                createAttributes("objectPropertyInvoke"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -164,7 +166,8 @@ public class PropertyTest {
 
     @Test
     public void testPrimitivePropertyCloneNoPolicy() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyNoPolicy"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(
+                createAttributes("doublePropertyNoPolicy"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -185,7 +188,8 @@ public class PropertyTest {
 
     @Test
     public void testPrimitivePropertyCloneDisabled() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDisabled"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(
+                createAttributes("doublePropertyDisabled"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -206,7 +210,8 @@ public class PropertyTest {
 
     @Test
     public void testPrimitivePropertyCloneJavaDefault() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDefault"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(
+                createAttributes("doublePropertyDefault"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -227,7 +232,8 @@ public class PropertyTest {
 
     @Test
     public void testPrimitivePropertyCloneInvoke() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyInvoke"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(
+                createAttributes("doublePropertyInvoke"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();

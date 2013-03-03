@@ -26,19 +26,14 @@
  */
 package com.lhkbob.entreri;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
- * SharedInstance is used to annotate ComponentData accessors when the
- * ComponentData instance returns the same object regardless of how the data
- * instance assigned component changes.
- * 
+ * SharedInstance is used to annotate ComponentData accessors when the ComponentData
+ * instance returns the same object regardless of how the data instance assigned component
+ * changes.
+ *
  * @author Michael Ludwig
- * 
  */
 @Documented
 @Target(ElementType.METHOD)

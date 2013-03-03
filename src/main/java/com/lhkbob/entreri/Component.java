@@ -27,30 +27,27 @@
 package com.lhkbob.entreri;
 
 /**
- * <p>
- * Component represents a grouping of reusable and related states that are added
- * to an {@link Entity}. The specific state of a component is stored and defined
- * in {@link ComponentData} implementations. This separation is to support fast
- * iteration over blocks of packed, managed memory. All of the component data is
- * packed into buffers or arrays for cache locality. A single ComponentData
- * instance can then be used to access multiple Components.
- * </p>
- * <p>
- * Component instances represent the identity of the conceptual components,
- * while instances of ComponentData can be configured to read and write to
- * specific components. ComponentData's can change which component they
- * reference multiple times throughout their life time.
- * </p>
- * <p>
- * Component implements both {@link Ownable} and {@link Owner}. This can be used
- * to create hierarchies of both components and entities that share a lifetime.
- * When a component is removed from an entity, all of its owned objects are
- * disowned. If any of them were entities or components, they are also removed
- * from the system.
- * </p>
- * 
- * @author Michael Ludwig
+ * <p/>
+ * Component represents a grouping of reusable and related states that are added to an
+ * {@link Entity}. The specific state of a component is stored and defined in {@link
+ * ComponentData} implementations. This separation is to support fast iteration over
+ * blocks of packed, managed memory. All of the component data is packed into buffers or
+ * arrays for cache locality. A single ComponentData instance can then be used to access
+ * multiple Components.
+ * <p/>
+ * Component instances represent the identity of the conceptual components, while
+ * instances of ComponentData can be configured to read and write to specific components.
+ * ComponentData's can change which component they reference multiple times throughout
+ * their life time.
+ * <p/>
+ * Component implements both {@link Ownable} and {@link Owner}. This can be used to create
+ * hierarchies of both components and entities that share a lifetime. When a component is
+ * removed from an entity, all of its owned objects are disowned. If any of them were
+ * entities or components, they are also removed from the system.
+ *
  * @param <T> The ComponentData type defining the data of this component
+ *
+ * @author Michael Ludwig
  */
 public final class Component<T extends ComponentData<T>> implements Ownable, Owner {
     private final ComponentRepository<T> owner;
@@ -60,9 +57,9 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     int index;
 
     /**
-     * Create a new Component stored in the given ComponentRepository, at the
-     * given array position within the ComponentRepository.
-     * 
+     * Create a new Component stored in the given ComponentRepository, at the given array
+     * position within the ComponentRepository.
+     *
      * @param owner The ComponentRepository owner
      * @param index The index within the owner
      */
@@ -73,14 +70,14 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * Get a ComponentData instance that can be used to manipulate the state of
-     * this component. This is a convenience for allocating a new ComponentData
-     * instance and assigning it to this component. For tight loops, it is
-     * better to allocate a single ComponentData instance and use its
-     * {@link ComponentData#set(Component) set} method.
-     * 
-     * @return A ComponentData to access this component's state, or null if the
-     *         component is not live
+     * Get a ComponentData instance that can be used to manipulate the state of this
+     * component. This is a convenience for allocating a new ComponentData instance and
+     * assigning it to this component. For tight loops, it is better to allocate a single
+     * ComponentData instance and use its {@link ComponentData#set(Component) set}
+     * method.
+     *
+     * @return A ComponentData to access this component's state, or null if the component
+     *         is not live
      */
     public T getData() {
         T data = getEntitySystem().createDataInstance(getType());
@@ -92,18 +89,18 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * @return True if the component is still attached to an entity in the
-     *         entity system, or false if it or its entity has been removed
+     * @return True if the component is still attached to an entity in the entity system,
+     *         or false if it or its entity has been removed
      */
     public boolean isLive() {
         return index != 0;
     }
 
     /**
-     * Return true if this component is enabled, or false if it is disabled and
-     * will appear as though it doesn't exist under default behavior. False is
-     * always returned if the component is not live.
-     * 
+     * Return true if this component is enabled, or false if it is disabled and will
+     * appear as though it doesn't exist under default behavior. False is always returned
+     * if the component is not live.
+     *
      * @return True if enabled
      */
     public boolean isEnabled() {
@@ -113,18 +110,16 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * <p>
-     * Set whether or not this component is enabled. If a component is disabled,
-     * default usage will cause it to appear as the component has been removed.
-     * It will not be returned from {@link Entity#get(TypeId)} or be included in
-     * iterator results using {@link ComponentIterator}.
-     * </p>
-     * <p>
-     * Disabling and enabling components can be a more efficient way to simulate
-     * the adding and removing of components, because it does not remove or
-     * require the allocation of new data.
-     * </p>
-     * 
+     * <p/>
+     * Set whether or not this component is enabled. If a component is disabled, default
+     * usage will cause it to appear as the component has been removed. It will not be
+     * returned from {@link Entity#get(Class)} or be included in iterator results using
+     * {@link ComponentIterator}.
+     * <p/>
+     * Disabling and enabling components can be a more efficient way to simulate the
+     * adding and removing of components, because it does not remove or require the
+     * allocation of new data.
+     *
      * @param enable True if the component is to be enabled
      */
     public void setEnabled(boolean enable) {
@@ -134,10 +129,9 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * Get the entity that this component is attached to. If the component has
-     * been removed from the entity, or is otherwise not live, this will return
-     * null.
-     * 
+     * Get the entity that this component is attached to. If the component has been
+     * removed from the entity, or is otherwise not live, this will return null.
+     *
      * @return The owning entity, or null
      */
     public Entity getEntity() {
@@ -162,12 +156,12 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
     }
 
     /**
-     * Get the underlying index of this component used to access its properties.
-     * In most cases you can just use {@link ComponentData#getIndex()} because
-     * you'll have a ComponentData instance on hand. However, it can be useful
-     * to use this method to access decorated data to avoid setting the
-     * component data to a particular component just to get its index.
-     * 
+     * Get the underlying index of this component used to access its properties. In most
+     * cases you can just use {@link ComponentData#getIndex()} because you'll have a
+     * ComponentData instance on hand. However, it can be useful to use this method to
+     * access decorated data to avoid setting the component data to a particular component
+     * just to get its index.
+     *
      * @return The current index of component
      */
     public int getIndex() {
@@ -208,7 +202,8 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
         } else {
             int entityId = owner.getEntitySystem()
                                 .getEntityByIndex(owner.getEntityIndex(index)).getId();
-            return "Component(" + getType().getSimpleName() + ", entity=" + entityId + ")";
+            return "Component(" + getType().getSimpleName() + ", entity=" + entityId +
+                   ")";
         }
     }
 }

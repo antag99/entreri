@@ -31,9 +31,8 @@ import java.util.Set;
 
 /**
  * Utility for shared implementation of {@link Ownable} and {@link Owner}
- * 
+ *
  * @author Michael Ludwig
- * 
  */
 class OwnerSupport {
     private final Ownable target;
@@ -41,9 +40,9 @@ class OwnerSupport {
     private Owner currentOwner;
 
     /**
-     * Create a new OwnerSupport that functions as both the {@link Owner} and
-     * {@link Ownable} implementation for <tt>target</tt>
-     * 
+     * Create a new OwnerSupport that functions as both the {@link Owner} and {@link
+     * Ownable} implementation for <tt>target</tt>
+     *
      * @param target The actual ownable
      */
     public OwnerSupport(Ownable target) {
@@ -56,24 +55,27 @@ class OwnerSupport {
     }
 
     /**
-     * @see Owner#notifyOwnershipGranted(Ownable)
      * @param obj
+     *
+     * @see Owner#notifyOwnershipGranted(Ownable)
      */
     public void notifyOwnershipGranted(Ownable obj) {
         ownedObjects.add(obj);
     }
 
     /**
-     * @see Owner#notifyOwnershipRevoked(Ownable)
      * @param obj
+     *
+     * @see Owner#notifyOwnershipRevoked(Ownable)
      */
     public void notifyOwnershipRevoked(Ownable obj) {
         ownedObjects.remove(obj);
     }
 
     /**
-     * @see Ownable#setOwner(Owner)
      * @param owner
+     *
+     * @see Ownable#setOwner(Owner)
      */
     public void setOwner(Owner owner) {
         if (currentOwner != null) {
@@ -86,17 +88,18 @@ class OwnerSupport {
     }
 
     /**
-     * @see Ownable#getOwner()
      * @return
+     *
+     * @see Ownable#getOwner()
      */
     public Owner getOwner() {
         return currentOwner;
     }
 
     /**
-     * Set the owner of all currently owned children to null. If any of the
-     * children are entities or components, they are removed from their creating
-     * system or entity, respectively.
+     * Set the owner of all currently owned children to null. If any of the children are
+     * entities or components, they are removed from their creating system or entity,
+     * respectively.
      */
     public void disownAndRemoveChildren() {
         // Mark all owned objects as not owned

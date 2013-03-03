@@ -26,90 +26,81 @@
  */
 package com.lhkbob.entreri;
 
-import java.lang.reflect.AccessibleObject;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
- * <p>
+ * <p/>
  * ReflectionComponentDataFactory is a factory for creating new instances of
- * ComponentDatas of a specific type. ReflectionComponentDataFactory has a
- * number of requirements for the way that a ComponentData subclass is defined
- * in order to be processed correctly. If these are too restrictive for your
- * needs, you can implement your own {@link ComponentDataFactory} and annotate
- * the ComponentData type with {@link DefaultFactory}.
- * </p>
- * <p>
- * ReflectionComponentDataFactory has the following requirements:
- * <ol>
- * <li>If the class is not a direct subclass of ComponentData, its parent must
- * be a assignable to ComponentData and be declared abstract. The parent's
- * declared fields must also follow the rules below.</li>
- * <li>A concrete subclass of ComponentData must have only one constructor; it
- * must be private or protected and take zero arguments.</li>
- * <li>All non-static fields that are not annotated with {@link Unmanaged}
- * defined in the ComponentData type, or its abstract parents, must be
- * Properties and be private or protected.</li>
- * <li>The Property field must be annotated with {@link Factory} or the Property
- * class must be annotated with {@link Factory}.</li>
- * <li>The specified factory must have a default constructor, or a constructor
- * that takes a single {@link Attributes} instance.</li>
- * </ol>
- * </p>
- * 
- * @author Michael Ludwig
+ * ComponentDatas of a specific type. ReflectionComponentDataFactory has a number of
+ * requirements for the way that a ComponentData subclass is defined in order to be
+ * processed correctly. If these are too restrictive for your needs, you can implement
+ * your own {@link ComponentDataFactory} and annotate the ComponentData type with {@link
+ * DefaultFactory}.
+ * <p/>
+ * ReflectionComponentDataFactory has the following requirements: <ol> <li>If the class is
+ * not a direct subclass of ComponentData, its parent must be a assignable to
+ * ComponentData and be declared abstract. The parent's declared fields must also follow
+ * the rules below.</li> <li>A concrete subclass of ComponentData must have only one
+ * constructor; it must be private or protected and take zero arguments.</li> <li>All
+ * non-static fields that are not annotated with {@link Unmanaged} defined in the
+ * ComponentData type, or its abstract parents, must be Properties and be private or
+ * protected.</li> <li>The Property field must be annotated with {@link Factory} or the
+ * Property class must be annotated with {@link Factory}.</li> <li>The specified factory
+ * must have a default constructor, or a constructor that takes a single {@link
+ * Attributes} instance.</li> </ol>
+ *
  * @param <T> The built component type
+ *
+ * @author Michael Ludwig
  */
-public final class ReflectionComponentDataFactory<T extends ComponentData<T>> implements ComponentDataFactory<T> {
+public final class ReflectionComponentDataFactory<T extends ComponentData<T>>
+        implements ComponentDataFactory<T> {
     private final Constructor<T> constructor;
     private final Map<Field, PropertyFactory<?>> propertyFactories;
     private final Set<Class<? extends ComponentData<?>>> requiredTypes;
 
     /**
-     * Create a new ReflectionComponentDataFactory for the given type of
-     * ComponentData. This is a slower constructor with lots of reflection so
-     * builders should be cached. This will throw an exception if the
-     * ComponentData type does meet the conventions required for this type of
-     * factory.
-     * 
+     * Create a new ReflectionComponentDataFactory for the given type of ComponentData.
+     * This is a slower constructor with lots of reflection so builders should be cached.
+     * This will throw an exception if the ComponentData type does meet the conventions
+     * required for this type of factory.
+     *
      * @param type The component type created by this builder
-     * @throws IllegalArgumentException if the class is not really a component
-     *             or if it is abstract
-     * @throws IllegalComponentDefinitionException if the class hierarchy of the
-     *             component type is invalid by breaking any of the constructor
-     *             or field rules for defining a component
+     *
+     * @throws IllegalArgumentException if the class is not really a component or if it is
+     *                                  abstract
+     * @throws IllegalComponentDefinitionException
+     *                                  if the class hierarchy of the component type is
+     *                                  invalid by breaking any of the constructor or
+     *                                  field rules for defining a component
      */
     @SuppressWarnings("unchecked")
     public ReflectionComponentDataFactory(Class<T> type) {
         // Now we actually have to build up a new TypeId - which is sort of slow
         if (!ComponentData.class.isAssignableFrom(type)) {
-            throw new IllegalArgumentException("Type must be a subclass of ComponentData: " + type);
+            throw new IllegalArgumentException(
+                    "Type must be a subclass of ComponentData: " + type);
         }
 
         // Make sure we don't create TypedIds for abstract ComponentData types
         // (we don't want to try to allocate these)
         if (Modifier.isAbstract(type.getModifiers())) {
-            throw new IllegalArgumentException("ComponentData class type cannot be abstract: " + type);
+            throw new IllegalArgumentException(
+                    "ComponentData class type cannot be abstract: " + type);
         }
 
         // Accumulate all property fields and validate type hierarchy
         List<Field> fields = new ArrayList<Field>(getFields(type));
-        Set<Class<? extends ComponentData<?>>> required = new HashSet<Class<? extends ComponentData<?>>>(getRequiredTypes(type));
+        Set<Class<? extends ComponentData<?>>> required = new HashSet<Class<? extends ComponentData<?>>>(
+                getRequiredTypes(type));
 
         Class<? super T> parent = type.getSuperclass();
         while (!ComponentData.class.equals(parent)) {
             if (!Modifier.isAbstract(parent.getModifiers())) {
                 throw new IllegalComponentDefinitionException(type,
-                                                              "Parent class " + parent + " is not abstract");
+                                                              "Parent class " + parent +
+                                                              " is not abstract");
             }
 
             // this cast is safe since we're in the while loop
@@ -146,7 +137,9 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         Field f = (Field) key;
 
         if (!f.getType().isAssignableFrom(property.getClass())) {
-            throw new IllegalArgumentException("Property was not created by correct PropertyFactory for key: " + key);
+            throw new IllegalArgumentException(
+                    "Property was not created by correct PropertyFactory for key: " +
+                    key);
         }
 
         try {
@@ -161,7 +154,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         return requiredTypes;
     }
 
-    private static Set<Class<? extends ComponentData<?>>> getRequiredTypes(Class<? extends ComponentData<?>> type) {
+    private static Set<Class<? extends ComponentData<?>>> getRequiredTypes(
+            Class<? extends ComponentData<?>> type) {
         Set<Class<? extends ComponentData<?>>> required = new HashSet<Class<? extends ComponentData<?>>>();
 
         Requires req = type.getAnnotation(Requires.class);
@@ -175,7 +169,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         return required;
     }
 
-    private static <T extends ComponentData<?>> Map<Field, PropertyFactory<?>> getPropertyFactories(List<Field> fields) {
+    private static <T extends ComponentData<?>> Map<Field, PropertyFactory<?>> getPropertyFactories(
+            List<Field> fields) {
         Map<Field, PropertyFactory<?>> factories = new HashMap<Field, PropertyFactory<?>>();
         for (Field f : fields) {
             factories.put(f, createFactory(f));
@@ -186,7 +181,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
     @SuppressWarnings("unchecked")
     private static PropertyFactory<?> createFactory(Field field) {
         Class<? extends Property> type = (Class<? extends Property>) field.getType();
-        Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field.getDeclaringClass();
+        Class<? extends ComponentData<?>> forCType = (Class<? extends ComponentData<?>>) field
+                .getDeclaringClass();
 
         // Check for the @Factory on the field and the type
         Class<? extends PropertyFactory<?>> factoryType;
@@ -198,7 +194,9 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             factoryType = type.getAnnotation(Factory.class).value();
         } else {
             throw new IllegalComponentDefinitionException(forCType,
-                                                          "Cannot create PropertyFactory for " + type + ", no @Factory annotation on field or type");
+                                                          "Cannot create PropertyFactory for " +
+                                                          type +
+                                                          ", no @Factory annotation on field or type");
         }
 
         // verify that the PropertyFactory actually creates the right type
@@ -206,7 +204,10 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             Method create = factoryType.getMethod("create");
             if (!type.isAssignableFrom(create.getReturnType())) {
                 throw new IllegalComponentDefinitionException(forCType,
-                                                              "@Factory(" + factoryType + ") creates incorrect Property type: " + create.getReturnType() + ", required type: " + type);
+                                                              "@Factory(" + factoryType +
+                                                              ") creates incorrect Property type: " +
+                                                              create.getReturnType() +
+                                                              ", required type: " + type);
             }
         } catch (SecurityException e) {
             // should not happen
@@ -216,7 +217,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
             throw new RuntimeException("Unable to inspect factory's create method", e);
         }
 
-        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(field));
+        PropertyFactory<?> factory = invokeConstructor(factoryType,
+                                                       new Attributes(field));
         if (factory == null) {
             factory = invokeConstructor(factoryType);
         }
@@ -224,14 +226,15 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         if (factory == null) {
             // unable to create a PropertyFactory
             throw new IllegalComponentDefinitionException(forCType,
-                                                          "Unable to create PropertyFactory for " + field);
+                                                          "Unable to create PropertyFactory for " +
+                                                          field);
         } else {
             return factory;
         }
     }
 
-    private static PropertyFactory<?> invokeConstructor(Class<? extends PropertyFactory<?>> type,
-                                                        Object... args) {
+    private static PropertyFactory<?> invokeConstructor(
+            Class<? extends PropertyFactory<?>> type, Object... args) {
         Class<?>[] paramTypes = new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
             paramTypes[i] = args[i].getClass();
@@ -255,7 +258,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
     }
 
     @SuppressWarnings("unchecked")
-    private static <T extends ComponentData<?>> Constructor<T> getConstructor(Class<T> type) {
+    private static <T extends ComponentData<?>> Constructor<T> getConstructor(
+            Class<T> type) {
         // This assumes that type is the concrete type, so it will fail if there
         // are multiple constructors or it's not private with the correct arguments
         Constructor<?>[] ctors = type.getDeclaredConstructors();
@@ -265,7 +269,8 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
         }
 
         Constructor<T> ctor = (Constructor<T>) ctors[0];
-        if (!Modifier.isPrivate(ctor.getModifiers()) && !Modifier.isProtected(ctor.getModifiers())) {
+        if (!Modifier.isPrivate(ctor.getModifiers()) &&
+            !Modifier.isProtected(ctor.getModifiers())) {
             throw new IllegalComponentDefinitionException(type,
                                                           "ComponentData constructor must be private or protected");
         }
@@ -297,12 +302,14 @@ public final class ReflectionComponentDataFactory<T extends ComponentData<T>> im
 
             if (!Property.class.isAssignableFrom(declared[i].getType())) {
                 throw new IllegalComponentDefinitionException(type,
-                                                              "ComponentData has non-Property field that is not unmanaged: " + declared[i]);
+                                                              "ComponentData has non-Property field that is not unmanaged: " +
+                                                              declared[i]);
             }
 
             if (!Modifier.isPrivate(modifiers) && !Modifier.isProtected(modifiers)) {
                 throw new IllegalComponentDefinitionException(type,
-                                                              "Field must be private or protected: " + declared[i]);
+                                                              "Field must be private or protected: " +
+                                                              declared[i]);
             }
 
             nonTransientFields.add(declared[i]);

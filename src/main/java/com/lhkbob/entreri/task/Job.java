@@ -26,34 +26,25 @@
  */
 package com.lhkbob.entreri.task;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.lhkbob.entreri.ComponentData;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+
 /**
- * <p>
- * Job represents a list of {@link Task tasks} that must be executed in a
- * particular order so that they produce a meaningful computation over an entity
- * system. Examples of a job might be to render a frame, which could then be
- * decomposed into tasks for computing the visible objects, occluded objects,
- * the optimal rendering order, and shadow computations, etc.
- * <p>
- * Jobs are created by first getting the {@link Scheduler} from a particular
- * EntitySystem, and then calling {@link Scheduler#createJob(String, Task...)}.
- * The name of a job is primarily used to for informational purposes and does
- * not affect its behavior.
- * 
+ * <p/>
+ * Job represents a list of {@link Task tasks} that must be executed in a particular order
+ * so that they produce a meaningful computation over an entity system. Examples of a job
+ * might be to render a frame, which could then be decomposed into tasks for computing the
+ * visible objects, occluded objects, the optimal rendering order, and shadow
+ * computations, etc.
+ * <p/>
+ * Jobs are created by first getting the {@link Scheduler} from a particular EntitySystem,
+ * and then calling {@link Scheduler#createJob(String, Task...)}. The name of a job is
+ * primarily used to for informational purposes and does not affect its behavior.
+ *
  * @author Michael Ludwig
- * 
  */
 public class Job implements Runnable {
     private final Task[] tasks;
@@ -70,12 +61,13 @@ public class Job implements Runnable {
 
     /**
      * Create a new job with the given name and tasks.
-     * 
-     * @param name The name of the job
+     *
+     * @param name      The name of the job
      * @param scheduler The owning scheduler
-     * @param tasks The tasks in order of execution
-     * @throws NullPointerException if name is null, tasks is null or contains
-     *             null elements
+     * @param tasks     The tasks in order of execution
+     *
+     * @throws NullPointerException if name is null, tasks is null or contains null
+     *                              elements
      */
     Job(String name, Scheduler scheduler, Task... tasks) {
         if (name == null) {
@@ -112,7 +104,9 @@ public class Job implements Runnable {
             // record all result report methods exposed by this task
             for (Method m : tasks[i].getClass().getMethods()) {
                 if (m.getName().equals("report")) {
-                    if (m.getReturnType().equals(void.class) && m.getParameterTypes().length == 1 && Result.class.isAssignableFrom(m.getParameterTypes()[0])) {
+                    if (m.getReturnType().equals(void.class) &&
+                        m.getParameterTypes().length == 1 &&
+                        Result.class.isAssignableFrom(m.getParameterTypes()[0])) {
                         // found a valid report method
                         m.setAccessible(true);
                         ResultReporter reporter = new ResultReporter(m, i);
@@ -162,14 +156,13 @@ public class Job implements Runnable {
     }
 
     /**
-     * <p>
-     * Invoke all tasks in this job. This method is thread-safe and will use its
-     * owning scheduler to coordinate the locks necessary to safely execute its
-     * tasks.
-     * <p>
-     * Although {@link Scheduler} has convenience methods to repeatedly invoke a
-     * job, this method can be called directly if a more controlled job
-     * execution scheme is required.
+     * <p/>
+     * Invoke all tasks in this job. This method is thread-safe and will use its owning
+     * scheduler to coordinate the locks necessary to safely execute its tasks.
+     * <p/>
+     * Although {@link Scheduler} has convenience methods to repeatedly invoke a job, this
+     * method can be called directly if a more controlled job execution scheme is
+     * required.
      */
     @Override
     public void run() {
@@ -234,28 +227,32 @@ public class Job implements Runnable {
     }
 
     /**
-     * Report the given result instance to all tasks yet to be executed by this
-     * job, that have declared a public method named 'report' that takes a
-     * Result sub-type that is compatible with <tt>r</tt>'s type.
-     * 
+     * Report the given result instance to all tasks yet to be executed by this job, that
+     * have declared a public method named 'report' that takes a Result sub-type that is
+     * compatible with <tt>r</tt>'s type.
+     *
      * @param r The result to report
-     * @throws NullPointerException if r is null
-     * @throws IllegalStateException if r is a singleton result whose type has
-     *             already been reported by another task in this job, or if the
-     *             job is not currently executing tasks
+     *
+     * @throws NullPointerException  if r is null
+     * @throws IllegalStateException if r is a singleton result whose type has already
+     *                               been reported by another task in this job, or if the
+     *                               job is not currently executing tasks
      */
     public void report(Result r) {
         if (r == null) {
             throw new NullPointerException("Cannot report null results");
         }
         if (taskIndex < 0) {
-            throw new IllegalStateException("Can only be invoked by a task from within run()");
+            throw new IllegalStateException(
+                    "Can only be invoked by a task from within run()");
         }
 
         if (r.isSingleton()) {
             // make sure this is the first we've seen the result
             if (!singletonResults.add(r.getClass())) {
-                throw new IllegalStateException("Singleton result of type: " + r.getClass() + " has already been reported during " + name + "'s execution");
+                throw new IllegalStateException(
+                        "Singleton result of type: " + r.getClass() +
+                        " has already been reported during " + name + "'s execution");
             }
         }
 

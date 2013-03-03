@@ -26,19 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.*;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-
 /**
- * ShortProperty is an implementation of Property that stores a single short
- * value.
- * 
+ * ShortProperty is an implementation of Property that stores a single short value.
+ *
  * @author Michael Ludwig
  */
 @Factory(ShortProperty.Factory.class)
@@ -53,13 +48,12 @@ public final class ShortProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The
-     * array may be longer than necessary for the number of components in the
-     * system. Data can be accessed for a component directly using the
-     * component's index.
-     * 
-     * @return The short data for all packed properties that this property has
-     *         been packed with
+     * Return the backing int array of this property's IndexedDataStore. The array may be
+     * longer than necessary for the number of components in the system. Data can be
+     * accessed for a component directly using the component's index.
+     *
+     * @return The short data for all packed properties that this property has been packed
+     *         with
      */
     public short[] getIndexedData() {
         return store.getArray();
@@ -67,9 +61,11 @@ public final class ShortProperty implements Property {
 
     /**
      * Get the value stored in this property for the given component index.
-     * 
+     *
      * @param componentIndex The component's index
+     *
      * @return The object at the given offset for the given component
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public short get(int componentIndex) {
@@ -78,9 +74,10 @@ public final class ShortProperty implements Property {
 
     /**
      * Store <tt>val</tt> in this property for the given component index.
-     * 
-     * @param val The value to store, can be null
+     *
+     * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(short val, int componentIndex) {
@@ -98,21 +95,25 @@ public final class ShortProperty implements Property {
             throw new NullPointerException("Store cannot be null");
         }
         if (!(store instanceof ShortDataStore)) {
-            throw new IllegalArgumentException("Store not compatible with ShortProperty, wrong type: " + store.getClass());
+            throw new IllegalArgumentException(
+                    "Store not compatible with ShortProperty, wrong type: " +
+                    store.getClass());
         }
 
         ShortDataStore newStore = (ShortDataStore) store;
         if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException("Store not compatible with ShortProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Store not compatible with ShortProperty, wrong element size: " +
+                    newStore.elementSize);
         }
 
         this.store = newStore;
     }
 
     /**
-     * Factory to create ShortProperties. Properties annotated with DefaultShort
-     * will use that value as the default for all components.
-     * 
+     * Factory to create ShortProperties. Properties annotated with DefaultShort will use
+     * that value as the default for all components.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<ShortProperty> {
@@ -146,9 +147,8 @@ public final class ShortProperty implements Property {
 
     /**
      * Default short attribute for properties.
-     * 
+     *
      * @author Michael Ludwig
-     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

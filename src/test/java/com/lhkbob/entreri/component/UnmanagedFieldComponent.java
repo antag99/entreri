@@ -36,7 +36,8 @@ public class UnmanagedFieldComponent extends ComponentData<UnmanagedFieldCompone
     @Unmanaged
     private float field;
 
-    protected UnmanagedFieldComponent() {}
+    protected UnmanagedFieldComponent() {
+    }
 
     public void setObject(Object v) {
         transientProperty.set(v, getIndex());

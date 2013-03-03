@@ -30,13 +30,13 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.property.FloatProperty;
 
 /**
- * An invalid component definition where a Property is declared as a public
- * field.
- * 
+ * An invalid component definition where a Property is declared as a public field.
+ *
  * @author Michael Ludwig
  */
 public class PublicPropertyComponent extends ComponentData<PublicPropertyComponent> {
     public FloatProperty property;
 
-    protected PublicPropertyComponent() {}
+    protected PublicPropertyComponent() {
+    }
 }

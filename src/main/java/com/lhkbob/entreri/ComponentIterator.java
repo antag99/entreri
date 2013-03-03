@@ -30,37 +30,32 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
- * <p>
- * ComponentIterator is an {@link Iterator}-like class used for quickly
- * iterating over subsets of entities within an EntitySystem. Required and
- * optional ComponentData instances are added to it during initialization. These
- * then determine the constraints on the entities reported by the iterator.
- * ComponentIterator is reset-able, so the same instance can be reused for
- * multiple iterations.
- * </p>
- * <p>
- * The ComponentIterator will skip all entities that do not have components of
- * the required component types. This is very useful for Controllers because
- * they often have related component types that they want to fetch at the same
- * time. Optional ComponentData's will be updated if present, and will otherwise
- * be flagged as invalid.
- * </p>
- * <p>
- * The basic workflow for using a ComponentIterator is shown below. In the
- * example, the iterator is used to iterate over all entities that have both an
- * A and a B component, while optionally loading a C component if available.
- * 
+ * <p/>
+ * ComponentIterator is an {@link Iterator}-like class used for quickly iterating over
+ * subsets of entities within an EntitySystem. Required and optional ComponentData
+ * instances are added to it during initialization. These then determine the constraints
+ * on the entities reported by the iterator. ComponentIterator is reset-able, so the same
+ * instance can be reused for multiple iterations.
+ * <p/>
+ * The ComponentIterator will skip all entities that do not have components of the
+ * required component types. This is very useful for Controllers because they often have
+ * related component types that they want to fetch at the same time. Optional
+ * ComponentData's will be updated if present, and will otherwise be flagged as invalid.
+ * <p/>
+ * The basic workflow for using a ComponentIterator is shown below. In the example, the
+ * iterator is used to iterate over all entities that have both an A and a B component,
+ * while optionally loading a C component if available. <p/>
  * <pre>
  * // create ComponentData instances
  * A cdA = system.createDataInstance(TypeId.get(A.class));
  * B cdB = system.createDataInstance(TypeId.get(B.class));
  * C cdC = system.createDataInstance(TypeId.get(C.class));
- * 
+ *
  * // initialize iterator
  * ComponentIterator it = new ComponentIterator(system);
  * it.addRequired(cdA).addRequired(cdB).addOptional(cdC);
  * it.reset(); // not actually required for first iteration
- * 
+ *
  * // iterate
  * while(it.next()) {
  *    // cdA and cdB are both assigned to components of type A and B on the same
@@ -72,9 +67,8 @@ import java.util.Iterator;
  *    }
  * }
  * </pre>
- * 
- * </p>
- * 
+ * <p/>
+ *
  * @author Michael Ludwig
  */
 public class ComponentIterator {
@@ -89,11 +83,12 @@ public class ComponentIterator {
     private ComponentData<?> primary;
 
     /**
-     * Create a new ComponentIterator that will iterate over components or
-     * entities within the given EntitySystem. It will have no attached required
-     * or optional ComponentDatas.
-     * 
+     * Create a new ComponentIterator that will iterate over components or entities within
+     * the given EntitySystem. It will have no attached required or optional
+     * ComponentDatas.
+     *
      * @param system The EntitySystem of the iterator
+     *
      * @throws NullPointerException if system is null
      */
     public ComponentIterator(EntitySystem system) {
@@ -109,12 +104,13 @@ public class ComponentIterator {
     }
 
     /**
-     * Set whether or not the enabled status of a component is ignored. If true,
-     * disabled components will be considered by this iterator. If false,
-     * disabled components will act as though they don't exist. This is
-     * equivalent to {@link Entity#get(TypeId, boolean)}.
-     * 
+     * Set whether or not the enabled status of a component is ignored. If true, disabled
+     * components will be considered by this iterator. If false, disabled components will
+     * act as though they don't exist. This is equivalent to {@link Entity#get(Class,
+     * boolean)}.
+     *
      * @param e The enable flag to set
+     *
      * @return This iterator for chaining purposes
      */
     public ComponentIterator setIgnoreEnabled(boolean e) {
@@ -123,24 +119,27 @@ public class ComponentIterator {
     }
 
     /**
-     * Add the given ComponentData instance as a required component type for
-     * this iterator. Besides implicitly specifying the required type, the
-     * provided instance will be set to each component of that type during
-     * iteration. Thus it is recommended to hold onto instance for later use.
-     * 
-     * @param data The ComponentData that is used to access the required
-     *            component type data of its type
+     * Add the given ComponentData instance as a required component type for this
+     * iterator. Besides implicitly specifying the required type, the provided instance
+     * will be set to each component of that type during iteration. Thus it is recommended
+     * to hold onto instance for later use.
+     *
+     * @param data The ComponentData that is used to access the required component type
+     *             data of its type
+     *
      * @return This iterator to chain
-     * @throws NullPointerException if data is null
-     * @throws IllegalArgumentException if data was not created by the
-     *             EntitySystem of this iterator
+     *
+     * @throws NullPointerException     if data is null
+     * @throws IllegalArgumentException if data was not created by the EntitySystem of
+     *                                  this iterator
      */
     public ComponentIterator addRequired(ComponentData<?> data) {
         if (data == null) {
             throw new NullPointerException("ComponentData cannot be null");
         }
         if (data.owner.getEntitySystem() != system) {
-            throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
+            throw new IllegalArgumentException(
+                    "ComponentData not created by correct EntitySystem");
         }
 
         // check to see if the data should be the new primary
@@ -152,7 +151,8 @@ public class ComponentIterator {
             // putting one data into the required array
             required = Arrays.copyOf(required, required.length + 1);
 
-            if (data.owner.getMaxComponentIndex() < primary.owner.getMaxComponentIndex()) {
+            if (data.owner.getMaxComponentIndex() <
+                primary.owner.getMaxComponentIndex()) {
                 // new primary
                 required[required.length - 1] = primary;
                 primary = data;
@@ -166,31 +166,31 @@ public class ComponentIterator {
     }
 
     /**
-     * <p>
-     * Add the given ComponentData instance as an optional component type for
-     * this iterator. Besides implicitly specifying the required type, the
-     * provided instance will be set to each component of that type during
-     * iteration. Thus it is recommended to hold onto instance for later use.
-     * </p>
-     * <p>
-     * Entities are not required to have components of this type when reported
-     * by this iterator. It is important to check
-     * {@link ComponentData#isValid()} first.
-     * </p>
-     * 
-     * @param data The ComponentData that is used to access the required
-     *            component type data of its type
+     * <p/>
+     * Add the given ComponentData instance as an optional component type for this
+     * iterator. Besides implicitly specifying the required type, the provided instance
+     * will be set to each component of that type during iteration. Thus it is recommended
+     * to hold onto instance for later use.
+     * <p/>
+     * Entities are not required to have components of this type when reported by this
+     * iterator. It is important to check {@link ComponentData#isValid()} first.
+     *
+     * @param data The ComponentData that is used to access the required component type
+     *             data of its type
+     *
      * @return This iterator to chain
-     * @throws NullPointerException if data is null
-     * @throws IllegalArgumentException if data was not created by the
-     *             EntitySystem of this iterator
+     *
+     * @throws NullPointerException     if data is null
+     * @throws IllegalArgumentException if data was not created by the EntitySystem of
+     *                                  this iterator
      */
     public ComponentIterator addOptional(ComponentData<?> data) {
         if (data == null) {
             throw new NullPointerException("ComponentData cannot be null");
         }
         if (data.owner.getEntitySystem() != system) {
-            throw new IllegalArgumentException("ComponentData not created by correct EntitySystem");
+            throw new IllegalArgumentException(
+                    "ComponentData not created by correct EntitySystem");
         }
 
         // add the data to the optional array
@@ -201,27 +201,23 @@ public class ComponentIterator {
     }
 
     /**
-     * <p>
-     * Advance the iterator to the next Entity that has components of all
-     * required types. All ComponentData's of the required types will be updated
-     * to access the components of the next entity. Optional ComponentData's
-     * will be updated to those components of the entity's, if they are
-     * attached. They may not be, in which case they will be flagged as invalid.
-     * </p>
-     * <p>
-     * It can be assumed that when an Entity is found that all required
-     * ComponentData's are valid and reference that entity's components of the
-     * appropriate type.
-     * </p>
-     * <p>
-     * True is returned if an Entity was found. False is returned if there were
-     * no more entities matching the requirements in the system. Additionally,
-     * if there are no required ComponentData's, then false is always returned.
-     * The iterator must be constrained by at least one required type.
-     * </p>
-     * 
-     * @return True if another entity was found and the required components (and
-     *         any present optional components) have been updated to that entity
+     * <p/>
+     * Advance the iterator to the next Entity that has components of all required types.
+     * All ComponentData's of the required types will be updated to access the components
+     * of the next entity. Optional ComponentData's will be updated to those components of
+     * the entity's, if they are attached. They may not be, in which case they will be
+     * flagged as invalid.
+     * <p/>
+     * It can be assumed that when an Entity is found that all required ComponentData's
+     * are valid and reference that entity's components of the appropriate type.
+     * <p/>
+     * True is returned if an Entity was found. False is returned if there were no more
+     * entities matching the requirements in the system. Additionally, if there are no
+     * required ComponentData's, then false is always returned. The iterator must be
+     * constrained by at least one required type.
+     *
+     * @return True if another entity was found and the required components (and any
+     *         present optional components) have been updated to that entity
      */
     public boolean next() {
         if (primary == null) {
@@ -243,7 +239,8 @@ public class ComponentIterator {
                 if (ignoreEnabled || primary.isEnabled()) {
                     for (int i = 0; i < required.length; i++) {
                         component = required[i].owner.getComponentIndex(entity);
-                        if (!required[i].setFast(component) || (!ignoreEnabled && !required[i].isEnabled())) {
+                        if (!required[i].setFast(component) ||
+                            (!ignoreEnabled && !required[i].isEnabled())) {
                             found = false;
                             break;
                         }
@@ -254,7 +251,8 @@ public class ComponentIterator {
                         // so now set all optional requirements as well
                         for (int i = 0; i < optional.length; i++) {
                             component = optional[i].owner.getComponentIndex(entity);
-                            optional[i].setFast(component); // we don't care if this is valid or not
+                            // we don't care if this is valid or not
+                            optional[i].setFast(component);
                         }
 
                         return true;
@@ -267,8 +265,8 @@ public class ComponentIterator {
     }
 
     /**
-     * Reset this ComponentIterator to the beginning of the system to perform
-     * another complete iteration.
+     * Reset this ComponentIterator to the beginning of the system to perform another
+     * complete iteration.
      */
     public void reset() {
         index = 0;

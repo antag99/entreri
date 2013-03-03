@@ -26,12 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import junit.framework.Assert;
-
-import org.junit.Test;
-
 import com.lhkbob.entreri.component.IntComponent;
 import com.lhkbob.entreri.component.OnSetComponent;
+import junit.framework.Assert;
+import org.junit.Test;
 
 public class ComponentDataTest {
     @Test

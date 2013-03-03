@@ -26,30 +26,15 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.component.*;
+import com.lhkbob.entreri.property.*;
+import org.junit.Assert;
+import org.junit.Test;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.junit.Assert;
-import org.junit.Test;
-
-import com.lhkbob.entreri.component.BadConstructorComponent;
-import com.lhkbob.entreri.component.ExtraFieldComponent;
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
-import com.lhkbob.entreri.component.InvalidFactoryComponent;
-import com.lhkbob.entreri.component.InvalidFactoryMethodComponent;
-import com.lhkbob.entreri.component.InvalidHierarchyComponent;
-import com.lhkbob.entreri.component.MultiPropertyComponent;
-import com.lhkbob.entreri.component.ObjectComponent;
-import com.lhkbob.entreri.component.PublicConstructorComponent;
-import com.lhkbob.entreri.component.UnmanagedFieldComponent;
-import com.lhkbob.entreri.property.FloatProperty;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
-import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.LongProperty;
-import com.lhkbob.entreri.property.NoParameterProperty;
 
 public class ReflectionComponentDataFactoryTest {
     @Test
@@ -72,12 +57,12 @@ public class ReflectionComponentDataFactoryTest {
         doInvalidComponentDefinitionTest(PublicConstructorComponent.class);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void doValidComponentDefinitionTest(Class type) {
         new ReflectionComponentDataFactory(type).getPropertyFactories();
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void doInvalidComponentDefinitionTest(Class type) {
         try {
             new ReflectionComponentDataFactory(type);
@@ -90,7 +75,8 @@ public class ReflectionComponentDataFactoryTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testPropertyLookup() {
-        ReflectionComponentDataFactory<MultiPropertyComponent> builder = new ReflectionComponentDataFactory<MultiPropertyComponent>(MultiPropertyComponent.class);
+        ReflectionComponentDataFactory<MultiPropertyComponent> builder = new ReflectionComponentDataFactory<MultiPropertyComponent>(
+                MultiPropertyComponent.class);
         Map<?, PropertyFactory<?>> origProps = builder.getPropertyFactories();
 
         // for this test convert it to a string key map
@@ -103,8 +89,8 @@ public class ReflectionComponentDataFactoryTest {
         Assert.assertTrue(props.containsKey("longProp"));
         Assert.assertTrue(props.get("longProp").create() instanceof LongProperty);
         LongProperty longProp = (LongProperty) props.get("longProp").create();
-        ((PropertyFactory<LongProperty>) props.get("longProp")).setDefaultValue(longProp,
-                                                                                0);
+        ((PropertyFactory<LongProperty>) props.get("longProp"))
+                .setDefaultValue(longProp, 0);
         long[] longData = longProp.getIndexedData();
         Assert.assertEquals(1, longData.length);
         Assert.assertEquals(Long.MAX_VALUE, longData[0]);
@@ -112,8 +98,8 @@ public class ReflectionComponentDataFactoryTest {
         Assert.assertTrue(props.containsKey("floatProp"));
         Assert.assertTrue(props.get("floatProp").create() instanceof FloatProperty);
         FloatProperty floatProp = (FloatProperty) props.get("floatProp").create();
-        ((PropertyFactory<FloatProperty>) props.get("floatProp")).setDefaultValue(floatProp,
-                                                                                  0);
+        ((PropertyFactory<FloatProperty>) props.get("floatProp"))
+                .setDefaultValue(floatProp, 0);
         float[] floatData = floatProp.getIndexedData();
         Assert.assertEquals(1, floatData.length);
         Assert.assertEquals(0.5f, floatData[0], .0001f);
@@ -144,7 +130,8 @@ public class ReflectionComponentDataFactoryTest {
             c.setFloat(i);
         }
 
-        UnmanagedFieldComponent c = system.createDataInstance(UnmanagedFieldComponent.class);
+        UnmanagedFieldComponent c = system
+                .createDataInstance(UnmanagedFieldComponent.class);
         for (Entity e : system) {
             Assert.assertTrue(e.get(c));
             float f = c.getFloat();

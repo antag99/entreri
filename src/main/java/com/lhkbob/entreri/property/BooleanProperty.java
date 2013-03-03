@@ -26,19 +26,15 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.*;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
 
 /**
  * BooleanProperty is an implementation of Property that stores a single boolean
  * property.
- * 
+ *
  * @author Michael Ludwig
  */
 @Factory(BooleanProperty.Factory.class)
@@ -53,13 +49,12 @@ public final class BooleanProperty implements Property {
     }
 
     /**
-     * Return the backing boolean array of this property's IndexedDataStore. The
-     * array may be longer than necessary for the number of components in the
-     * system. Data can be accessed for a component directly using the
-     * component's index.
-     * 
-     * @return The boolean data for all packed properties that this property has
-     *         been packed with
+     * Return the backing boolean array of this property's IndexedDataStore. The array may
+     * be longer than necessary for the number of components in the system. Data can be
+     * accessed for a component directly using the component's index.
+     *
+     * @return The boolean data for all packed properties that this property has been
+     *         packed with
      */
     public boolean[] getIndexedData() {
         return store.getArray();
@@ -67,9 +62,11 @@ public final class BooleanProperty implements Property {
 
     /**
      * Get the value stored in this property for the given component index.
-     * 
+     *
      * @param componentIndex The component's index
+     *
      * @return The object at the given offset for the given component
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public boolean get(int componentIndex) {
@@ -78,9 +75,10 @@ public final class BooleanProperty implements Property {
 
     /**
      * Store <tt>val</tt> in this property for the given component index.
-     * 
-     * @param val The value to store
+     *
+     * @param val            The value to store
      * @param componentIndex The index of the component being modified
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(boolean val, int componentIndex) {
@@ -98,21 +96,25 @@ public final class BooleanProperty implements Property {
             throw new NullPointerException("Store cannot be null");
         }
         if (!(store instanceof BooleanDataStore)) {
-            throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong type: " + store.getClass());
+            throw new IllegalArgumentException(
+                    "Store not compatible with FloatProperty, wrong type: " +
+                    store.getClass());
         }
 
         BooleanDataStore newStore = (BooleanDataStore) store;
         if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException("Store not compatible with FloatProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Store not compatible with FloatProperty, wrong element size: " +
+                    newStore.elementSize);
         }
 
         this.store = newStore;
     }
 
     /**
-     * Factory to create BooleanProperties. Properties annotated with
-     * DefaultBoolean will use that value as the default for all components.
-     * 
+     * Factory to create BooleanProperties. Properties annotated with DefaultBoolean will
+     * use that value as the default for all components.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<BooleanProperty> {
@@ -146,9 +148,8 @@ public final class BooleanProperty implements Property {
 
     /**
      * Default boolean attribute for properties.
-     * 
+     *
      * @author Michael Ludwig
-     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

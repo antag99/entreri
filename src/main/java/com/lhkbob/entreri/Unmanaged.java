@@ -32,16 +32,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Unmanaged is an annotation that can be applied to fields in a ComponentData
- * definition to make the field completely ignored by the EntitySystem creating
- * or managing the component. This can be used to store per-instance cached data
- * in the component without triggering
- * {@link IllegalComponentDefinitionException exceptions}. However, it makes
- * little sense to declare a Property field as unmanaged because then its data
- * store will not be kept in sync with the component's other indexed data.
- * 
+ * Unmanaged is an annotation that can be applied to fields in a ComponentData definition
+ * to make the field completely ignored by the EntitySystem creating or managing the
+ * component. This can be used to store per-instance cached data in the component without
+ * triggering {@link IllegalComponentDefinitionException exceptions}. However, it makes
+ * little sense to declare a Property field as unmanaged because then its data store will
+ * not be kept in sync with the component's other indexed data.
+ *
  * @author Michael Ludwig
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Unmanaged {}
+public @interface Unmanaged {
+}

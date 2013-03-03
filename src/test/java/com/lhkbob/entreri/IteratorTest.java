@@ -26,10 +26,9 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.component.IntComponent;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.lhkbob.entreri.component.IntComponent;
 
 public class IteratorTest {
     @Test

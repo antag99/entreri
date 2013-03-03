@@ -26,16 +26,11 @@
  */
 package com.lhkbob.entreri;
 
-import java.util.Iterator;
-
+import com.lhkbob.entreri.component.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
-import com.lhkbob.entreri.component.ObjectComponent;
-import com.lhkbob.entreri.component.RequiresAComponent;
-import com.lhkbob.entreri.component.RequiresBComponent;
+import java.util.Iterator;
 
 public class EntityTest {
     @Test

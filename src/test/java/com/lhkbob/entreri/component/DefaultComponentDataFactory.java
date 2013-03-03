@@ -26,21 +26,23 @@
  */
 package com.lhkbob.entreri.component;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentDataFactory;
 import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.PropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 
-public class DefaultComponentDataFactory implements ComponentDataFactory<DefaultFactoryComponent> {
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+
+public class DefaultComponentDataFactory
+        implements ComponentDataFactory<DefaultFactoryComponent> {
     @Override
     public Map<?, PropertyFactory<?>> getPropertyFactories() {
-        return Collections.<String, PropertyFactory<?>> singletonMap("prop",
-                                                                     new IntProperty.Factory(0));
+        return Collections.<String, PropertyFactory<?>>singletonMap("prop",
+                                                                    new IntProperty.Factory(
+                                                                            0));
     }
 
     @Override

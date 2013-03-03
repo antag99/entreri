@@ -32,15 +32,17 @@ import com.lhkbob.entreri.Property;
 import com.lhkbob.entreri.PropertyFactory;
 
 /**
- * AbstractPropertyFactory is an abstract PropertyFactory implementation that
- * implements {@link #clone(Property, int, Property, int)} in terms of
- * {@link IndexedDataStore#copy(int, int, IndexedDataStore, int)}. In many cases
- * this is sufficient for most PropertyFactories.
- * 
- * @author Michael Ludwig
+ * AbstractPropertyFactory is an abstract PropertyFactory implementation that implements
+ * {@link #clone(Property, int, Property, int)} in terms of {@link
+ * IndexedDataStore#copy(int, int, IndexedDataStore, int)}. In many cases this is
+ * sufficient for most PropertyFactories.
+ *
  * @param <P>
+ *
+ * @author Michael Ludwig
  */
-public abstract class AbstractPropertyFactory<P extends Property> implements PropertyFactory<P> {
+public abstract class AbstractPropertyFactory<P extends Property>
+        implements PropertyFactory<P> {
     protected final Attributes attributes;
     protected final Clone.Policy clonePolicy;
 
@@ -68,7 +70,8 @@ public abstract class AbstractPropertyFactory<P extends Property> implements Pro
             src.getDataStore().copy(srcIndex, 1, dst.getDataStore(), dstIndex);
             break;
         default:
-            throw new UnsupportedOperationException("Enum value not supported: " + clonePolicy);
+            throw new UnsupportedOperationException(
+                    "Enum value not supported: " + clonePolicy);
         }
     }
 }

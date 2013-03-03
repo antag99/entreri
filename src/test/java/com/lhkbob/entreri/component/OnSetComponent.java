@@ -36,7 +36,8 @@ public class OnSetComponent extends ComponentData<OnSetComponent> {
     @Unmanaged
     public boolean onsetCalled;
 
-    protected OnSetComponent() {}
+    protected OnSetComponent() {
+    }
 
     @Override
     protected void onSet(int index) {

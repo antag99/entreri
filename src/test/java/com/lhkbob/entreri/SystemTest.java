@@ -26,19 +26,14 @@
  */
 package com.lhkbob.entreri;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.lhkbob.entreri.component.*;
+import com.lhkbob.entreri.component.CustomFactoryComponent.CustomFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.lhkbob.entreri.component.CustomFactoryComponent;
-import com.lhkbob.entreri.component.CustomFactoryComponent.CustomFactory;
-import com.lhkbob.entreri.component.DefaultFactoryComponent;
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
-import com.lhkbob.entreri.component.MultiPropertyComponent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class SystemTest {
     @Test
@@ -49,7 +44,8 @@ public class SystemTest {
         // the default reflection factory will fail to create an instance
         // because the property is public. If it is created, and it's not null
         // we know the custom factory worked
-        CustomFactoryComponent cd = system.createDataInstance(CustomFactoryComponent.class);
+        CustomFactoryComponent cd = system
+                .createDataInstance(CustomFactoryComponent.class);
         Assert.assertNotNull(cd.prop);
     }
 
@@ -60,7 +56,8 @@ public class SystemTest {
         // the default reflection factory will fail to create an instance
         // because the property is public. If it is created, and it's not null
         // we know the custom factory worked
-        DefaultFactoryComponent cd = system.createDataInstance(DefaultFactoryComponent.class);
+        DefaultFactoryComponent cd = system
+                .createDataInstance(DefaultFactoryComponent.class);
         Assert.assertNotNull(cd.prop);
     }
 

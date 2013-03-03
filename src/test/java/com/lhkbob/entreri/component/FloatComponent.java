@@ -31,13 +31,14 @@ import com.lhkbob.entreri.property.FloatProperty;
 
 /**
  * A test component that tests the parameter for FloatProperty.
- * 
+ *
  * @author Michael Ludwig
  */
 public class FloatComponent extends ComponentData<FloatComponent> {
     private FloatProperty property;
 
-    protected FloatComponent() {}
+    protected FloatComponent() {
+    }
 
     public float getFloat() {
         return property.get(getIndex());

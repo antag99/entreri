@@ -26,18 +26,14 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.*;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import com.lhkbob.entreri.Attribute;
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-
 /**
  * IntProperty is an implementation of Property that stores a single int value.
- * 
+ *
  * @author Michael Ludwig
  */
 @Factory(IntProperty.Factory.class)
@@ -52,13 +48,12 @@ public final class IntProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The
-     * array may be longer than necessary for the number of components in the
-     * system. Data can be accessed for a component directly using the
-     * component's index.
-     * 
-     * @return The int data for all packed properties that this property has
-     *         been packed with
+     * Return the backing int array of this property's IndexedDataStore. The array may be
+     * longer than necessary for the number of components in the system. Data can be
+     * accessed for a component directly using the component's index.
+     *
+     * @return The int data for all packed properties that this property has been packed
+     *         with
      */
     public int[] getIndexedData() {
         return store.getArray();
@@ -66,9 +61,11 @@ public final class IntProperty implements Property {
 
     /**
      * Get the value stored in this property for the given component index.
-     * 
+     *
      * @param componentIndex The component's index
+     *
      * @return The object at the given offset for the given component
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public int get(int componentIndex) {
@@ -77,9 +74,10 @@ public final class IntProperty implements Property {
 
     /**
      * Store <tt>val</tt> in this property for the given component index.
-     * 
-     * @param val The value to store, can be null
+     *
+     * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(int val, int componentIndex) {
@@ -97,21 +95,25 @@ public final class IntProperty implements Property {
             throw new NullPointerException("Store cannot be null");
         }
         if (!(store instanceof IntDataStore)) {
-            throw new IllegalArgumentException("Store not compatible with IntProperty, wrong type: " + store.getClass());
+            throw new IllegalArgumentException(
+                    "Store not compatible with IntProperty, wrong type: " +
+                    store.getClass());
         }
 
         IntDataStore newStore = (IntDataStore) store;
         if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException("Store not compatible with IntProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Store not compatible with IntProperty, wrong element size: " +
+                    newStore.elementSize);
         }
 
         this.store = newStore;
     }
 
     /**
-     * Factory to create IntProperties. Properties annotated with DefaultInt
-     * will use that value as the default for all components.
-     * 
+     * Factory to create IntProperties. Properties annotated with DefaultInt will use that
+     * value as the default for all components.
+     *
      * @author Michael Ludwig
      */
     public static class Factory extends AbstractPropertyFactory<IntProperty> {
@@ -145,9 +147,8 @@ public final class IntProperty implements Property {
 
     /**
      * Default int attribute for properties.
-     * 
+     *
      * @author Michael Ludwig
-     * 
      */
     @Attribute
     @Retention(RetentionPolicy.RUNTIME)

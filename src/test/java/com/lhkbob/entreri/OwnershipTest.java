@@ -26,12 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import junit.framework.Assert;
-
-import org.junit.Test;
-
 import com.lhkbob.entreri.component.FloatComponent;
 import com.lhkbob.entreri.component.IntComponent;
+import junit.framework.Assert;
+import org.junit.Test;
 
 public class OwnershipTest {
 
@@ -88,7 +86,8 @@ public class OwnershipTest {
 
         e1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {}
+            public void notifyOwnershipGranted(Ownable obj) {
+            }
 
             @Override
             public void notifyOwnershipRevoked(Ownable obj) {
@@ -110,7 +109,8 @@ public class OwnershipTest {
 
         c1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {}
+            public void notifyOwnershipGranted(Ownable obj) {
+            }
 
             @Override
             public void notifyOwnershipRevoked(Ownable obj) {
@@ -133,7 +133,8 @@ public class OwnershipTest {
 
         c1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {}
+            public void notifyOwnershipGranted(Ownable obj) {
+            }
 
             @Override
             public void notifyOwnershipRevoked(Ownable obj) {

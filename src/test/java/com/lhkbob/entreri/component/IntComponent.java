@@ -31,13 +31,14 @@ import com.lhkbob.entreri.property.IntProperty;
 
 /**
  * A test component that tests the parameter constructor for IntProperty.
- * 
+ *
  * @author Michael Ludwig
  */
 public class IntComponent extends ComponentData<IntComponent> {
     private IntProperty property;
 
-    protected IntComponent() {}
+    protected IntComponent() {
+    }
 
     public int getInt() {
         return property.get(getIndex());

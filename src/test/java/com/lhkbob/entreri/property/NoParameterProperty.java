@@ -48,7 +48,8 @@ public class NoParameterProperty implements Property {
         property.setDataStore(store);
     }
 
-    public static class NoArgFactory extends AbstractPropertyFactory<NoParameterProperty> {
+    public static class NoArgFactory
+            extends AbstractPropertyFactory<NoParameterProperty> {
         public NoArgFactory() {
             super(null);
         }

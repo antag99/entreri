@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
@@ -6,7 +8,11 @@
     <version>1.6.1-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
-    <description>Entreri is an entity-component framework for Java that helps manage or remove complex OO hierarchies that often form when developing games. For a useful description of an entity-component framework, see http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/</description>
+    <description>Entreri is an entity-component framework for Java that helps manage or
+        remove complex OO hierarchies that often form when developing games. For a useful
+        description of an entity-component framework, see
+        http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
+    </description>
     <url>http://entreri.lhkbob.com</url>
 
     <parent>
@@ -36,7 +42,8 @@
 
     <scm>
         <connection>scm:hg:http://bitbucket.org/mludwig/entreri</connection>
-        <developerConnection>scm:hg:https://bitbucket.org/mludwig/entreri</developerConnection>
+        <developerConnection>scm:hg:https://bitbucket.org/mludwig/entreri
+        </developerConnection>
         <url>http://bitbucket.org/mludwig/entreri</url>
     </scm>
 

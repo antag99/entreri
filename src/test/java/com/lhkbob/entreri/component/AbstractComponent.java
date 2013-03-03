@@ -31,13 +31,15 @@ import com.lhkbob.entreri.property.ObjectProperty;
 
 /**
  * A test component that is abstract to test valid class hierarchies.
- * 
+ *
  * @author Michael Ludwig
  */
-public abstract class AbstractComponent<T extends AbstractComponent<T>> extends ComponentData<T> {
+public abstract class AbstractComponent<T extends AbstractComponent<T>>
+        extends ComponentData<T> {
     private ObjectProperty<Object> property;
 
-    protected AbstractComponent() {}
+    protected AbstractComponent() {
+    }
 
     public Object getUserData() {
         return property.getIndexedData()[getIndex()];

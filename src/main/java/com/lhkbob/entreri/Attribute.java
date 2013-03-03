@@ -26,28 +26,23 @@
  */
 package com.lhkbob.entreri;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 
+import java.lang.annotation.*;
+
 /**
- * Attribute is used to declare that other annotation types are 'attributes' of
- * a Property declaration in a ComponentData type definition. They can then be
- * accessed by custom {@link PropertyFactory factories} to configure the
- * specific property. Examples include describing cloning behavior and default
- * values.
- * 
+ * Attribute is used to declare that other annotation types are 'attributes' of a Property
+ * declaration in a ComponentData type definition. They can then be accessed by custom
+ * {@link PropertyFactory factories} to configure the specific property. Examples include
+ * describing cloning behavior and default values.
+ *
+ * @author Michael Ludwig
  * @see IntProperty.Factory
  * @see DefaultInt
- * @author Michael Ludwig
- * 
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface Attribute {}
+public @interface Attribute {
+}

@@ -26,25 +26,21 @@
  */
 package com.lhkbob.entreri.task;
 
-import java.lang.annotation.Annotation;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Method;
-
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 
+import java.lang.annotation.*;
+import java.lang.reflect.Method;
+
 /**
- * <p>
- * SimpleTask extends Task adds logic to simplify the creation of tasks that
- * perform the same operations on each entity that matches a specific component
- * configuration. Subclasses of SimpleTask should define a single method named
- * 'processEntity' that takes as its only parameters, any number of
- * ComponentData instances of specific types. An example might be:
- * 
+ * <p/>
+ * SimpleTask extends Task adds logic to simplify the creation of tasks that perform the
+ * same operations on each entity that matches a specific component configuration.
+ * Subclasses of SimpleTask should define a single method named 'processEntity' that takes
+ * as its only parameters, any number of ComponentData instances of specific types. An
+ * example might be:
+ * <p/>
  * <pre>
  * public class ExampleTask extends SimpleTask {
  *     // c1 and c2 are required types
@@ -55,7 +51,7 @@ import com.lhkbob.entreri.EntitySystem;
  *             // perform additional operations on c3
  *         }
  *     }
- * 
+ *
  *     public Task process(EntitySystem system, Job job) {
  *         // this will invoke processEntities() for each entity in the system
  *         // that has a TypeA and TypeB component. If the entity also has
@@ -65,19 +61,19 @@ import com.lhkbob.entreri.EntitySystem;
  *     }
  * }
  * </pre>
- * <p>
- * In the task's {@link #process(EntitySystem, Job)} method, it can then invoke
- * {@link #processEntities(EntitySystem)} to perform the automated iteration
- * over matching entities within the system. SimpleTask will call the identified
- * 'processEntity' method for each matched entity.
- * 
+ * <p/>
+ * In the task's {@link #process(EntitySystem, Job)} method, it can then invoke {@link
+ * #processEntities(EntitySystem)} to perform the automated iteration over matching
+ * entities within the system. SimpleTask will call the identified 'processEntity' method
+ * for each matched entity.
+ *
  * @author Michael Ludwig
- * 
  */
 public abstract class SimpleTask implements Task {
     @Target(ElementType.PARAMETER)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Optional {}
+    public static @interface Optional {
+    }
 
     private final Method processMethod;
     private final boolean[] optional;
@@ -96,8 +92,8 @@ public abstract class SimpleTask implements Task {
         while (!SimpleTask.class.equals(cls)) {
             for (Method m : cls.getDeclaredMethods()) {
                 if (m.getName().equals("processEntity")) {
-                    if (m.getParameterTypes().length > 0 && m.getReturnType()
-                                                             .equals(boolean.class)) {
+                    if (m.getParameterTypes().length > 0 &&
+                        m.getReturnType().equals(boolean.class)) {
                         boolean paramsValid = true;
                         for (Class<?> p : m.getParameterTypes()) {
                             if (!ComponentData.class.isAssignableFrom(p)) {
@@ -110,7 +106,8 @@ public abstract class SimpleTask implements Task {
                             if (processMethod == null) {
                                 processMethod = m;
                             } else {
-                                throw new IllegalStateException("More than one processEntity() method defined");
+                                throw new IllegalStateException(
+                                        "More than one processEntity() method defined");
                             }
                         }
                     }
@@ -120,7 +117,8 @@ public abstract class SimpleTask implements Task {
         }
 
         if (processMethod == null) {
-            throw new IllegalStateException("SimpleTask subclasses must define a processEntity() method");
+            throw new IllegalStateException(
+                    "SimpleTask subclasses must define a processEntity() method");
         }
 
         processMethod.setAccessible(true);
@@ -140,17 +138,18 @@ public abstract class SimpleTask implements Task {
     }
 
     /**
-     * Process all entities that fit the component profile mandated by the
-     * defined 'processEntity()' method in the subclass.
-     * 
+     * Process all entities that fit the component profile mandated by the defined
+     * 'processEntity()' method in the subclass.
+     *
      * @param system The system to process
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void processEntities(EntitySystem system) {
         if (iterator == null || lastSystem != system) {
             iterator = new ComponentIterator(system);
             for (int i = 0; i < optional.length; i++) {
-                ComponentData<?> data = system.createDataInstance((Class) processMethod.getParameterTypes()[i]);
+                ComponentData<?> data = system
+                        .createDataInstance((Class) processMethod.getParameterTypes()[i]);
                 if (optional[i]) {
                     iterator.addOptional(data);
                 } else {
@@ -167,10 +166,12 @@ public abstract class SimpleTask implements Task {
             iterator.reset();
             while (iterator.next()) {
                 for (int i = 0; i < optional.length; i++) {
-                    invokeArgs[i] = (optional[i] && !componentDatas[i].isEnabled() ? null : componentDatas[i]);
+                    invokeArgs[i] = (optional[i] && !componentDatas[i].isEnabled() ? null
+                                                                                   : componentDatas[i]);
                 }
 
-                boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs)).booleanValue();
+                boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs))
+                        .booleanValue();
                 if (!iterate) {
                     break;
                 }

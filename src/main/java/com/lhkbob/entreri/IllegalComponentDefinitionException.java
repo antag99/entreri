@@ -28,21 +28,21 @@ package com.lhkbob.entreri;
 
 /**
  * IllegalComponentDefinitionException is an exception thrown if a ComponentData
- * implementation does not follow the class hierarchy or field rules defined in
- * {@link ComponentData}.
- * 
+ * implementation does not follow the class hierarchy or field rules defined in {@link
+ * ComponentData}.
+ *
  * @author Michael Ludwig
  */
 public class IllegalComponentDefinitionException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create an exception that specifies the leaf-level class in a
-     * ComponentData type hierarchy has some problem with its definition
-     * 
-     * @param type The leaf, concrete type
-     * @param problem A generic error message to be tacked to the end of the
-     *            final error message
+     * Create an exception that specifies the leaf-level class in a ComponentData type
+     * hierarchy has some problem with its definition
+     *
+     * @param type    The leaf, concrete type
+     * @param problem A generic error message to be tacked to the end of the final error
+     *                message
      */
     public IllegalComponentDefinitionException(Class<? extends ComponentData<?>> type,
                                                String problem) {

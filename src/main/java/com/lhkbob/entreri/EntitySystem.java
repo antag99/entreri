@@ -26,48 +26,36 @@
  */
 package com.lhkbob.entreri;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
 import com.lhkbob.entreri.task.Scheduler;
 import com.lhkbob.entreri.task.Task;
 
+import java.lang.reflect.Constructor;
+import java.util.*;
+
 /**
- * <p>
- * EntitySystem is the main container for the entities within a logical system
- * such as a game or physics world. It contains all entities needed for
- * processing the scene or data. Entities are created with {@link #addEntity()}
- * or {@link #addEntity(Entity)}. They can be removed (and effectively
- * destroyed) with {@link #removeEntity(Entity)}.
- * </p>
- * <p>
- * After an Entity is created, Components can be added to it to store
- * domain-specific data and configure its behaviors. The specifics of the data
- * and behavior depends on the ComponentData implementations and Controllers
- * used to process your data.
- * </p>
- * <p>
- * The {@link Scheduler} of an EntitySystem can be used to register Controllers
- * that will process the entities within an entity system in an organized
- * fashion. Generally, the processing of all controllers through their different
- * phases constitutes a complete "frame".
- * </p>
- * <p>
- * When Entities are created by an EntitySystem, the created instance is
- * assigned an ID which represents its true identity.
- * </p>
- * 
+ * <p/>
+ * EntitySystem is the main container for the entities within a logical system such as a
+ * game or physics world. It contains all entities needed for processing the scene or
+ * data. Entities are created with {@link #addEntity()} or {@link #addEntity(Entity)}.
+ * They can be removed (and effectively destroyed) with {@link #removeEntity(Entity)}.
+ * <p/>
+ * <p/>
+ * After an Entity is created, Components can be added to it to store domain-specific data
+ * and configure its behaviors. The specifics of the data and behavior depends on the
+ * ComponentData implementations and Controllers used to process your data.
+ * <p/>
+ * The {@link Scheduler} of an EntitySystem can be used to register Controllers that will
+ * process the entities within an entity system in an organized fashion. Generally, the
+ * processing of all controllers through their different phases constitutes a complete
+ * "frame".
+ * <p/>
+ * When Entities are created by an EntitySystem, the created instance is assigned an ID
+ * which represents its true identity.
+ *
+ * @author Michael Ludwig
  * @see Entity
  * @see Component
  * @see ComponentData
- * @author Michael Ludwig
  */
 public final class EntitySystem implements Iterable<Entity> {
     // converts valid component data types into indices into componentRepositories
@@ -99,33 +87,30 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * <p>
-     * Assign a specific ComponentDataFactory instance to create and manage
-     * ComponentData instances of the given type for this system. This will
-     * override the default {@link ReflectionComponentDataFactory} or any
-     * default type declared by the {@link DefaultFactory} annotation.
-     * </p>
-     * <p>
-     * However, a ComponentDataFactory cannot be assigned if there is already
-     * another factory in use for that type. This situation arises if
-     * setFactory() is called multiple times, or if the EntitySystem needs to
-     * use a given type before setFactory() is called and it must fall back onto
-     * a default factory.
-     * </p>
-     * <p>
-     * This rule exists to ensure that all ComponentData instances of a given
-     * type created by an EntitySystem come from the same factory, regardless of
-     * when they were instantiated.
-     * </p>
-     * 
-     * @param <T> The ComponentData type created by the factory
-     * @param type The type of the component type
+     * <p/>
+     * Assign a specific ComponentDataFactory instance to create and manage ComponentData
+     * instances of the given type for this system. This will override the default {@link
+     * ReflectionComponentDataFactory} or any default type declared by the {@link
+     * DefaultFactory} annotation.
+     * <p/>
+     * However, a ComponentDataFactory cannot be assigned if there is already another
+     * factory in use for that type. This situation arises if setFactory() is called
+     * multiple times, or if the EntitySystem needs to use a given type before
+     * setFactory() is called and it must fall back onto a default factory.
+     * <p/>
+     * This rule exists to ensure that all ComponentData instances of a given type created
+     * by an EntitySystem come from the same factory, regardless of when they were
+     * instantiated.
+     *
+     * @param <T>     The ComponentData type created by the factory
+     * @param type    The type of the component type
      * @param factory The factory to use in this system for the given type
-     * @throws NullPointerException if id or factory are null
-     * @throws IllegalArgumentException if the factory does not actually create
-     *             instances of type T
-     * @throws IllegalStateException if the EntitySystem already has a factory
-     *             for the given type
+     *
+     * @throws NullPointerException     if id or factory are null
+     * @throws IllegalArgumentException if the factory does not actually create instances
+     *                                  of type T
+     * @throws IllegalStateException    if the EntitySystem already has a factory for the
+     *                                  given type
      */
     @SuppressWarnings("unchecked")
     public <T extends ComponentData<T>> void setFactory(Class<T> type,
@@ -146,13 +131,15 @@ public final class EntitySystem implements Iterable<Entity> {
         ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i != null) {
             // a factory is already defined
-            throw new IllegalStateException("A ComponentDataFactory is already assigned to the type: " + type);
+            throw new IllegalStateException(
+                    "A ComponentDataFactory is already assigned to the type: " + type);
         }
 
         // verify that the factory creates the proper instances
         T data = factory.createInstance();
         if (!type.isInstance(data)) {
-            throw new IllegalArgumentException("ComponentDataFactory does not create instances of type: " + type);
+            throw new IllegalArgumentException(
+                    "ComponentDataFactory does not create instances of type: " + type);
         }
 
         i = new ComponentRepository<T>(this, type, factory);
@@ -161,13 +148,13 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Create a new instance of type T for use with accessing the component data
-     * of this EntitySystem. The returned instance will be invalid until it is
-     * assigned a Component to access (explicitly or via a
-     * {@link ComponentIterator}).
-     * 
-     * @param <T> The type of ComponentData to create
+     * Create a new instance of type T for use with accessing the component data of this
+     * EntitySystem. The returned instance will be invalid until it is assigned a
+     * Component to access (explicitly or via a {@link ComponentIterator}).
+     *
+     * @param <T>  The type of ComponentData to create
      * @param type The type of the ComponentData
+     *
      * @return A new instance of T linked to this EntitySystem
      */
     public <T extends ComponentData<T>> T createDataInstance(Class<T> type) {
@@ -176,12 +163,14 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Estimate the memory usage of the components with the given TypeId in this
-     * EntitySystem. The returned long is measured in bytes. For ComponentData
-     * types that store primitive data, the estimate will be quite accurate. For
-     * types that store references to objects, it is likely be an underestimate.
-     * 
+     * EntitySystem. The returned long is measured in bytes. For ComponentData types that
+     * store primitive data, the estimate will be quite accurate. For types that store
+     * references to objects, it is likely be an underestimate.
+     *
      * @param type The component type whose memory usage is estimated
+     *
      * @return The memory estimate for the given type
+     *
      * @throws NullPointerException if id is null
      */
     public long estimateMemory(Class<? extends ComponentData<?>> type) {
@@ -195,16 +184,19 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Get all TypeIds within this EntitySystem that have types assignable to
-     * the input <tt>type</tt>.
-     * 
+     * Get all TypeIds within this EntitySystem that have types assignable to the input
+     * <tt>type</tt>.
+     *
      * @param type The query type
-     * @return All TypeIds that have components in this EntitySystem that are
-     *         subclasses of the input component data type
+     *
+     * @return All TypeIds that have components in this EntitySystem that are subclasses
+     *         of the input component data type
+     *
      * @throws NullPointerException if type is null
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <T extends ComponentData<? extends T>> Collection<Class<? extends T>> getComponentTypes(Class<T> type) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public <T extends ComponentData<? extends T>> Collection<Class<? extends T>> getComponentTypes(
+            Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
         }
@@ -223,9 +215,9 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Get all TypeIds currently used by the EntitySystem. If a type has had all
-     * of its components removed, it will still be returned here.
-     * 
+     * Get all TypeIds currently used by the EntitySystem. If a type has had all of its
+     * components removed, it will still be returned here.
+     *
      * @return All TypeIds at one point used by this system
      */
     public Collection<Class<? extends ComponentData<?>>> getComponentTypes() {
@@ -241,9 +233,9 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return the Scheduler for this EntitySystem that can be used to organize
-     * processing of the system using {@link Task} implementations.
-     * 
+     * Return the Scheduler for this EntitySystem that can be used to organize processing
+     * of the system using {@link Task} implementations.
+     *
      * @return The Scheduler for this system
      */
     public Scheduler getScheduler() {
@@ -251,10 +243,9 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return an iterator over all of the entities within the system. The
-     * returned iterator's remove() method will remove the entity from the
-     * system.
-     * 
+     * Return an iterator over all of the entities within the system. The returned
+     * iterator's remove() method will remove the entity from the system.
+     *
      * @return An iterator over the entities of the system
      */
     @Override
@@ -263,12 +254,13 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return an iterator over all components of with the given type. The
-     * returned iterator reuses a single ComponentData instance of T, so it is a
-     * fast iterator. This effectively wraps a {@link ComponentIterator} in a
-     * standard {@link Iterator} with a single required component type.
-     * 
+     * Return an iterator over all components of with the given type. The returned
+     * iterator reuses a single ComponentData instance of T, so it is a fast iterator.
+     * This effectively wraps a {@link ComponentIterator} in a standard {@link Iterator}
+     * with a single required component type.
+     *
      * @param type The type of component to iterate over
+     *
      * @return A fast iterator over components in this system
      */
     public <T extends ComponentData<T>> Iterator<T> iterator(Class<T> type) {
@@ -276,27 +268,22 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * <p>
-     * Compact the entity and component data so that iteration is more
-     * efficient. In the life time of an entity system, entities and components
-     * are added and removed, possibly causing the list of components for a
-     * given type to be in a different order than the list of entities. This is
-     * due to implementation details needed to make additions and removals
-     * constant time.
-     * </p>
-     * <p>
-     * Invoking {@link #compact()} after a large number of additions or removals
-     * to the system is a good idea. Alternatively, invoking it every few frames
-     * in a game works as well. An entity system that has no additions or
-     * removals of entities (or their components) gains no benefit from
-     * compacting, except potentially freeing excess memory.
-     * </p>
-     * <p>
-     * Compacting is not overly fast or slow, so it should not cause noticeably
-     * drops in frame rate. As an example, on a test system with 20,000 entities
-     * compact() took ~2ms on an Intel i5 processor. Of course, mileage may
-     * very.
-     * </p>
+     * <p/>
+     * Compact the entity and component data so that iteration is more efficient. In the
+     * life time of an entity system, entities and components are added and removed,
+     * possibly causing the list of components for a given type to be in a different order
+     * than the list of entities. This is due to implementation details needed to make
+     * additions and removals constant time.
+     * <p/>
+     * Invoking {@link #compact()} after a large number of additions or removals to the
+     * system is a good idea. Alternatively, invoking it every few frames in a game works
+     * as well. An entity system that has no additions or removals of entities (or their
+     * components) gains no benefit from compacting, except potentially freeing excess
+     * memory.
+     * <p/>
+     * Compacting is not overly fast or slow, so it should not cause noticeably drops in
+     * frame rate. As an example, on a test system with 20,000 entities compact() took
+     * ~2ms on an Intel i5 processor. Of course, mileage may very.
      */
     public void compact() {
         // Pack the data
@@ -311,7 +298,8 @@ public final class EntitySystem implements Iterable<Entity> {
                 // found an entity to preserve
                 if (startRemove >= 0) {
                     // we have a gap from [startRemove, i - 1] that can be compacted
-                    System.arraycopy(entities, i, entities, startRemove, entityInsert - i);
+                    System.arraycopy(entities, i, entities, startRemove,
+                                     entityInsert - i);
 
                     // update entityInsert
                     entityInsert = entityInsert - i + startRemove;
@@ -351,10 +339,10 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Add a new Entity to this EntitySystem. The created Entity will not have
-     * any attached Components. You can create a new entity from a template by
-     * calling {@link #addEntity(Entity)}.
-     * 
+     * Add a new Entity to this EntitySystem. The created Entity will not have any
+     * attached Components. You can create a new entity from a template by calling {@link
+     * #addEntity(Entity)}.
+     *
      * @return A new Entity in the system, without any components
      */
     public Entity addEntity() {
@@ -362,24 +350,22 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * <p>
-     * Add a new Entity to this EntitySystem. If <tt>template</tt> is not null,
-     * the components attached to the template will have their state cloned onto
-     * the new entity. The semantics of cloning is defined by
-     * {@link PropertyFactory#clone(Property, int, Property, int)}, but by
-     * default it follows Java's reference/value rule.
-     * </p>
-     * <p>
-     * Specifying a null template makes this behave identically to
-     * {@link #addEntity()}.
-     * </p>
-     * 
+     * <p/>
+     * Add a new Entity to this EntitySystem. If <tt>template</tt> is not null, the
+     * components attached to the template will have their state cloned onto the new
+     * entity. The semantics of cloning is defined by {@link PropertyFactory#clone(Property,
+     * int, Property, int)}, but by default it follows Java's reference/value rule.
+     * <p/>
+     * <p/>
+     * Specifying a null template makes this behave identically to {@link #addEntity()}.
+     *
      * @param template The template to clone
-     * @return A new Entity in the system with the same component state as the
-     *         template
-     * @throws IllegalStateException if the template is not a live entity
-     * @throws IllegalArgumentException if the template was not created by this
-     *             entity system
+     *
+     * @return A new Entity in the system with the same component state as the template
+     *
+     * @throws IllegalStateException    if the template is not a live entity
+     * @throws IllegalArgumentException if the template was not created by this entity
+     *                                  system
      */
     public Entity addEntity(Entity template) {
         if (template != null) {
@@ -388,7 +374,8 @@ public final class EntitySystem implements Iterable<Entity> {
                 throw new IllegalStateException("Entity template is not live");
             }
             if (template.getEntitySystem() != this) {
-                throw new IllegalArgumentException("Entity template was not created by this EntitySystem");
+                throw new IllegalArgumentException(
+                        "Entity template was not created by this EntitySystem");
             }
         }
 
@@ -416,22 +403,22 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * <p>
-     * Remove the given entity from this system. The entity and its attached
-     * components are removed from the system. This will cause the entity and
-     * its components to no longer be alive. Any ComponentData's referencing the
-     * entity's components will become invalid until assigned to a new
-     * component.
-     * <p>
-     * <p>
-     * When an entity is removed, it will set its owner to null, and disown all
-     * of its owned objects. If any of those owned objects are entities or
-     * components, they are removed from the system as well.
-     * 
+     * <p/>
+     * Remove the given entity from this system. The entity and its attached components
+     * are removed from the system. This will cause the entity and its components to no
+     * longer be alive. Any ComponentData's referencing the entity's components will
+     * become invalid until assigned to a new component.
+     * <p/>
+     * <p/>
+     * When an entity is removed, it will set its owner to null, and disown all of its
+     * owned objects. If any of those owned objects are entities or components, they are
+     * removed from the system as well.
+     *
      * @param e The entity to remove
-     * @throws NullPointerException if e is null
-     * @throws IllegalArgumentException if the entity was not created by this
-     *             system, or already removed
+     *
+     * @throws NullPointerException     if e is null
+     * @throws IllegalArgumentException if the entity was not created by this system, or
+     *                                  already removed
      */
     public void removeEntity(Entity e) {
         if (e == null) {
@@ -462,24 +449,23 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * <p>
-     * Dynamically update the available properties of the given ComponentData
-     * type by adding a Property created by the given PropertyFactory. The
-     * property will be managed by the system as if it was a declared property
-     * of the component type.
-     * </p>
-     * <p>
-     * All components, current and new, will initially have their starting
-     * values for the decorated property equal the state of the property after
-     * being created by the factory. The returned property can be accessed and
-     * used by Controllers to add dynamic runtime data to statically defined
-     * component types.
-     * </p>
-     * 
-     * @param <P> The created property type
-     * @param type The component type to mutate
+     * <p/>
+     * Dynamically update the available properties of the given ComponentData type by
+     * adding a Property created by the given PropertyFactory. The property will be
+     * managed by the system as if it was a declared property of the component type.
+     * <p/>
+     * <p/>
+     * All components, current and new, will initially have their starting values for the
+     * decorated property equal the state of the property after being created by the
+     * factory. The returned property can be accessed and used by Controllers to add
+     * dynamic runtime data to statically defined component types.
+     *
+     * @param <P>     The created property type
+     * @param type    The component type to mutate
      * @param factory The property factory that creates the decorating property
+     *
      * @return The property that has decorated the given component type
+     *
      * @throws NullPointerException if type or factory are null
      */
     public <T extends ComponentData<T>, P extends Property> P decorate(Class<T> type,
@@ -489,11 +475,12 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return the ComponentRepository associated with the given type. Fails if
-     * the type is not registered
-     * 
-     * @param <T> The ComponentData type
+     * Return the ComponentRepository associated with the given type. Fails if the type is
+     * not registered
+     *
+     * @param <T>  The ComponentData type
      * @param type The component type
+     *
      * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
@@ -528,20 +515,22 @@ public final class EntitySystem implements Iterable<Entity> {
      * Create a new ComponentDataFactory for the given id, using the default
      * annotation if available.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <T extends ComponentData<T>> ComponentDataFactory<T> createDefaultFactory(Class<T> type) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <T extends ComponentData<T>> ComponentDataFactory<T> createDefaultFactory(
+            Class<T> type) {
         DefaultFactory factoryAnnot = type.getAnnotation(DefaultFactory.class);
         if (factoryAnnot != null) {
             Class factoryType = factoryAnnot.value();
             // check for supported constructors, priority: Class, default
-            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType,
-                                                                                             type);
+            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(
+                    factoryType, type);
             if (factory == null) {
                 factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType);
             }
             if (factory == null) {
                 throw new IllegalComponentDefinitionException(type,
-                                                              "Cannot instantiate default ComponentDataFactory of type: " + factoryType);
+                                                              "Cannot instantiate default ComponentDataFactory of type: " +
+                                                              factoryType);
             }
 
             return factory;
@@ -576,23 +565,25 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Return the canonical Entity instance associated with the given index.
-     * 
-     * @param entityIndex The index that the entity is stored at within the
-     *            entity array and component indicees
+     *
+     * @param entityIndex The index that the entity is stored at within the entity array
+     *                    and component indicees
+     *
      * @return The canonical Entity instance for the index
      */
     Entity getEntityByIndex(int entityIndex) {
         return entities[entityIndex];
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private <T extends ComponentData<T>> void addFromTemplate(int entityIndex,
-                                                              Class type, Component<T> c) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, Class type,
+                                                              Component<T> c) {
         ComponentRepository index = getRepository(type);
         index.addComponent(entityIndex, c);
     }
 
-    private class ComponentRepositoryIterator implements Iterator<ComponentRepository<?>> {
+    private class ComponentRepositoryIterator
+            implements Iterator<ComponentRepository<?>> {
         private int index;
         private boolean advanced;
 
@@ -626,12 +617,14 @@ public final class EntitySystem implements Iterable<Entity> {
         private void advance() {
             do {
                 index++;
-            } while (index < componentRepositories.length && componentRepositories[index] == null);
+            } while (index < componentRepositories.length &&
+                     componentRepositories[index] == null);
             advanced = true;
         }
     }
 
-    private class ComponentIteratorWrapper<T extends ComponentData<T>> implements Iterator<T> {
+    private class ComponentIteratorWrapper<T extends ComponentData<T>>
+            implements Iterator<T> {
         private final T data;
         private final ComponentIterator it;
 

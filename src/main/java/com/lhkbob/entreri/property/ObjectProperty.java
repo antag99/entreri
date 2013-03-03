@@ -26,20 +26,16 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.*;
+
 import java.lang.reflect.Method;
 
-import com.lhkbob.entreri.Attributes;
-import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-import com.lhkbob.entreri.PropertyFactory;
-
 /**
- * ObjectProperty is an implementation of Property that stores the property data
- * as a number of packed Object references for each property. Because it is not
- * primitive data, cache locality will suffer compared to the primitive property
- * types, but it will allow you to store arbitrary objects.
- * 
+ * ObjectProperty is an implementation of Property that stores the property data as a
+ * number of packed Object references for each property. Because it is not primitive data,
+ * cache locality will suffer compared to the primitive property types, but it will allow
+ * you to store arbitrary objects.
+ *
  * @author Michael Ludwig
  */
 @Factory(ObjectProperty.Factory.class)
@@ -54,27 +50,27 @@ public final class ObjectProperty<T> implements Property {
     }
 
     /**
-     * Return a PropertyFactory that creates ObjectProperties with the given
-     * element size and default value.
-     * 
+     * Return a PropertyFactory that creates ObjectProperties with the given element size
+     * and default value.
+     *
      * @param <T>
      * @param dflt The default value assigned to each component and element
+     *
      * @return A PropertyFactory for ObjectProperty
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static <T> PropertyFactory<ObjectProperty<T>> factory(T dflt) {
         PropertyFactory superRaw = new Factory(dflt);
         return superRaw;
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The
-     * array may be longer than necessary for the number of components in the
-     * system. Data can be accessed for a component directly using the
-     * component's index.
-     * 
-     * @return The Object data for all packed properties that this property has
-     *         been packed with
+     * Return the backing int array of this property's IndexedDataStore. The array may be
+     * longer than necessary for the number of components in the system. Data can be
+     * accessed for a component directly using the component's index.
+     *
+     * @return The Object data for all packed properties that this property has been
+     *         packed with
      */
     public Object[] getIndexedData() {
         return store.getArray();
@@ -82,9 +78,11 @@ public final class ObjectProperty<T> implements Property {
 
     /**
      * Get the value stored in this property for the given component index.
-     * 
+     *
      * @param componentIndex The component's index
+     *
      * @return The object at the given offset for the given component
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     @SuppressWarnings("unchecked")
@@ -94,9 +92,10 @@ public final class ObjectProperty<T> implements Property {
 
     /**
      * Store <tt>val</tt> in this property for the given component index.
-     * 
-     * @param val The value to store, can be null
+     *
+     * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified
+     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(T val, int componentIndex) {
@@ -114,12 +113,16 @@ public final class ObjectProperty<T> implements Property {
             throw new NullPointerException("Store cannot be null");
         }
         if (!(store instanceof ObjectDataStore)) {
-            throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong type: " + store.getClass());
+            throw new IllegalArgumentException(
+                    "Store not compatible with ObjectProperty, wrong type: " +
+                    store.getClass());
         }
 
         ObjectDataStore newStore = (ObjectDataStore) store;
         if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException("Store not compatible with ObjectProperty, wrong element size: " + newStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Store not compatible with ObjectProperty, wrong element size: " +
+                    newStore.elementSize);
         }
 
         this.store = newStore;
@@ -127,10 +130,10 @@ public final class ObjectProperty<T> implements Property {
 
     /**
      * Factory to create ObjectProperties.
-     * 
+     *
      * @author Michael Ludwig
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
         private final Object defaultValue;
 

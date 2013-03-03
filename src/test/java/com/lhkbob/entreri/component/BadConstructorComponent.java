@@ -30,11 +30,12 @@ import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.EntitySystem;
 
 /**
- * A test component that has an illegal constructor so it should fail to get a
- * TypeId.
- * 
+ * A test component that has an illegal constructor so it should fail to get a TypeId.
+ *
  * @author Michael Ludwig
  */
 public class BadConstructorComponent extends ComponentData<BadConstructorComponent> {
-    protected BadConstructorComponent(EntitySystem system, int index, Object extraArgument) {}
+    protected BadConstructorComponent(EntitySystem system, int index,
+                                      Object extraArgument) {
+    }
 }

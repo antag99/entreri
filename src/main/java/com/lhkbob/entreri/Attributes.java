@@ -33,24 +33,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Attributes represents the collection of attributes that have been provided on
- * a property declaration within a ComponentData definition. To work with
- * {@link ReflectionComponentDataFactory}, {@link PropertyFactory}
- * implementations should have a constructor that takes a single Attributes
- * instance.
- * 
- * @see PropertyFactory
+ * Attributes represents the collection of attributes that have been provided on a
+ * property declaration within a ComponentData definition. To work with {@link
+ * ReflectionComponentDataFactory}, {@link PropertyFactory} implementations should have a
+ * constructor that takes a single Attributes instance.
+ *
  * @author Michael Ludwig
- * 
+ * @see PropertyFactory
  */
 public class Attributes {
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 
     /**
-     * Construct a new set of attributes from the given annotations. Only
-     * annotations that have the Attribute annotation are kept.
-     * 
+     * Construct a new set of attributes from the given annotations. Only annotations that
+     * have the Attribute annotation are kept.
+     *
      * @param attrs
+     *
      * @throws NullPointerException if attrs is null or contains null elements
      */
     public Attributes(Annotation... attrs) {
@@ -68,10 +67,11 @@ public class Attributes {
     }
 
     /**
-     * Create a new Attributes that collects all annotations that have been
-     * annotated with {@link Attribute} on the given field.
-     * 
+     * Create a new Attributes that collects all annotations that have been annotated with
+     * {@link Attribute} on the given field.
+     *
      * @param f The field to build the set of attributes from
+     *
      * @throws NullPointerException if f is null
      */
     public Attributes(Field f) {
@@ -79,10 +79,11 @@ public class Attributes {
     }
 
     /**
-     * Get the attribute annotation of type T. If there is no attribute for the
-     * given type, then null is returned.
-     * 
+     * Get the attribute annotation of type T. If there is no attribute for the given
+     * type, then null is returned.
+     *
      * @param cls The attribute annotation class type
+     *
      * @return The associated attribute instance
      */
     @SuppressWarnings("unchecked")
@@ -94,11 +95,12 @@ public class Attributes {
     }
 
     /**
-     * Get whether or not this set of attributes has an attribute of the given
-     * type. If an attribute does not have any variables, this is sufficient
-     * instead of getting the actual instance.
-     * 
+     * Get whether or not this set of attributes has an attribute of the given type. If an
+     * attribute does not have any variables, this is sufficient instead of getting the
+     * actual instance.
+     *
      * @param cls The annotation class type
+     *
      * @return True if the associated attribute exists
      */
     public boolean hasAttribute(Class<? extends Annotation> cls) {

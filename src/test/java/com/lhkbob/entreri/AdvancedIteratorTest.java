@@ -26,16 +26,15 @@
  */
 package com.lhkbob.entreri;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import com.lhkbob.entreri.component.FloatComponent;
+import com.lhkbob.entreri.component.ObjectComponent;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.ObjectComponent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class AdvancedIteratorTest {
     private static final int ENTITY_COUNT = 5;

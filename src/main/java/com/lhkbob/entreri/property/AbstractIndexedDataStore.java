@@ -26,32 +26,32 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.IndexedDataStore;
+
 import java.nio.Buffer;
 import java.util.List;
 
-import com.lhkbob.entreri.IndexedDataStore;
-
 /**
- * <p>
- * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses
- * an array to hold the packed property values of the store. It implements the
- * vast majority of the logic needed for an IndexedDataStore, and concrete
- * classes are only required to create and store the arrays.
- * <p>
- * An AbstractIndexedDataStore instance will only have one array in its
- * lifetime.
- * 
+ * <p/>
+ * AbstractIndexedDataStore is an implementation of IndexedDataStore that uses an array to
+ * hold the packed property values of the store. It implements the vast majority of the
+ * logic needed for an IndexedDataStore, and concrete classes are only required to create
+ * and store the arrays.
+ * <p/>
+ * An AbstractIndexedDataStore instance will only have one array in its lifetime.
+ *
  * @author Michael Ludwig
  */
 public abstract class AbstractIndexedDataStore implements IndexedDataStore {
     protected final int elementSize;
 
     /**
-     * Create an AbstractIndexedDataStore that will use <var>elementSize</var>
-     * array elements per ComponentData in the data store. This does not create
-     * a backing array, so concrete classes must allocate an initial array.
-     * 
+     * Create an AbstractIndexedDataStore that will use <var>elementSize</var> array
+     * elements per ComponentData in the data store. This does not create a backing array,
+     * so concrete classes must allocate an initial array.
+     *
      * @param elementSize The number of array elements per property instance
+     *
      * @throws IllegalArgumentException if elementSize is less than 1
      */
     public AbstractIndexedDataStore(int elementSize) {
@@ -72,12 +72,16 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
             throw new NullPointerException("Destination store cannot be null");
         }
         if (!(getClass().isInstance(dest))) {
-            throw new IllegalArgumentException("Destination store not compatible with this store, wrong type: " + dest.getClass());
+            throw new IllegalArgumentException(
+                    "Destination store not compatible with this store, wrong type: " +
+                    dest.getClass());
         }
 
         AbstractIndexedDataStore dstStore = (AbstractIndexedDataStore) dest;
         if (dstStore.elementSize != elementSize) {
-            throw new IllegalArgumentException("Destination store not compatible with this store, wrong element size: " + dstStore.elementSize);
+            throw new IllegalArgumentException(
+                    "Destination store not compatible with this store, wrong element size: " +
+                    dstStore.elementSize);
         }
 
         arraycopy(getArray(), srcOffset * elementSize, dstStore.getArray(),
@@ -85,24 +89,21 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
     }
 
     /**
-     * <p>
-     * Copy <tt>len</tt> elements of <tt>oldArray</tt> starting at
-     * <tt>srcOffset</tt> into <tt>newArray</tt> at <tt>dstOffset</tt>. The
-     * default implementation uses
-     * {@link System#arraycopy(Object, int, Object, int, int)}, which is
-     * suitable unless the backing data types are not primitive Java arrays.
-     * </p>
-     * <p>
-     * This can be overridden if the backing data is some other type, such as a
-     * {@link List} or {@link Buffer}, in which case the "array copy" can be
-     * simulated in this method.
-     * </p>
-     * 
-     * @param oldArray The source array
+     * <p/>
+     * Copy <tt>len</tt> elements of <tt>oldArray</tt> starting at <tt>srcOffset</tt> into
+     * <tt>newArray</tt> at <tt>dstOffset</tt>. The default implementation uses {@link
+     * System#arraycopy(Object, int, Object, int, int)}, which is suitable unless the
+     * backing data types are not primitive Java arrays.
+     * <p/>
+     * This can be overridden if the backing data is some other type, such as a {@link
+     * List} or {@link Buffer}, in which case the "array copy" can be simulated in this
+     * method.
+     *
+     * @param oldArray  The source array
      * @param srcOffset The element offset into the source array
-     * @param newArray The destination array where data is copied
+     * @param newArray  The destination array where data is copied
      * @param dstOffset The element offset into the new array
-     * @param len The number of array elements to copy
+     * @param len       The number of array elements to copy
      */
     protected void arraycopy(Object oldArray, int srcOffset, Object newArray,
                              int dstOffset, int len) {

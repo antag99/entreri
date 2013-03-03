@@ -27,53 +27,49 @@
 package com.lhkbob.entreri;
 
 /**
- * <p>
- * A PropertyFactory is a simple factory that can be used to create Property
- * instances. Additionally, it is used when decorating a ComponentData type in
- * an EntitySystem to ensure that each decoration event gets a unique property
- * instance.
- * </p>
- * <p>
- * When using the {@link ReflectionComponentDataFactory}, PropertyFactory
- * implementations must have a no-argument constructor or a constructor that
- * takes an {@link Attributes} as its only argument. The constructor does not
- * need to be public.
- * </p>
- * 
- * @author Michael Ludwig
+ * <p/>
+ * A PropertyFactory is a simple factory that can be used to create Property instances.
+ * Additionally, it is used when decorating a ComponentData type in an EntitySystem to
+ * ensure that each decoration event gets a unique property instance.
+ * <p/>
+ * <p/>
+ * When using the {@link ReflectionComponentDataFactory}, PropertyFactory implementations
+ * must have a no-argument constructor or a constructor that takes an {@link Attributes}
+ * as its only argument. The constructor does not need to be public.
+ *
  * @param <T> The Property type created
+ *
+ * @author Michael Ludwig
  */
 public interface PropertyFactory<T extends Property> {
     /**
-     * Return a new Property instance. This must be a new instance that has not
-     * been returned previously or the entity framework will have undefined
-     * behavior.
-     * 
+     * Return a new Property instance. This must be a new instance that has not been
+     * returned previously or the entity framework will have undefined behavior.
+     *
      * @return A new Property of type T
      */
     public T create();
 
     /**
-     * Set the default value that the component at the specified <tt>index</tt>
-     * will see before it's init() method is invoked. In some cases, this could
-     * be used in-place of initializing in init() method.
-     * 
+     * Set the default value that the component at the specified <tt>index</tt> will see
+     * before it's init() method is invoked. In some cases, this could be used in-place of
+     * initializing in init() method.
+     *
      * @param property The property whose value will be updated
-     * @param index The component index to be updated
+     * @param index    The component index to be updated
      */
     public void setDefaultValue(T property, int index);
 
     /**
      * Copy the value from <tt>src</tt> at component index, <tt>srcIndex</tt> to
-     * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is
-     * created and cloned from a template with
-     * {@link Entity#add(com.lhkbob.entreri.Component)}. For many cases a plain
-     * copy-by-value or copy-by-reference is sufficient, but some component
-     * types might require more complicated cloning rules.
-     * 
-     * @param src The source property that is being cloned
+     * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is created and
+     * cloned from a template with {@link Entity#add(com.lhkbob.entreri.Component)}. For
+     * many cases a plain copy-by-value or copy-by-reference is sufficient, but some
+     * component types might require more complicated cloning rules.
+     *
+     * @param src      The source property that is being cloned
      * @param srcIndex The index into src of the component being cloned
-     * @param dst The destination property created from the template
+     * @param dst      The destination property created from the template
      * @param dstIndex The index into dst of the component being created
      */
     public void clone(T src, int srcIndex, T dst, int dstIndex);

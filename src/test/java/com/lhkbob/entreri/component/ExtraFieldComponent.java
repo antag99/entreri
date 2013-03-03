@@ -31,7 +31,7 @@ import com.lhkbob.entreri.property.FloatProperty;
 
 /**
  * A test component that defines a non-Property field.
- * 
+ *
  * @author Michael Ludwig
  */
 public class ExtraFieldComponent extends ComponentData<ExtraFieldComponent> {
@@ -41,5 +41,6 @@ public class ExtraFieldComponent extends ComponentData<ExtraFieldComponent> {
     @SuppressWarnings("unused")
     private Object otherField;
 
-    protected ExtraFieldComponent() {}
+    protected ExtraFieldComponent() {
+    }
 }

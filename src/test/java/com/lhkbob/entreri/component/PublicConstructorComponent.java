@@ -30,10 +30,12 @@ import com.lhkbob.entreri.ComponentData;
 
 /**
  * A ComponentData definition with a public constructor.
- * 
+ *
  * @author Michael Ludwig
  */
-public class PublicConstructorComponent extends ComponentData<PublicConstructorComponent> {
+public class PublicConstructorComponent
+        extends ComponentData<PublicConstructorComponent> {
 
-    public PublicConstructorComponent() {}
+    public PublicConstructorComponent() {
+    }
 }

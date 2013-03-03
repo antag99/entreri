@@ -28,17 +28,13 @@ package com.lhkbob.entreri.component;
 
 import com.lhkbob.entreri.ComponentData;
 import com.lhkbob.entreri.Factory;
-import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.property.*;
 import com.lhkbob.entreri.property.FloatProperty.DefaultFloat;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
-import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.LongProperty;
 import com.lhkbob.entreri.property.LongProperty.DefaultLong;
-import com.lhkbob.entreri.property.NoParameterProperty;
 
 /**
  * A ComponentData that tests a variety of property constructors.
- * 
+ *
  * @author Michael Ludwig
  */
 public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent> {
@@ -56,14 +52,15 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     // this should find the createFactory() method
     protected NoParameterProperty noparams;
 
-    protected MultiPropertyComponent() {}
+    protected MultiPropertyComponent() {
+    }
 
     public void setLong(long i) {
         longProp.set(i, getIndex());
     }
 
     public long[] getLong() {
-        long[] v = new long[] {longProp.get(getIndex())};
+        long[] v = new long[] { longProp.get(getIndex()) };
         return v;
     }
 
@@ -72,7 +69,7 @@ public class MultiPropertyComponent extends ComponentData<MultiPropertyComponent
     }
 
     public int[] getInt() {
-        int[] v = new int[] {intProp.get(getIndex())};
+        int[] v = new int[] { intProp.get(getIndex()) };
         return v;
     }
 

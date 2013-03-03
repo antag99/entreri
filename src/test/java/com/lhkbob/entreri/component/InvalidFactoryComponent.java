@@ -32,9 +32,9 @@ import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty;
 
 /**
- * A test component that mis-configures a component so it can't find the
- * necessary factory() method.
- * 
+ * A test component that mis-configures a component so it can't find the necessary
+ * factory() method.
+ *
  * @author Michael Ludwig
  */
 public class InvalidFactoryComponent extends ComponentData<InvalidFactoryComponent> {
@@ -42,5 +42,6 @@ public class InvalidFactoryComponent extends ComponentData<InvalidFactoryCompone
     @Factory(FloatPropertyFactory.class)
     protected IntProperty prop;
 
-    protected InvalidFactoryComponent() {}
+    protected InvalidFactoryComponent() {
+    }
 }

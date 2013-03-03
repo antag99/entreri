@@ -32,5 +32,6 @@ import com.lhkbob.entreri.Requires;
 @Requires(RequiresAComponent.class)
 public class RequiresBComponent extends ComponentData<RequiresBComponent> {
 
-    private RequiresBComponent() {}
+    private RequiresBComponent() {
+    }
 }
