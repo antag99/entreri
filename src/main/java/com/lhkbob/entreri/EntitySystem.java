@@ -185,7 +185,7 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Get all TypeIds within this EntitySystem that have types assignable to the input
-     * <tt>type</tt>.
+     * <var>type</var>.
      *
      * @param type The query type
      *
@@ -351,7 +351,7 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * <p/>
-     * Add a new Entity to this EntitySystem. If <tt>template</tt> is not null, the
+     * Add a new Entity to this EntitySystem. If <var>template</var> is not null, the
      * components attached to the template will have their state cloned onto the new
      * entity. The semantics of cloning is defined by {@link PropertyFactory#clone(Property,
      * int, Property, int)}, but by default it follows Java's reference/value rule.

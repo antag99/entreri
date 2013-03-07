@@ -36,8 +36,8 @@ package com.lhkbob.entreri;
  */
 public interface Owner {
     /**
-     * Notify this Owner that it is now <tt>obj</tt>'s owner. This must only be called by
-     * {@link Ownable} implementations in response to calls to {@link
+     * Notify this Owner that it is now <var>obj</var>'s owner. This must only be called
+     * by {@link Ownable} implementations in response to calls to {@link
      * Ownable#setOwner(Owner)}.
      *
      * @param obj The newly owned object
@@ -46,7 +46,7 @@ public interface Owner {
 
     /**
      * <p/>
-     * Notify this Owner that it is no longer <tt>obj</tt>'s owner. This must only be
+     * Notify this Owner that it is no longer <var>obj</var>'s owner. This must only be
      * called by {@link Ownable} implementations in response to calls to {@link
      * Ownable#setOwner(Owner)}.
      * <p/>

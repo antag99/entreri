@@ -90,10 +90,10 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
 
     /**
      * <p/>
-     * Copy <tt>len</tt> elements of <tt>oldArray</tt> starting at <tt>srcOffset</tt> into
-     * <tt>newArray</tt> at <tt>dstOffset</tt>. The default implementation uses {@link
-     * System#arraycopy(Object, int, Object, int, int)}, which is suitable unless the
-     * backing data types are not primitive Java arrays.
+     * Copy <var>len</var> elements of <var>oldArray</var> starting at
+     * <var>srcOffset</var> into <var>newArray</var> at <var>dstOffset</var>. The default
+     * implementation uses {@link System#arraycopy(Object, int, Object, int, int)}, which
+     * is suitable unless the backing data types are not primitive Java arrays.
      * <p/>
      * This can be overridden if the backing data is some other type, such as a {@link
      * List} or {@link Buffer}, in which case the "array copy" can be simulated in this

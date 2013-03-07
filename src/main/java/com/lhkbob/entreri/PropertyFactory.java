@@ -51,7 +51,7 @@ public interface PropertyFactory<T extends Property> {
     public T create();
 
     /**
-     * Set the default value that the component at the specified <tt>index</tt> will see
+     * Set the default value that the component at the specified <var>index</var> will see
      * before it's init() method is invoked. In some cases, this could be used in-place of
      * initializing in init() method.
      *
@@ -61,8 +61,8 @@ public interface PropertyFactory<T extends Property> {
     public void setDefaultValue(T property, int index);
 
     /**
-     * Copy the value from <tt>src</tt> at component index, <tt>srcIndex</tt> to
-     * <tt>dst</tt> at <tt>dstIndex</tt>. This is used when a component is created and
+     * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to
+     * <var>dst</var> at <var>dstIndex</var>. This is used when a component is created and
      * cloned from a template with {@link Entity#add(com.lhkbob.entreri.Component)}. For
      * many cases a plain copy-by-value or copy-by-reference is sufficient, but some
      * component types might require more complicated cloning rules.

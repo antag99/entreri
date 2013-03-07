@@ -123,7 +123,8 @@ public final class Entity
 
     /**
      * Get the Component instance of the given type that's attached to this entity. If
-     * <tt>ignoreEnable</tt> is true, then disabled components will be returned as well.
+     * <var>ignoreEnable</var> is true, then disabled components will be returned as
+     * well.
      *
      * @param <T>           The parameterized type of ComponentData of the component
      * @param componentType The data type
@@ -207,12 +208,12 @@ public final class Entity
     /**
      * <p/>
      * Add a new Component with a data of type T to this Entity, but the new component's
-     * state will be cloned from the given Component instance. The <tt>toClone</tt>
+     * state will be cloned from the given Component instance. The <var>toClone</var>
      * instance must still be live. If there already exists a component of type T, it is
      * removed first, and a new one is instantiated.
      * <p/>
      * The new component is initialized by cloning the property values from
-     * <tt>toClone</tt> into the values of the new component. This is performed by
+     * <var>toClone</var> into the values of the new component. This is performed by
      * invoking {@link PropertyFactory#clone(Property, int, Property, int)} with the
      * factories that created each property. All default property factories perform a copy
      * by value (or copy by reference for object types).
@@ -279,7 +280,7 @@ public final class Entity
 
     /**
      * Return an iterator over the components attached to this entity. If
-     * <tt>ignoreEnabled</tt> is true, disabled components will be included in the
+     * <var>ignoreEnabled</var> is true, disabled components will be included in the
      * iterator's results. If it is false, disabled components are not returned.
      *
      * @param ignoreEnabled True if disabled components are returned

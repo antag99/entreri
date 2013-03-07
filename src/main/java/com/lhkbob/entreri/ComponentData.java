@@ -172,7 +172,7 @@ public abstract class ComponentData<T extends ComponentData<T>> {
      * Set this ComponentData to read and write from the given Component. If the component
      * reference is a non-null, live component, this ComponentData will be considered a
      * valid ComponentData. While valid, its defined accessors and mutators will affect
-     * the property state of <tt>component</tt>.
+     * the property state of <var>component</var>.
      * <p/>
      * Invoking set() with another Component will shift this data to the new component,
      * allowing it to mutate that.

@@ -38,7 +38,7 @@ package com.lhkbob.entreri;
 public interface IndexedDataStore {
     /**
      * Create a new data store with the same behavior as this IndexedDataStore except,
-     * that it holds enough space for <tt>size</tt> Properties.
+     * that it holds enough space for <var>size</var> Properties.
      *
      * @param size The size, in number of properties
      */
@@ -56,10 +56,10 @@ public interface IndexedDataStore {
 
     /**
      * <p/>
-     * Copy <tt>len</tt> property values starting at <tt>srcOffset</tt> from this
-     * IndexedDataStore into <tt>dest</tt>, placing the first property's values at
-     * <tt>destOffset</tt>. Both <tt>srcOffset</tt> and <tt>destOffset</tt> are in units
-     * of property, and not any underlying array.
+     * Copy <var>len</var> property values starting at <var>srcOffset</var> from this
+     * IndexedDataStore into <var>dest</var>, placing the first property's values at
+     * <var>destOffset</var>. Both <var>srcOffset</var> and <var>destOffset</var> are in
+     * units of property, and not any underlying array.
      * <p/>
      * An exception should be thrown if the destination IndexedDataStore is not of the
      * same type, or is not compatible with this IndexedDataStore.

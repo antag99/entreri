@@ -91,7 +91,7 @@ public final class ObjectProperty<T> implements Property {
     }
 
     /**
-     * Store <tt>val</tt> in this property for the given component index.
+     * Store <var>val</var> in this property for the given component index.
      *
      * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified

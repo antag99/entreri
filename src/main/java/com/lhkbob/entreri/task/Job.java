@@ -229,7 +229,7 @@ public class Job implements Runnable {
     /**
      * Report the given result instance to all tasks yet to be executed by this job, that
      * have declared a public method named 'report' that takes a Result sub-type that is
-     * compatible with <tt>r</tt>'s type.
+     * compatible with <var>r</var>'s type.
      *
      * @param r The result to report
      *

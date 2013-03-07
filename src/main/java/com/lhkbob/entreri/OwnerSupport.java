@@ -41,7 +41,7 @@ class OwnerSupport {
 
     /**
      * Create a new OwnerSupport that functions as both the {@link Owner} and {@link
-     * Ownable} implementation for <tt>target</tt>
+     * Ownable} implementation for <var>target</var>
      *
      * @param target The actual ownable
      */

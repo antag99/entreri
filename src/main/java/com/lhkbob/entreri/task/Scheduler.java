@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * schedule the execution of jobs.
  * <p/>
  * As an example, here's how you can set up a 'rendering' job, assuming that all tasks
- * necessary to perform rendering are in an array called <tt>renderTasks</tt>:
+ * necessary to perform rendering are in an array called <var>renderTasks</var>:
  * <p/>
  * <pre>
  * Job renderJob = system.getScheduler().createJob(&quot;rendering&quot;, renderTasks);
@@ -123,8 +123,8 @@ public class Scheduler {
     }
 
     /**
-     * Create a new job with the given <tt>name</tt>, that will execute the provided tasks
-     * in order.
+     * Create a new job with the given <var>name</var>, that will execute the provided
+     * tasks in order.
      *
      * @param name  The name of the new job
      * @param tasks The tasks of the job
@@ -195,8 +195,9 @@ public class Scheduler {
     /**
      * <p/>
      * Create an ExecutorService that is configured to execute the given job every
-     * <tt>dt</tt> seconds. Assuming that the job terminates in under <tt>dt</tt> seconds,
-     * it will not be invoked until <tt>dt</tt> seconds after it was first started.
+     * <var>dt</var> seconds. Assuming that the job terminates in under <var>dt</var>
+     * seconds, it will not be invoked until <var>dt</var> seconds after it was first
+     * started.
      * <p/>
      * To schedule a rendering job to run at 60 FPS, you could call <code>runEvery(1.0 /
      * 60.0, renderJob)</code>.

@@ -224,7 +224,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * Set whether or not the component at <tt>componentIndex</tt> is enabled. This does
+     * Set whether or not the component at <var>componentIndex</var> is enabled. This does
      * nothing if the index is 0, preserving the guarantee that invalid component is
      * considered disabled.
      *

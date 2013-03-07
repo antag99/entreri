@@ -70,7 +70,7 @@ public interface ComponentDataFactory<T extends ComponentData<T>> {
     /**
      * Inject the given property into the instance, where the property is assumed to have
      * been constructed by PropertyFactory from {@link #getPropertyFactories()} that is
-     * stored by <tt>key</tt>.
+     * stored by <var>key</var>.
      *
      * @param instance The instance to configure
      * @param key      The key to the creating PropertyFactory or source of the property
