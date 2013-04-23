@@ -61,6 +61,13 @@ public abstract class AbstractIndexedDataStore implements IndexedDataStore {
         this.elementSize = elementSize;
     }
 
+    /**
+     * @return The number of primitive elements per instance
+     */
+    public int getElementSize() {
+        return elementSize;
+    }
+
     @Override
     public int size() {
         return getArrayLength() / elementSize;
