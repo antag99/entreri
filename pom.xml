@@ -3,7 +3,7 @@
     <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
     <packaging>jar</packaging>
-    <version>1.6.1</version>
+    <version>1.6.2-SNAPSHOT</version>
 
     <name>Entreri Entity-Component Framework</name>
     <description>Entreri is an entity-component framework for Java that helps manage or
