@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.*;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 

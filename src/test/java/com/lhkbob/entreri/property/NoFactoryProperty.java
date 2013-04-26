@@ -26,9 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.IndexedDataStore;
-import com.lhkbob.entreri.Property;
-
 public class NoFactoryProperty implements Property {
     private final IntProperty property;
 

@@ -30,6 +30,8 @@ import com.lhkbob.entreri.component.IntComponent;
 import com.lhkbob.entreri.component.MultiPropertyComponent;
 import com.lhkbob.entreri.property.FloatProperty;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
+import com.lhkbob.entreri.proxy.ComponentRepository;
+import com.lhkbob.entreri.property.Property;
 import org.junit.Assert;
 import org.junit.Test;
 

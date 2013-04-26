@@ -27,9 +27,9 @@
 package com.lhkbob.entreri;
 
 /**
- * IllegalComponentDefinitionException is an exception thrown if a ComponentData
+ * IllegalComponentDefinitionException is an exception thrown if a Component
  * implementation does not follow the class hierarchy or field rules defined in {@link
- * ComponentData}.
+ * com.lhkbob.entreri.Component}.
  *
  * @author Michael Ludwig
  */
@@ -44,7 +44,7 @@ public class IllegalComponentDefinitionException extends RuntimeException {
      * @param problem A generic error message to be tacked to the end of the final error
      *                message
      */
-    public IllegalComponentDefinitionException(Class<? extends ComponentData<?>> type,
+    public IllegalComponentDefinitionException(Class<? extends Component> type,
                                                String problem) {
         super("Type has illegal definition: " + type + ", error: " + problem);
     }

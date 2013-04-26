@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.property;
 
 /**
  * <p/>
@@ -63,7 +63,7 @@ public interface PropertyFactory<T extends Property> {
     /**
      * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to
      * <var>dst</var> at <var>dstIndex</var>. This is used when a component is created and
-     * cloned from a template with {@link Entity#add(com.lhkbob.entreri.Component)}. For
+     * cloned from a template with {@link com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For
      * many cases a plain copy-by-value or copy-by-reference is sufficient, but some
      * component types might require more complicated cloning rules.
      *

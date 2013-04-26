@@ -24,10 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -64,18 +63,6 @@ public class Attributes {
                 this.attrs.put(a.annotationType(), a);
             }
         }
-    }
-
-    /**
-     * Create a new Attributes that collects all annotations that have been annotated with
-     * {@link Attribute} on the given field.
-     *
-     * @param f The field to build the set of attributes from
-     *
-     * @throws NullPointerException if f is null
-     */
-    public Attributes(Field f) {
-        this(f.getAnnotations());
     }
 
     /**

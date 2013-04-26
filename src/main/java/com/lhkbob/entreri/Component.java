@@ -1,132 +1,34 @@
-/*
- * Entreri, an entity-component framework in Java
- *
- * Copyright (c) 2012, Michael Ludwig
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- *     Redistributions of source code must retain the above copyright notice,
- *         this list of conditions and the following disclaimer.
- *     Redistributions in binary form must reproduce the above copyright notice,
- *         this list of conditions and the following disclaimer in the
- *         documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package com.lhkbob.entreri;
 
 /**
  * <p/>
- * Component represents a grouping of reusable and related states that are added to an
- * {@link Entity}. The specific state of a component is stored and defined in {@link
- * ComponentData} implementations. This separation is to support fast iteration over
- * blocks of packed, managed memory. All of the component data is packed into buffers or
- * arrays for cache locality. A single ComponentData instance can then be used to access
- * multiple Components.
+ * ComponentData is used to define types of components that can be added to entities. For
+ * performance reasons, the identity of a component is represented by instances of {@link
+ * com.lhkbob.entreri.Component}. ComponentData instances are used as views into the data of the components.
+ * This allows multiple instances to have their data packed together in primitive arrays
+ * or direct memory, allowing for significantly faster iteration.
  * <p/>
- * Component instances represent the identity of the conceptual components, while
- * instances of ComponentData can be configured to read and write to specific components.
- * ComponentData's can change which component they reference multiple times throughout
- * their life time.
  * <p/>
- * Component implements both {@link Ownable} and {@link Owner}. This can be used to create
- * hierarchies of both components and entities that share a lifetime. When a component is
- * removed from an entity, all of its owned objects are disowned. If any of them were
- * entities or components, they are also removed from the system.
+ * Additionally, by using a single ComponentData instance during the iteration, there is
+ * no need to follow the usual object references needed for each instance.
+ * <p/>
+ * <p/>
+ * ComponentData's are defined like any other class, but they are intended to be created
+ * and configured by a {@link ComponentDataFactory}. These factories may impose certain
+ * restrictions or requirements in what constructors or fields are valid. ComponentData
+ * implementations can define a default ComponentDataFactory type with the {@link
+ * DefaultFactory} annotation. By default ComponentData implementations are created using
+ * The {@link ReflectionComponentDataFactory}
  *
- * @param <T> The ComponentData type defining the data of this component
+ * @param <T> The self-referencing type of the ComponentData
  *
  * @author Michael Ludwig
  */
-public final class Component<T extends ComponentData<T>> implements Ownable, Owner {
-    private final ComponentRepository<T> owner;
-
-    final OwnerSupport delegate;
-
-    int index;
-
+public interface Component extends Owner, Ownable {
     /**
-     * Create a new Component stored in the given ComponentRepository, at the given array
-     * position within the ComponentRepository.
-     *
-     * @param owner The ComponentRepository owner
-     * @param index The index within the owner
+     * @return The EntitySystem that created this component
      */
-    Component(ComponentRepository<T> owner, int index) {
-        this.owner = owner;
-        this.index = index;
-        delegate = new OwnerSupport(this);
-    }
-
-    /**
-     * Get a ComponentData instance that can be used to manipulate the state of this
-     * component. This is a convenience for allocating a new ComponentData instance and
-     * assigning it to this component. For tight loops, it is better to allocate a single
-     * ComponentData instance and use its {@link ComponentData#set(Component) set}
-     * method.
-     *
-     * @return A ComponentData to access this component's state, or null if the component
-     *         is not live
-     */
-    public T getData() {
-        T data = getEntitySystem().createDataInstance(getType());
-        if (data.set(this)) {
-            return data;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * @return True if the component is still attached to an entity in the entity system,
-     *         or false if it or its entity has been removed
-     */
-    public boolean isLive() {
-        return index != 0;
-    }
-
-    /**
-     * Return true if this component is enabled, or false if it is disabled and will
-     * appear as though it doesn't exist under default behavior. False is always returned
-     * if the component is not live.
-     *
-     * @return True if enabled
-     */
-    public boolean isEnabled() {
-        // if isLive() returns false, index references the 0th index, which
-        // just contains garbage
-        return isLive() && owner.isEnabled(index);
-    }
-
-    /**
-     * <p/>
-     * Set whether or not this component is enabled. If a component is disabled, default
-     * usage will cause it to appear as the component has been removed. It will not be
-     * returned from {@link Entity#get(Class)} or be included in iterator results using
-     * {@link ComponentIterator}.
-     * <p/>
-     * Disabling and enabling components can be a more efficient way to simulate the
-     * adding and removing of components, because it does not remove or require the
-     * allocation of new data.
-     *
-     * @param enable True if the component is to be enabled
-     */
-    public void setEnabled(boolean enable) {
-        // if isLive() returns false, index references the 0th index, which
-        // just contains garbage so this setter is safe
-        owner.setEnabled(index, enable);
-    }
+    public EntitySystem getEntitySystem();
 
     /**
      * Get the entity that this component is attached to. If the component has been
@@ -134,26 +36,13 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
      *
      * @return The owning entity, or null
      */
-    public Entity getEntity() {
-        // if isLive() returns false, then the entity index will also be 0,
-        // so getEntityByIndex() returns null, which is expected
-        int entityIndex = owner.getEntityIndex(index);
-        return owner.getEntitySystem().getEntityByIndex(entityIndex);
-    }
+    public Entity getEntity();
 
     /**
-     * @return The EntitySystem that created this component
+     * @return True if the component is still attached to an entity in the entity system,
+     *         or false if it or its entity has been removed
      */
-    public EntitySystem getEntitySystem() {
-        return owner.getEntitySystem();
-    }
-
-    /**
-     * @return The class type of the ComponentData for this Component
-     */
-    public Class<T> getType() {
-        return owner.getType();
-    }
+    public boolean isAlive();
 
     /**
      * Get the underlying index of this component used to access its properties. In most
@@ -164,46 +53,28 @@ public final class Component<T extends ComponentData<T>> implements Ownable, Own
      *
      * @return The current index of component
      */
-    public int getIndex() {
-        return index;
-    }
+    public int getIndex();
 
     /**
-     * @return The ComponentRepository owning this Component
+     * <p/>
+     * Get the current version of the data accessed by this ComponentData. When data is
+     * mutated by a ComponentData, implementations increment its associated component's
+     * version so comparing a previously cached version number can be used to determine
+     * when changes have been made.
+     * <p/>
+     * Additionally, for a given component type, versions will be unique. Thus it is
+     * possible to identify when the components are replaced by new components as well.
+     *
+     * @return The current version, or a negative number if the data is invalid
      */
-    ComponentRepository<T> getRepository() {
-        return owner;
-    }
+    public int getVersion();
 
-    @Override
-    public void notifyOwnershipGranted(Ownable obj) {
-        delegate.notifyOwnershipGranted(obj);
-    }
-
-    @Override
-    public void notifyOwnershipRevoked(Ownable obj) {
-        delegate.notifyOwnershipRevoked(obj);
-    }
-
-    @Override
-    public void setOwner(Owner owner) {
-        delegate.setOwner(owner);
-    }
-
-    @Override
-    public Owner getOwner() {
-        return delegate.getOwner();
-    }
-
-    @Override
-    public String toString() {
-        if (index == 0) {
-            return "Component(" + getType().getSimpleName() + ")";
-        } else {
-            int entityId = owner.getEntitySystem()
-                                .getEntityByIndex(owner.getEntityIndex(index)).getId();
-            return "Component(" + getType().getSimpleName() + ", entity=" + entityId +
-                   ")";
-        }
-    }
+    /**
+     * Increment the version of the component accessed by this instance. It is recommended
+     * for component data implementations to call this automatically from within their
+     * exposed mutators, but if necessary it can be invoked manually as well.
+     *
+     * @see #getVersion()
+     */
+    public void updateVersion();
 }

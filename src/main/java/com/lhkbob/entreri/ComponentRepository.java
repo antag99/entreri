@@ -26,12 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.property.BooleanProperty;
-import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.*;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * ComponentRepository manages storing all the componentDatas of a specific type for an
@@ -42,28 +40,31 @@ import java.util.Map.Entry;
  *
  * @author Michael Ludwig
  */
-final class ComponentRepository<T extends ComponentData<T>> {
+@SuppressWarnings({ "unchecked", "rawtypes" })
+final class ComponentRepository<T extends Component> {
     private final EntitySystem system;
     private final Class<T> type;
 
-    private final ComponentDataFactory<T> factory;
-    private final Class<? extends ComponentData<?>>[] requiredTypes;
+    private final ComponentFactoryProvider.Factory<T> factory;
+    private final Class<? extends Component>[] requiredTypes;
 
     // These three arrays have a special value of 0 or null stored in the 0th
     // index, which allows us to lookup componentDatas or entities when they
     // normally aren't attached.
     private int[] entityIndexToComponentRepository;
     private int[] componentIndexToEntityIndex;
-    private Component<T>[] components;
+    private T[] components;
     private int componentInsert;
 
     private final List<DeclaredPropertyStore<?>> declaredProperties;
     private final List<DecoratedPropertyStore<?>> decoratedProperties;
 
     // this is contained in decoratedProperties
-    private final BooleanProperty enabledProperty;
     private final IntProperty componentIdProperty;
     private final IntProperty componentVersionProperty;
+
+    private final ObjectProperty<OwnerSupport> ownerDelegatesProperty;
+
     private int idSeq;
     private int versionSeq;
 
@@ -76,31 +77,28 @@ final class ComponentRepository<T extends ComponentData<T>> {
      *
      * @throws NullPointerException if system or type are null
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public ComponentRepository(EntitySystem system, Class<T> type,
-                               ComponentDataFactory<T> factory) {
+    public ComponentRepository(EntitySystem system, Class<T> type) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
 
         this.system = system;
-        this.factory = factory;
+        this.factory = ComponentFactoryProvider.getInstance().getFactory(type);
         this.type = type;
-        requiredTypes = factory.getRequiredComponentTypes().toArray(new Class[0]);
+        requiredTypes = factory.getRequiredTypes().toArray(new Class[factory.getRequiredTypes().size()]);
 
-        Map<?, PropertyFactory<?>> propertyFactories = factory.getPropertyFactories();
+        List<PropertySpecification> spec = factory.getSpecification();
 
         declaredProperties = new ArrayList<DeclaredPropertyStore<?>>();
         decoratedProperties = new ArrayList<DecoratedPropertyStore<?>>(); // empty for now
-        for (Entry<?, PropertyFactory<?>> e : propertyFactories.entrySet()) {
-            DeclaredPropertyStore store = new DeclaredPropertyStore(e.getValue(),
-                                                                    e.getKey());
+        for (PropertySpecification p : spec) {
+            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getFactory(), p.getName());
             declaredProperties.add(store);
         }
 
         entityIndexToComponentRepository = new int[1]; // holds default 0 value in 0th index
         componentIndexToEntityIndex = new int[1]; // holds default 0 value in 0th index
-        components = new Component[1]; // holds default null value in 0th index
+        components = (T[]) new Component[1]; // holds default null value in 0th index
 
         componentInsert = 1;
 
@@ -108,15 +106,14 @@ final class ComponentRepository<T extends ComponentData<T>> {
         resizePropertyStores(declaredProperties, 1);
 
         // decorate the component data with a boolean property to track enabled status
-        enabledProperty = decorate(new BooleanProperty.Factory(true));
         // we set a unique id for every component
         componentIdProperty = decorate(new IntProperty.Factory(0));
         componentVersionProperty = decorate(new IntProperty.Factory(0));
+        ownerDelegatesProperty = decorate(ObjectProperty.<OwnerSupport>factory(null));
 
         idSeq = 1; // start at 1, just like entity id sequences versionSeq = 0;
 
-        // initialize enabled and version for the 0th index
-        enabledProperty.set(false, 0);
+        // initialize version for the 0th index
         componentVersionProperty.set(-1, 0);
     }
 
@@ -215,29 +212,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
     }
 
     /**
-     * @param componentIndex The component to look up
-     *
-     * @return True if the component at componentIndex is enabled
-     */
-    public boolean isEnabled(int componentIndex) {
-        return enabledProperty.get(componentIndex);
-    }
-
-    /**
-     * Set whether or not the component at <var>componentIndex</var> is enabled. This does
-     * nothing if the index is 0, preserving the guarantee that invalid component is
-     * considered disabled.
-     *
-     * @param componentIndex The component index
-     * @param enabled        True if the component is enabled
-     */
-    public void setEnabled(int componentIndex, boolean enabled) {
-        if (componentIndex != 0) {
-            enabledProperty.set(enabled, componentIndex);
-        }
-    }
-
-    /**
      * @param componentIndex The component index
      *
      * @return The component id of the component at the given index
@@ -260,7 +234,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * index is 0, preserving the guarantee that an invalid component has a negative
      * version.
      *
-     * @param componentIndex
+     * @param componentIndex The component to update
      */
     public void incrementVersion(int componentIndex) {
         if (componentIndex != 0) {
@@ -268,6 +242,14 @@ final class ComponentRepository<T extends ComponentData<T>> {
             int newVersion = (0xefffffff & (versionSeq++));
             componentVersionProperty.set(newVersion, componentIndex);
         }
+    }
+
+    /**
+     * @param componentIndex The component index
+     * @return The OwnerSupport delegate for the component by the given index
+     */
+    public OwnerSupport getOwnerDelegate(int componentIndex) {
+        return ownerDelegatesProperty.get(componentIndex);
     }
 
     /*
@@ -309,7 +291,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      *
      * @return The component reference at the given index, may be null
      */
-    public Component<T> getComponent(int componentIndex) {
+    public T getComponent(int componentIndex) {
         return components[componentIndex];
     }
 
@@ -323,28 +305,24 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return A new component of type T
      *
      * @throws NullPointerException     if fromTemplate is null
-     * @throws IllegalArgumentException if the template was not created by this index
      * @throws IllegalStateException    if the template is not live
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public Component<T> addComponent(int entityIndex, Component<T> fromTemplate) {
-        if (fromTemplate.getEntitySystem() != getEntitySystem()) {
-            throw new IllegalArgumentException(
-                    "Component not owned by expected EntitySystem");
-        }
-        if (!fromTemplate.getType().equals(type)) {
+    public T addComponent(int entityIndex, T fromTemplate) {
+        if (!type.isInstance(fromTemplate)) {
             throw new IllegalArgumentException(
                     "Component not of expected type, expected: " + type + ", but was: " +
-                    fromTemplate.getType());
+                    fromTemplate.getClass());
         }
-        if (!fromTemplate.isLive()) {
+        if (!fromTemplate.isAlive()) {
             throw new IllegalStateException("Template component is not live");
         }
 
-        Component<T> instance = addComponent(entityIndex);
+        T instance = addComponent(entityIndex);
+        // this is safe across systems because the property spec for a component type
+        // will be the same so the factories will be consistent
         for (int i = 0; i < declaredProperties.size(); i++) {
             DeclaredPropertyStore store = declaredProperties.get(i);
-            store.clone(fromTemplate.index, store.property, instance.index);
+            store.clone(fromTemplate.getIndex(), store.property, instance.getIndex());
         }
 
         return instance;
@@ -360,16 +338,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
      *
      * @throws IllegalArgumentException if initParams is incorrect
      */
-    public Component<T> addComponent(int entityIndex) {
-        Component<T> instance = allocateComponent(entityIndex);
-        return instance;
-    }
-
-    /*
-     * Allocate and store a new component and initialize it to its default state
-     */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private Component<T> allocateComponent(int entityIndex) {
+    public T addComponent(int entityIndex) {
         if (entityIndexToComponentRepository[entityIndex] != 0) {
             removeComponent(entityIndex);
         }
@@ -379,7 +348,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
             expandComponentRepository(componentIndex + 1);
         }
 
-        Component<T> instance = new Component<T>(this, componentIndex);
+        T instance = createDataInstance(componentIndex);
         components[componentIndex] = instance;
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentRepository[entityIndex] = componentIndex;
@@ -390,7 +359,6 @@ final class ComponentRepository<T extends ComponentData<T>> {
         for (int i = 0; i < declaredProperties.size(); i++) {
             declaredProperties.get(i).setDefaultValue(componentIndex);
         }
-
         for (int i = 0; i < decoratedProperties.size(); i++) {
             decoratedProperties.get(i).setDefaultValue(componentIndex);
         }
@@ -398,6 +366,8 @@ final class ComponentRepository<T extends ComponentData<T>> {
         // although there could be a custom PropertyFactory for setting the id,
         // it's easier to assign a new id here
         componentIdProperty.set(idSeq++, componentIndex);
+        // same goes for assigning a new owner delegate
+        ownerDelegatesProperty.set(new OwnerSupport(instance), componentIndex);
 
         // start with a unique version as well
         incrementVersion(componentIndex);
@@ -406,7 +376,7 @@ final class ComponentRepository<T extends ComponentData<T>> {
         Entity entity = system.getEntityByIndex(entityIndex);
         for (int i = 0; i < requiredTypes.length; i++) {
             if (entity.get((Class) requiredTypes[i]) == null) {
-                Component<?> added = entity.add((Class) requiredTypes[i]);
+                Component added = entity.add((Class) requiredTypes[i]);
                 added.setOwner(instance);
             }
         }
@@ -421,21 +391,15 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @return A new data instance
      */
     public T createDataInstance() {
+        return createDataInstance(0);
+    }
+
+    private T createDataInstance(int forIndex) {
         // create a new instance from the factory - it will be completely detached
-        T t = factory.createInstance();
+        AbstractComponent<T> t = factory.newInstance(this);
 
-        // attach it to this data index, at the 0th index
-        //  - at this point the ComponentData's owner should be considered final
-        t.owner = this;
-
-        // assign all property values
-        for (int i = 0; i < declaredProperties.size(); i++) {
-            DeclaredPropertyStore<?> p = declaredProperties.get(i);
-            factory.setProperty(t, p.key, p.property);
-        }
-
-        t.set(null);
-        return t;
+        t.setIndex(forIndex);
+        return (T) t;
     }
 
     /**
@@ -450,18 +414,18 @@ final class ComponentRepository<T extends ComponentData<T>> {
         int componentIndex = entityIndexToComponentRepository[entityIndex];
 
         // This code works even if componentIndex is 0
-        Component<T> oldComponent = components[componentIndex];
+        T oldComponent = components[componentIndex];
+        AbstractComponent<T> casted = (AbstractComponent<T>) oldComponent;
         if (oldComponent != null) {
             oldComponent.setOwner(null);
-            oldComponent.delegate.disownAndRemoveChildren();
-            oldComponent.index = 0;
+            casted.delegate.disownAndRemoveChildren();
+            casted.setIndex(0);
         }
 
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
         componentIdProperty.set(0, componentIndex);
-        enabledProperty.set(false, componentIndex);
 
         return oldComponent != null;
     }
@@ -470,14 +434,13 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * Update all component data in the list of properties. If possible the data
      * store in swap is reused.
      */
-    private void update(List<? extends PropertyStore<?>> properties,
-                        Component<T>[] newToOldMap) {
+    private void update(List<? extends PropertyStore<?>> properties) {
         for (int i = 0; i < properties.size(); i++) {
             PropertyStore<?> store = properties.get(i);
             Property p = store.getProperty();
             if (p != null) {
                 IndexedDataStore origStore = p.getDataStore();
-                p.setDataStore(update(origStore, store.swap, newToOldMap));
+                p.setDataStore(update(origStore, store.swap));
                 store.swap = origStore;
             }
         }
@@ -485,11 +448,10 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
     /*
      * Update all component data in src to be in dst by shuffling it to match
-     * newToOldMap.
+     * current state of components array.
      */
-    private IndexedDataStore update(IndexedDataStore src, IndexedDataStore dst,
-                                    Component<T>[] newToOldMap) {
-        int dstSize = newToOldMap.length;
+    private IndexedDataStore update(IndexedDataStore src, IndexedDataStore dst) {
+        int dstSize = components.length;
 
         if (dst == null || dst.size() < dstSize) {
             dst = src.create(dstSize);
@@ -500,12 +462,12 @@ final class ComponentRepository<T extends ComponentData<T>> {
         int copyIndexNew = -1;
         int copyIndexOld = -1;
         for (i = 1; i < componentInsert; i++) {
-            if (newToOldMap[i] == null) {
+            if (components[i] == null) {
                 // we've hit the end of existing componentDatas, so break
                 break;
             }
 
-            if (newToOldMap[i].index != lastIndex + 1) {
+            if (components[i].getIndex() != lastIndex + 1) {
                 // we are not in a contiguous section
                 if (copyIndexOld >= 0) {
                     // we have to copy over the last section
@@ -514,9 +476,9 @@ final class ComponentRepository<T extends ComponentData<T>> {
 
                 // set the copy indices
                 copyIndexNew = i;
-                copyIndexOld = newToOldMap[i].index;
+                copyIndexOld = components[i].getIndex();
             }
-            lastIndex = newToOldMap[i].index;
+            lastIndex = components[i].getIndex();
         }
 
         if (copyIndexOld >= 0) {
@@ -541,13 +503,13 @@ final class ComponentRepository<T extends ComponentData<T>> {
      * @param numEntities       The number of entities that are in the system
      */
     public void compact(int[] entityOldToNewMap, int numEntities) {
-        // First sort the canonical componentDatas array
-        Arrays.sort(components, 1, componentInsert, new Comparator<Component<T>>() {
+        // First sort the canonical components array to order them by their entity
+        Arrays.sort(components, 1, componentInsert, new Comparator<T>() {
             @Override
-            public int compare(Component<T> o1, Component<T> o2) {
+            public int compare(T o1, T o2) {
                 if (o1 != null && o2 != null) {
-                    return componentIndexToEntityIndex[o1.index] -
-                           componentIndexToEntityIndex[o2.index];
+                    return componentIndexToEntityIndex[o1.getIndex()] -
+                           componentIndexToEntityIndex[o2.getIndex()];
                 } else if (o1 != null) {
                     return -1; // push null o2 to end of array
                 } else if (o2 != null) {
@@ -566,17 +528,17 @@ final class ComponentRepository<T extends ComponentData<T>> {
             }
         }
 
-        // Update all of the property stores to match up with the componentDatas new positions
-        update(declaredProperties, components);
-        update(decoratedProperties, components);
+        // Update all of the property stores to match up with the components new positions
+        update(declaredProperties);
+        update(decoratedProperties);
 
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
         int[] newComponentRepository = new int[components.length];
         for (int i = 1; i < components.length; i++) {
             if (components[i] != null) {
-                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].index]];
-                components[i].index = i;
+                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].getIndex()]];
+                ((AbstractComponent<T>) components[i]).setIndex(i);
                 componentInsert = i + 1;
             }
         }

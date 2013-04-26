@@ -52,7 +52,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Requires {
     /**
-     * @return All ComponentData types required by the annotated component type
+     * @return All Component types required by the annotated component type
      */
-    Class<? extends ComponentData<?>>[] value();
+    Class<? extends Component>[] value();
 }

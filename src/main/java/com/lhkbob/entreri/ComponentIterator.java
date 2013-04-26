@@ -73,14 +73,13 @@ import java.util.Iterator;
  */
 public class ComponentIterator {
     private final EntitySystem system;
-    private boolean ignoreEnabled;
 
     private int index;
 
-    private ComponentData<?>[] required; // all required except primary
-    private ComponentData<?>[] optional;
+    private Component[] required; // all required except primary
+    private Component[] optional;
 
-    private ComponentData<?> primary;
+    private Component primary;
 
     /**
      * Create a new ComponentIterator that will iterate over components or entities within
@@ -96,26 +95,10 @@ public class ComponentIterator {
             throw new NullPointerException("System cannot be null");
         }
         this.system = system;
-        required = new ComponentData<?>[0];
-        optional = new ComponentData<?>[0];
+        required = new Component[0];
+        optional = new Component[0];
         primary = null;
         index = 0;
-        ignoreEnabled = false;
-    }
-
-    /**
-     * Set whether or not the enabled status of a component is ignored. If true, disabled
-     * components will be considered by this iterator. If false, disabled components will
-     * act as though they don't exist. This is equivalent to {@link Entity#get(Class,
-     * boolean)}.
-     *
-     * @param e The enable flag to set
-     *
-     * @return This iterator for chaining purposes
-     */
-    public ComponentIterator setIgnoreEnabled(boolean e) {
-        ignoreEnabled = e;
-        return this;
     }
 
     /**
@@ -133,14 +116,11 @@ public class ComponentIterator {
      * @throws IllegalArgumentException if data was not created by the EntitySystem of
      *                                  this iterator
      */
-    public ComponentIterator addRequired(ComponentData<?> data) {
-        if (data == null) {
-            throw new NullPointerException("ComponentData cannot be null");
+    public <T extends Component> T addRequired(Class<T> type) {
+        if (type == null) {
+            throw new NullPointerException("Component type cannot be null");
         }
-        if (data.owner.getEntitySystem() != system) {
-            throw new IllegalArgumentException(
-                    "ComponentData not created by correct EntitySystem");
-        }
+        T data = system.getRepository(type).createDataInstance();
 
         // check to see if the data should be the new primary
         if (primary == null) {
@@ -162,7 +142,7 @@ public class ComponentIterator {
             }
         }
 
-        return this;
+        return data;
     }
 
     /**
@@ -184,20 +164,18 @@ public class ComponentIterator {
      * @throws IllegalArgumentException if data was not created by the EntitySystem of
      *                                  this iterator
      */
-    public ComponentIterator addOptional(ComponentData<?> data) {
-        if (data == null) {
-            throw new NullPointerException("ComponentData cannot be null");
+    public <T extends Component> T addOptional(Class<T> type) {
+        if (type == null) {
+            throw new NullPointerException("Component type cannot be null");
         }
-        if (data.owner.getEntitySystem() != system) {
-            throw new IllegalArgumentException(
-                    "ComponentData not created by correct EntitySystem");
-        }
+
+        T data = system.getRepository(type).createDataInstance();
 
         // add the data to the optional array
         optional = Arrays.copyOf(optional, optional.length + 1);
         optional[optional.length - 1] = data;
 
-        return this;
+        return data;
     }
 
     /**

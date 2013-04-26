@@ -53,8 +53,8 @@ import java.lang.annotation.Target;
 public @interface Clone {
     /**
      * Policy is an enum describing a number of different behaviors performed by a {@link
-     * PropertyFactory} when its {@link PropertyFactory#clone(com.lhkbob.entreri.Property,
-     * int, com.lhkbob.entreri.Property, int)} method is invoked in response to {@link
+     * PropertyFactory} when its {@link PropertyFactory#clone(Property,
+     * int, Property, int)} method is invoked in response to {@link
      * Entity#add(com.lhkbob.entreri.Component)} or {@link EntitySystem#addEntity(Entity)}.
      */
     public static enum Policy {

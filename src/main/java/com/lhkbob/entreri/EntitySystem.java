@@ -26,10 +26,11 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.PropertyFactory;
 import com.lhkbob.entreri.task.Scheduler;
 import com.lhkbob.entreri.task.Task;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 /**
@@ -55,11 +56,10 @@ import java.util.*;
  * @author Michael Ludwig
  * @see Entity
  * @see Component
- * @see ComponentData
  */
 public final class EntitySystem implements Iterable<Entity> {
     // converts valid component data types into indices into componentRepositories
-    private final Map<Class<? extends ComponentData<?>>, Integer> typeIndexMap;
+    private final Map<Class<? extends Component>, Integer> typeIndexMap;
     private int typeIdSeq;
 
     private ComponentRepository<?>[] componentRepositories;
@@ -75,7 +75,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * Create a new EntitySystem that has no entities added.
      */
     public EntitySystem() {
-        typeIndexMap = new HashMap<Class<? extends ComponentData<?>>, Integer>();
+        typeIndexMap = new HashMap<Class<? extends Component>, Integer>();
         typeIdSeq = 0;
 
         manager = new Scheduler(this);
@@ -84,81 +84,6 @@ public final class EntitySystem implements Iterable<Entity> {
 
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0
         entityInsert = 1;
-    }
-
-    /**
-     * <p/>
-     * Assign a specific ComponentDataFactory instance to create and manage ComponentData
-     * instances of the given type for this system. This will override the default {@link
-     * ReflectionComponentDataFactory} or any default type declared by the {@link
-     * DefaultFactory} annotation.
-     * <p/>
-     * However, a ComponentDataFactory cannot be assigned if there is already another
-     * factory in use for that type. This situation arises if setFactory() is called
-     * multiple times, or if the EntitySystem needs to use a given type before
-     * setFactory() is called and it must fall back onto a default factory.
-     * <p/>
-     * This rule exists to ensure that all ComponentData instances of a given type created
-     * by an EntitySystem come from the same factory, regardless of when they were
-     * instantiated.
-     *
-     * @param <T>     The ComponentData type created by the factory
-     * @param type    The type of the component type
-     * @param factory The factory to use in this system for the given type
-     *
-     * @throws NullPointerException     if id or factory are null
-     * @throws IllegalArgumentException if the factory does not actually create instances
-     *                                  of type T
-     * @throws IllegalStateException    if the EntitySystem already has a factory for the
-     *                                  given type
-     */
-    @SuppressWarnings("unchecked")
-    public <T extends ComponentData<T>> void setFactory(Class<T> type,
-                                                        ComponentDataFactory<T> factory) {
-        if (type == null) {
-            throw new NullPointerException("TypeId cannot be null");
-        }
-        if (factory == null) {
-            throw new NullPointerException("ComponentDataFactory cannot be null");
-        }
-
-        int index = getTypeIndex(type);
-        if (index >= componentRepositories.length) {
-            // make sure it's the correct size
-            componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
-        }
-
-        ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
-        if (i != null) {
-            // a factory is already defined
-            throw new IllegalStateException(
-                    "A ComponentDataFactory is already assigned to the type: " + type);
-        }
-
-        // verify that the factory creates the proper instances
-        T data = factory.createInstance();
-        if (!type.isInstance(data)) {
-            throw new IllegalArgumentException(
-                    "ComponentDataFactory does not create instances of type: " + type);
-        }
-
-        i = new ComponentRepository<T>(this, type, factory);
-        i.expandEntityIndex(entities.length);
-        componentRepositories[index] = i;
-    }
-
-    /**
-     * Create a new instance of type T for use with accessing the component data of this
-     * EntitySystem. The returned instance will be invalid until it is assigned a
-     * Component to access (explicitly or via a {@link ComponentIterator}).
-     *
-     * @param <T>  The type of ComponentData to create
-     * @param type The type of the ComponentData
-     *
-     * @return A new instance of T linked to this EntitySystem
-     */
-    public <T extends ComponentData<T>> T createDataInstance(Class<T> type) {
-        return getRepository(type).createDataInstance();
     }
 
     /**
@@ -173,7 +98,7 @@ public final class EntitySystem implements Iterable<Entity> {
      *
      * @throws NullPointerException if id is null
      */
-    public long estimateMemory(Class<? extends ComponentData<?>> type) {
+    public long estimateMemory(Class<? extends Component> type) {
         int index = getTypeIndex(type);
         if (index < componentRepositories.length) {
             ComponentRepository<?> repo = componentRepositories[index];
@@ -195,7 +120,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * @throws NullPointerException if type is null
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public <T extends ComponentData<? extends T>> Collection<Class<? extends T>> getComponentTypes(
+    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(
             Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
@@ -220,12 +145,10 @@ public final class EntitySystem implements Iterable<Entity> {
      *
      * @return All TypeIds at one point used by this system
      */
-    public Collection<Class<? extends ComponentData<?>>> getComponentTypes() {
-        List<Class<? extends ComponentData<?>>> ids = new ArrayList<Class<? extends ComponentData<?>>>();
+    public Collection<Class<? extends Component>> getComponentTypes() {
+        List<Class<? extends Component>> ids = new ArrayList<Class<? extends Component>>();
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
-                // check the type
-                // this type is a subclass of the requested type
                 ids.add(componentRepositories[i].getType());
             }
         }
@@ -263,7 +186,7 @@ public final class EntitySystem implements Iterable<Entity> {
      *
      * @return A fast iterator over components in this system
      */
-    public <T extends ComponentData<T>> Iterator<T> iterator(Class<T> type) {
+    public <T extends Component> Iterator<T> iterator(Class<T> type) {
         return new ComponentIteratorWrapper<T>(type);
     }
 
@@ -353,8 +276,9 @@ public final class EntitySystem implements Iterable<Entity> {
      * <p/>
      * Add a new Entity to this EntitySystem. If <var>template</var> is not null, the
      * components attached to the template will have their state cloned onto the new
-     * entity. The semantics of cloning is defined by {@link PropertyFactory#clone(Property,
-     * int, Property, int)}, but by default it follows Java's reference/value rule.
+     * entity. The semantics of cloning is defined by {@link com.lhkbob.entreri.property.PropertyFactory#clone(com.lhkbob.entreri.property.Property,
+     * int, com.lhkbob.entreri.property.Property, int)}, but by default it follows Java's
+     * reference/value rule.
      * <p/>
      * <p/>
      * Specifying a null template makes this behave identically to {@link #addEntity()}.
@@ -363,19 +287,13 @@ public final class EntitySystem implements Iterable<Entity> {
      *
      * @return A new Entity in the system with the same component state as the template
      *
-     * @throws IllegalStateException    if the template is not a live entity
-     * @throws IllegalArgumentException if the template was not created by this entity
-     *                                  system
+     * @throws IllegalStateException if the template is not a live entity
      */
     public Entity addEntity(Entity template) {
         if (template != null) {
             // validate the template before allocating a new entity
-            if (!template.isLive()) {
+            if (!template.isAlive()) {
                 throw new IllegalStateException("Entity template is not live");
-            }
-            if (template.getEntitySystem() != this) {
-                throw new IllegalArgumentException(
-                        "Entity template was not created by this EntitySystem");
             }
         }
 
@@ -394,8 +312,9 @@ public final class EntitySystem implements Iterable<Entity> {
         entities[entityIndex] = newEntity;
 
         if (template != null) {
-            for (Component<?> c : template) {
-                addFromTemplate(entityIndex, c.getType(), c);
+            for (Component c : template) {
+                // FIXME not correct, may need to bring back getType() in Component to return the interface type
+                addFromTemplate(entityIndex, c.getClass(), c);
             }
         }
 
@@ -468,8 +387,8 @@ public final class EntitySystem implements Iterable<Entity> {
      *
      * @throws NullPointerException if type or factory are null
      */
-    public <T extends ComponentData<T>, P extends Property> P decorate(Class<T> type,
-                                                                       PropertyFactory<P> factory) {
+    public <T extends Component, P extends Property> P decorate(Class<T> type,
+                                                                PropertyFactory<P> factory) {
         ComponentRepository<?> index = getRepository(type);
         return index.decorate(factory);
     }
@@ -484,7 +403,7 @@ public final class EntitySystem implements Iterable<Entity> {
      * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
-    <T extends ComponentData<T>> ComponentRepository<T> getRepository(Class<T> type) {
+    <T extends Component> ComponentRepository<T> getRepository(Class<T> type) {
         int index = getTypeIndex(type);
         if (index >= componentRepositories.length) {
             // make sure it's the correct size
@@ -494,7 +413,7 @@ public final class EntitySystem implements Iterable<Entity> {
         ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
-            i = new ComponentRepository<T>(this, type, createDefaultFactory(type));
+            i = new ComponentRepository<T>(this, type);
             i.expandEntityIndex(entities.length);
             componentRepositories[index] = i;
         }
@@ -502,58 +421,13 @@ public final class EntitySystem implements Iterable<Entity> {
         return i;
     }
 
-    private int getTypeIndex(Class<? extends ComponentData<?>> type) {
+    private int getTypeIndex(Class<? extends Component> type) {
         Integer id = typeIndexMap.get(type);
         if (id == null) {
             id = typeIdSeq++;
             typeIndexMap.put(type, id);
         }
-        return id.intValue();
-    }
-
-    /*
-     * Create a new ComponentDataFactory for the given id, using the default
-     * annotation if available.
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <T extends ComponentData<T>> ComponentDataFactory<T> createDefaultFactory(
-            Class<T> type) {
-        DefaultFactory factoryAnnot = type.getAnnotation(DefaultFactory.class);
-        if (factoryAnnot != null) {
-            Class factoryType = factoryAnnot.value();
-            // check for supported constructors, priority: Class, default
-            ComponentDataFactory<T> factory = (ComponentDataFactory<T>) attemptInstantiation(
-                    factoryType, type);
-            if (factory == null) {
-                factory = (ComponentDataFactory<T>) attemptInstantiation(factoryType);
-            }
-            if (factory == null) {
-                throw new IllegalComponentDefinitionException(type,
-                                                              "Cannot instantiate default ComponentDataFactory of type: " +
-                                                              factoryType);
-            }
-
-            return factory;
-        } else {
-            // use the reflection default
-            return new ReflectionComponentDataFactory<T>(type);
-        }
-    }
-
-    /*
-     * Look for a constructor that takes the given params and use it. Returns
-     * null if any exception is thrown.
-     */
-    private Object attemptInstantiation(Class<?> type, Object... params) {
-        Class<?>[] argTypes = new Class<?>[params.length];
-        Constructor<?> constructor;
-        try {
-            constructor = type.getConstructor(argTypes);
-            return constructor.newInstance(params);
-        } catch (Exception e) {
-            // just return null, calling methods will fallback as appropriate
-            return null;
-        }
+        return id;
     }
 
     /**
@@ -576,8 +450,7 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <T extends ComponentData<T>> void addFromTemplate(int entityIndex, Class type,
-                                                              Component<T> c) {
+    private <T extends Component> void addFromTemplate(int entityIndex, Class type, T c) {
         ComponentRepository index = getRepository(type);
         index.addComponent(entityIndex, c);
     }
@@ -623,8 +496,7 @@ public final class EntitySystem implements Iterable<Entity> {
         }
     }
 
-    private class ComponentIteratorWrapper<T extends ComponentData<T>>
-            implements Iterator<T> {
+    private class ComponentIteratorWrapper<T extends Component> implements Iterator<T> {
         private final T data;
         private final ComponentIterator it;
 
@@ -632,9 +504,8 @@ public final class EntitySystem implements Iterable<Entity> {
         private boolean hasNext;
 
         public ComponentIteratorWrapper(Class<T> type) {
-            data = createDataInstance(type);
             it = new ComponentIterator(EntitySystem.this);
-            it.addRequired(data);
+            data = it.addRequired(type);
 
             nextCalled = false;
             hasNext = false;

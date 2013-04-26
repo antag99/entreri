@@ -30,10 +30,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Utility for shared implementation of {@link Ownable} and {@link Owner}
+ * Utility for shared implementation of {@link com.lhkbob.entreri.Ownable} and {@link com.lhkbob.entreri.Owner}
  *
  * @author Michael Ludwig
  */
+// FIXME how will this work with flyweight components being set as the owner of things?
 class OwnerSupport {
     private final Ownable target;
     private final Set<Ownable> ownedObjects;
@@ -111,7 +112,7 @@ class OwnerSupport {
                 Entity ownedEntity = (Entity) owned;
                 ownedEntity.getEntitySystem().removeEntity(ownedEntity);
             } else if (owned instanceof Component) {
-                Component<?> ownedComp = (Component<?>) owned;
+                Component ownedComp = (Component) owned;
                 ownedComp.getEntity().remove(ownedComp.getType());
             }
         }

@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.IndexedDataStore;
-
 import java.nio.Buffer;
 import java.util.List;
 

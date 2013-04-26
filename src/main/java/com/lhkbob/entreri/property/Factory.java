@@ -24,7 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.property;
+
+import com.lhkbob.entreri.property.IntProperty.DefaultInt;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,16 +35,29 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Unmanaged is an annotation that can be applied to fields in a ComponentData definition
- * to make the field completely ignored by the EntitySystem creating or managing the
- * component. This can be used to store per-instance cached data in the component without
- * triggering {@link IllegalComponentDefinitionException exceptions}. However, it makes
- * little sense to declare a Property field as unmanaged because then its data store will
- * not be kept in sync with the component's other indexed data.
+ * <p/>
+ * The Factory annotation can be declared on a Property field in a ComponentData
+ * definition to specify the type of PropertyFactory to use when creating instances of the
+ * Property for the component. The factory type must have a no-argument constructor in
+ * order to be instantiated correctly. This annotation should be used if Property does not
+ * provide a default factory with sufficient flexibility with annotation attributes (e.g.
+ * {@link DefaultInt} for the Properties defined in com.lhkbob.entreri.property).
+ * <p/>
+ * <p/>
+ * Factory can also be placed at the type level on a Property implementation to declare
+ * the default PropertyFactory to use. When using the {@link ReflectionComponentDataFactory},
+ * it checks for a constructor taking a single {@link com.lhkbob.entreri.property.Attributes} object, or the default
+ * constructor.
  *
  * @author Michael Ludwig
+ * @see ReflectionComponentDataFactory
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Unmanaged {
+@Target({ ElementType.FIELD, ElementType.TYPE })
+public @interface Factory {
+    /**
+     * @return Class of the PropertyFactory to instantiate, must have an accessible
+     *         no-argument constructor
+     */
+    Class<? extends PropertyFactory<?>> value();
 }

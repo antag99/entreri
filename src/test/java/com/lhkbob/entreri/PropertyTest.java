@@ -31,6 +31,7 @@ import com.lhkbob.entreri.property.Clone.Policy;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.property.Attributes;
 import junit.framework.Assert;
 import org.junit.Test;
 
