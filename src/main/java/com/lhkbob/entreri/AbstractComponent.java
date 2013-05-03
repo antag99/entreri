@@ -39,7 +39,6 @@ abstract class AbstractComponent<T extends Component> implements Component {
     private int index;
     private int id;
 
-
     /**
      * Create a new component stored in the given ComponentRepository.
      *
@@ -50,11 +49,19 @@ abstract class AbstractComponent<T extends Component> implements Component {
         this.index = 0;
     }
 
+    /**
+     * Set the index that defines the identity of this component.
+     *
+     * @param index The new index
+     */
     public void setIndex(int index) {
         this.index = index;
         this.id = owner.getId(index);
     }
 
+    /**
+     * @return The repository that allocated this component
+     */
     public ComponentRepository<T> getRepository() {
         return owner;
     }

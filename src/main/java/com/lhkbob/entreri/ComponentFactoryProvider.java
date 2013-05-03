@@ -21,4 +21,9 @@ abstract class ComponentFactoryProvider {
         // FIXME impl
         throw new UnsupportedOperationException();
     }
+
+    public static String generateJavaCode(Class<? extends Component> type,
+                                          List<PropertySpecification> spec) {
+        return null;
+    }
 }

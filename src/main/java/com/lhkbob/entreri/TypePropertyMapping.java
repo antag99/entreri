@@ -8,7 +8,12 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
+ * TypePropertyMapping is an internal class used to maintain a thread-safe, shared, and
+ * consistent mapping from Java type to an associated Property type that wraps that data.
+ * Primitive and plain Object wrapping is built-in and it supports reading a
+ * 'entreri-mapping.properties' file in the type's resources to discover new mappings at
+ * runtime. Said properties file is a simple key-value map between basic class and
+ * Property class.
  */
 final class TypePropertyMapping {
     private static final ConcurrentHashMap<Class<?>, Class<? extends Property>> typeMapping;
@@ -27,6 +32,19 @@ final class TypePropertyMapping {
         typeMapping.put(boolean.class, BooleanProperty.class);
     }
 
+    /**
+     * Attempt to determine a property class that wraps the corresponding Java type. If it
+     * is a primitive type, it will use the corresponding primitive wrapper defined in
+     * com.lhkbob.entreri.property.
+     * <p/>
+     * Unless the type has an available 'entreri-mapping.properties' file, it will
+     * fallback to ObjectProperty.
+     *
+     * @param type The Java type that needs to be wrapped as a property
+     *
+     * @return The discovered or cached property type for the given type
+     */
+    @SuppressWarnings("unchecked")
     public static Class<? extends Property> getPropertyForType(Class<?> type) {
         Class<? extends Property> pType = typeMapping.get(type);
         if (pType != null) {
@@ -34,6 +52,7 @@ final class TypePropertyMapping {
         }
 
         // otherwise check if we have a properties file to load
+        // FIXME this requires the type to be aware of the wrapping property impl
         InputStream in = type.getResourceAsStream("entreri-mapping.properties");
         if (in != null) {
             Properties p = new Properties();
@@ -41,18 +60,20 @@ final class TypePropertyMapping {
                 p.load(in);
                 in.close();
             } catch (IOException e) {
-                throw new RuntimeException("Error reading entreri-mapping.properties for class: " + type, e);
+                throw new RuntimeException(
+                        "Error reading entreri-mapping.properties for class: " + type, e);
             }
 
-            for (String key: p.stringPropertyNames()) {
+            for (String key : p.stringPropertyNames()) {
                 // only process the matching key, this causes more IO overhead but
                 // makes the class loader pattern more consistent
                 if (key.equals(type.getName())) {
                     // use the type's class loader so that the loaded property is tied to
                     // the same loader
                     try {
-                        pType = (Class<? extends Property>) type.getClassLoader().loadClass(
-                                p.getProperty(key));
+                        pType = (Class<? extends Property>) type.getClassLoader()
+                                                                .loadClass(p.getProperty(
+                                                                        key));
 
                         // store the mapping for later as well, this is safe because
                         // a class's loader is part of its identity and the property impl
@@ -61,7 +82,8 @@ final class TypePropertyMapping {
                         typeMapping.put(type, pType);
                         break;
                     } catch (ClassNotFoundException e) {
-                        throw new RuntimeException("Unable to load mapped Property class for " + type, e);
+                        throw new RuntimeException(
+                                "Unable to load mapped Property class for " + type, e);
                     }
                 }
             }

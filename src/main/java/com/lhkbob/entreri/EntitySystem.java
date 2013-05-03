@@ -40,15 +40,14 @@ import java.util.*;
  * data. Entities are created with {@link #addEntity()} or {@link #addEntity(Entity)}.
  * They can be removed (and effectively destroyed) with {@link #removeEntity(Entity)}.
  * <p/>
- * <p/>
  * After an Entity is created, Components can be added to it to store domain-specific data
  * and configure its behaviors. The specifics of the data and behavior depends on the
- * ComponentData implementations and Controllers used to process your data.
+ * Component implementations and Tasks used to process your data.
  * <p/>
- * The {@link Scheduler} of an EntitySystem can be used to register Controllers that will
- * process the entities within an entity system in an organized fashion. Generally, the
- * processing of all controllers through their different phases constitutes a complete
- * "frame".
+ * The {@link Scheduler} of an EntitySystem can be used to create {@link
+ * com.lhkbob.entreri.task.Job Jobs} composed of {@link Task Tasks} that will process the
+ * entities within an entity system in an organized fashion. Generally, the processing of
+ * all controllers through their different phases constitutes a complete "frame".
  * <p/>
  * When Entities are created by an EntitySystem, the created instance is assigned an ID
  * which represents its true identity.
@@ -88,9 +87,9 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Estimate the memory usage of the components with the given TypeId in this
-     * EntitySystem. The returned long is measured in bytes. For ComponentData types that
+     * EntitySystem. The returned long is measured in bytes. For Component types that
      * store primitive data, the estimate will be quite accurate. For types that store
-     * references to objects, it is likely be an underestimate.
+     * references to objects, it will likely be an underestimate.
      *
      * @param type The component type whose memory usage is estimated
      *
@@ -109,13 +108,13 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Get all TypeIds within this EntitySystem that have types assignable to the input
-     * <var>type</var>.
+     * Get all Component types within this EntitySystem that have types assignable to the
+     * input <var>type</var>.
      *
      * @param type The query type
      *
-     * @return All TypeIds that have components in this EntitySystem that are subclasses
-     *         of the input component data type
+     * @return All Component interfaces that have components in this EntitySystem that are
+     *         subclasses of the input component data type
      *
      * @throws NullPointerException if type is null
      */
@@ -140,8 +139,8 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Get all TypeIds currently used by the EntitySystem. If a type has had all of its
-     * components removed, it will still be returned here.
+     * Get all Component interfaces currently used by the EntitySystem. If a type has had
+     * all of its components removed, it will still be returned here.
      *
      * @return All TypeIds at one point used by this system
      */
@@ -167,7 +166,8 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Return an iterator over all of the entities within the system. The returned
-     * iterator's remove() method will remove the entity from the system.
+     * iterator's remove() method will remove the entity from the system with behavior
+     * identical to calling {@link #removeEntity(Entity)}.
      *
      * @return An iterator over the entities of the system
      */
@@ -178,7 +178,7 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * Return an iterator over all components of with the given type. The returned
-     * iterator reuses a single ComponentData instance of T, so it is a fast iterator.
+     * iterator uses a single flyweight Component instance of T, so it is a fast iterator.
      * This effectively wraps a {@link ComponentIterator} in a standard {@link Iterator}
      * with a single required component type.
      *
@@ -280,7 +280,6 @@ public final class EntitySystem implements Iterable<Entity> {
      * int, com.lhkbob.entreri.property.Property, int)}, but by default it follows Java's
      * reference/value rule.
      * <p/>
-     * <p/>
      * Specifying a null template makes this behave identically to {@link #addEntity()}.
      *
      * @param template The template to clone
@@ -327,7 +326,6 @@ public final class EntitySystem implements Iterable<Entity> {
      * longer be alive. Any ComponentData's referencing the entity's components will
      * become invalid until assigned to a new component.
      * <p/>
-     * <p/>
      * When an entity is removed, it will set its owner to null, and disown all of its
      * owned objects. If any of those owned objects are entities or components, they are
      * removed from the system as well.
@@ -368,15 +366,14 @@ public final class EntitySystem implements Iterable<Entity> {
 
     /**
      * <p/>
-     * Dynamically update the available properties of the given ComponentData type by
-     * adding a Property created by the given PropertyFactory. The property will be
-     * managed by the system as if it was a declared property of the component type.
-     * <p/>
+     * Dynamically update the available properties of the given Component type by adding a
+     * Property created by the given PropertyFactory. The property will be managed by the
+     * system as if it was a declared property of the component type.
      * <p/>
      * All components, current and new, will initially have their starting values for the
-     * decorated property equal the state of the property after being created by the
-     * factory. The returned property can be accessed and used by Controllers to add
-     * dynamic runtime data to statically defined component types.
+     * decorated property be the default as defined by the factory. The returned property
+     * can be accessed and used by Tasks to add dynamic runtime data to statically defined
+     * component types.
      *
      * @param <P>     The created property type
      * @param type    The component type to mutate
@@ -393,10 +390,10 @@ public final class EntitySystem implements Iterable<Entity> {
     }
 
     /**
-     * Return the ComponentRepository associated with the given type. Fails if the type is
-     * not registered
+     * Return the ComponentRepository associated with the given type. Creates a new
+     * component repository if the type hasn't been used or accessed before.
      *
-     * @param <T>  The ComponentData type
+     * @param <T>  The Component type
      * @param type The component type
      *
      * @return The ComponentRepository for the type

@@ -30,8 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Utility for shared implementation of {@link com.lhkbob.entreri.Ownable} and {@link
- * com.lhkbob.entreri.Owner}
+ * Utility for shared implementation of {@link Ownable} and {@link Owner}
  *
  * @author Michael Ludwig
  */

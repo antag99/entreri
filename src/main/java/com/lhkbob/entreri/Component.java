@@ -44,6 +44,10 @@ package com.lhkbob.entreri;
  * com.lhkbob.entreri.property.ShareableProperty} API should be leveraged by the generated
  * class.
  * <p/>
+ * Additional attribute annotations can be added to the getter method to influence the
+ * behavior of the {@link com.lhkbob.entreri.property.PropertyFactory} used for each
+ * property in the component definition.
+ * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and
  * the id of their owning entity. The {@link ComponentIterator} class creates flyweight
  * component instances whose identity changes as iteration proceeds; equals() and
