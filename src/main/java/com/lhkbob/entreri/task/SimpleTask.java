@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.EntitySystem;
 
@@ -38,8 +38,8 @@ import java.lang.reflect.Method;
  * SimpleTask extends Task adds logic to simplify the creation of tasks that perform the
  * same operations on each entity that matches a specific component configuration.
  * Subclasses of SimpleTask should define a single method named 'processEntity' that takes
- * as its only parameters, any number of ComponentData instances of specific types. An
- * example might be:
+ * as its only parameters, any number of Component instances of specific types. An example
+ * might be:
  * <p/>
  * <pre>
  * public class ExampleTask extends SimpleTask {
@@ -79,7 +79,7 @@ public abstract class SimpleTask implements Task {
     private final boolean[] optional;
 
     // filled with instances after first call to processEntities
-    private final ComponentData<?>[] componentDatas;
+    private final Component[] componentDatas;
 
     // "final" after the first call to processEntities() or until the system changes
     private ComponentIterator iterator;
@@ -96,7 +96,7 @@ public abstract class SimpleTask implements Task {
                         m.getReturnType().equals(boolean.class)) {
                         boolean paramsValid = true;
                         for (Class<?> p : m.getParameterTypes()) {
-                            if (!ComponentData.class.isAssignableFrom(p)) {
+                            if (!Component.class.isAssignableFrom(p)) {
                                 paramsValid = false;
                                 break;
                             }
@@ -125,7 +125,7 @@ public abstract class SimpleTask implements Task {
 
         this.processMethod = processMethod;
         optional = new boolean[processMethod.getParameterTypes().length];
-        componentDatas = new ComponentData<?>[optional.length];
+        componentDatas = new Component[optional.length];
 
         for (int i = 0; i < optional.length; i++) {
             for (Annotation a : processMethod.getParameterAnnotations()[i]) {
@@ -148,14 +148,13 @@ public abstract class SimpleTask implements Task {
         if (iterator == null || lastSystem != system) {
             iterator = new ComponentIterator(system);
             for (int i = 0; i < optional.length; i++) {
-                ComponentData<?> data = system
-                        .createDataInstance((Class) processMethod.getParameterTypes()[i]);
                 if (optional[i]) {
-                    iterator.addOptional(data);
+                    componentDatas[i] = iterator
+                            .addOptional((Class) processMethod.getParameterTypes()[i]);
                 } else {
-                    iterator.addRequired(data);
+                    componentDatas[i] = iterator
+                            .addRequired((Class) processMethod.getParameterTypes()[i]);
                 }
-                componentDatas[i] = data;
             }
 
             lastSystem = system;
@@ -166,8 +165,8 @@ public abstract class SimpleTask implements Task {
             iterator.reset();
             while (iterator.next()) {
                 for (int i = 0; i < optional.length; i++) {
-                    invokeArgs[i] = (optional[i] && !componentDatas[i].isEnabled() ? null
-                                                                                   : componentDatas[i]);
+                    invokeArgs[i] = (optional[i] && !componentDatas[i].isAlive() ? null
+                                                                                 : componentDatas[i]);
                 }
 
                 boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs))

@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
@@ -67,7 +67,7 @@ public interface ParallelAware {
      * @return The set of all component types that might be added, removed, or modified by
      *         the task
      */
-    public Set<Class<? extends ComponentData<?>>> getAccessedComponents();
+    public Set<Class<? extends Component>> getAccessedComponents();
 
     /**
      * <p/>

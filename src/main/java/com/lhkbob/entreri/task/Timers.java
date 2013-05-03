@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.EntitySystem;
 
 import java.util.Collections;
@@ -103,7 +103,7 @@ public final class Timers {
         }
 
         @Override
-        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        public Set<Class<? extends Component>> getAccessedComponents() {
             return Collections.emptySet();
         }
 
@@ -138,7 +138,7 @@ public final class Timers {
         }
 
         @Override
-        public Set<Class<? extends ComponentData<?>>> getAccessedComponents() {
+        public Set<Class<? extends Component>> getAccessedComponents() {
             return Collections.emptySet();
         }
 

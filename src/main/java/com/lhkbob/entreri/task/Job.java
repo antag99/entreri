@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -51,7 +51,7 @@ public class Job implements Runnable {
     private final Map<Class<? extends Result>, List<ResultReporter>> resultMethods;
 
     private final boolean needsExclusiveLock;
-    private final List<Class<? extends ComponentData<?>>> locks;
+    private final List<Class<? extends Component>> locks;
 
     private final Scheduler scheduler;
     private final String name;
@@ -82,7 +82,7 @@ public class Job implements Runnable {
         taskIndex = -1;
 
         boolean exclusive = false;
-        Set<Class<? extends ComponentData<?>>> typeLocks = new HashSet<Class<? extends ComponentData<?>>>();
+        Set<Class<? extends Component>> typeLocks = new HashSet<Class<? extends Component>>();
         for (int i = 0; i < tasks.length; i++) {
             if (tasks[i] == null) {
                 throw new NullPointerException("Task cannot be null");
@@ -129,12 +129,12 @@ public class Job implements Runnable {
             locks = null;
         } else {
             needsExclusiveLock = false;
-            locks = new ArrayList<Class<? extends ComponentData<?>>>(typeLocks);
+            locks = new ArrayList<Class<? extends Component>>(typeLocks);
             // give locks a consistent ordering
-            Collections.sort(locks, new Comparator<Class<? extends ComponentData<?>>>() {
+            Collections.sort(locks, new Comparator<Class<? extends Component>>() {
                 @Override
-                public int compare(Class<? extends ComponentData<?>> o1,
-                                   Class<? extends ComponentData<?>> o2) {
+                public int compare(Class<? extends Component> o1,
+                                   Class<? extends Component> o2) {
                     return o1.getName().compareTo(o2.getName());
                 }
             });

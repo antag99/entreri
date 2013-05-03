@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.EntitySystem;
 
 import java.util.concurrent.*;
@@ -61,7 +61,7 @@ public class Scheduler {
 
     // locks per component data type, this map is filled
     // dynamically the first time each type is requested
-    private final ConcurrentHashMap<Class<? extends ComponentData<?>>, ReentrantLock> typeLocks;
+    private final ConcurrentHashMap<Class<? extends Component>, ReentrantLock> typeLocks;
 
     private final EntitySystem system;
 
@@ -84,7 +84,7 @@ public class Scheduler {
 
         schedulerGroup = new ThreadGroup("job-scheduler");
         exclusiveLock = new ReentrantReadWriteLock();
-        typeLocks = new ConcurrentHashMap<Class<? extends ComponentData<?>>, ReentrantLock>();
+        typeLocks = new ConcurrentHashMap<Class<? extends Component>, ReentrantLock>();
     }
 
     /**
@@ -106,7 +106,7 @@ public class Scheduler {
      *
      * @return The lock used to coordinate access to the particular componen type
      */
-    ReentrantLock getTypeLock(Class<? extends ComponentData<?>> id) {
+    ReentrantLock getTypeLock(Class<? extends Component> id) {
         ReentrantLock lock = typeLocks.get(id);
         if (lock == null) {
             // this will either return the newly constructed lock, or 
