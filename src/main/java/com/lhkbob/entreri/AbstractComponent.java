@@ -27,39 +27,21 @@
 package com.lhkbob.entreri;
 
 /**
- * <p/>
- * Component represents a grouping of reusable and related states that are added to an
- * {@link Entity}. The specific state of a component is stored
- * and defined in {@link ComponentData} implementations. This separation is to support
- * fast iteration over blocks of packed, managed memory. All of the component data is
- * packed into buffers or arrays for cache locality. A single ComponentData instance can
- * then be used to access multiple Components.
- * <p/>
- * Component instances represent the identity of the conceptual components, while
- * instances of ComponentData can be configured to read and write to specific components.
- * ComponentData's can change which component they reference multiple times throughout
- * their life time.
- * <p/>
- * Component implements both {@link com.lhkbob.entreri.Ownable} and {@link
- * com.lhkbob.entreri.Owner}. This can be used to create hierarchies of both components
- * and entities that share a lifetime. When a component is removed from an entity, all of
- * its owned objects are disowned. If any of them were entities or components, they are
- * also removed from the system.
+ * AbstractComponent is the base class used for all generated proxy implementations of
+ * component subtypes. It provides an implementation for all of the declared methods in
+ * Component as well as equals() and hashCode().
  *
- * @param <T> The ComponentData type defining the data of this component
- *
- * @author Michael Ludwig
+ * @param <T> The type of component the AbstractComponent is safely cast-able to
  */
-class AbstractComponent<T extends Component> implements Component {
-    private final ComponentRepository<T> owner;
+abstract class AbstractComponent<T extends Component> implements Component {
+    protected final ComponentRepository<T> owner;
 
     private int index;
     private int id;
 
 
     /**
-     * Create a new Component stored in the given ComponentRepository, at the given array
-     * position within the ComponentRepository.
+     * Create a new component stored in the given ComponentRepository.
      *
      * @param owner The ComponentRepository owner
      */
@@ -81,10 +63,8 @@ class AbstractComponent<T extends Component> implements Component {
     public boolean isAlive() {
         // we have to check the index of the Component because the ComponentRepository
         // does not make sure the data's indices stay within bounds of the repository arrays
-        if (index != 0 && index < owner.getMaxComponentIndex()) {
-            return owner.getId(index) == id;
-        }
-        return false;
+        return index != 0 && index < owner.getMaxComponentIndex() &&
+               owner.getId(index) == id;
     }
 
     @Override
@@ -118,8 +98,10 @@ class AbstractComponent<T extends Component> implements Component {
     }
 
     @Override
-    public void notifyOwnershipGranted(Ownable obj) {
+    public Owner notifyOwnershipGranted(Ownable obj) {
         owner.getOwnerDelegate(index).notifyOwnershipGranted(obj);
+        // make sure to return the canonical component at the current index
+        return owner.getComponent(index);
     }
 
     @Override
@@ -138,7 +120,36 @@ class AbstractComponent<T extends Component> implements Component {
     }
 
     @Override
+    public Class<T> getType() {
+        return owner.getType();
+    }
+
+    @Override
+    public boolean isFlyweight() {
+        return !isAlive() || owner.getComponent(index) != this;
+    }
+
+    @Override
+    public int hashCode() {
+        if (isAlive()) {
+            return (getType().hashCode() + 17 * (getEntity().getId() + 31));
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof AbstractComponent)) {
+            return false;
+        }
+        AbstractComponent<?> a = (AbstractComponent<?>) o;
+        return a.owner == owner && a.index == index;
+    }
+
+    @Override
     public String toString() {
+        // FIXME improve toString() to include values for properties
         if (index == 0) {
             return "Component(" + getClass().getSimpleName() + ")";
         } else {

@@ -76,10 +76,10 @@ public class ComponentIterator {
 
     private int index;
 
-    private Component[] required; // all required except primary
-    private Component[] optional;
+    private AbstractComponent<?>[] required; // all required except primary
+    private AbstractComponent<?>[] optional;
 
-    private Component primary;
+    private AbstractComponent<?> primary;
 
     /**
      * Create a new ComponentIterator that will iterate over components or entities within
@@ -95,8 +95,8 @@ public class ComponentIterator {
             throw new NullPointerException("System cannot be null");
         }
         this.system = system;
-        required = new Component[0];
-        optional = new Component[0];
+        required = new AbstractComponent<?>[0];
+        optional = new AbstractComponent<?>[0];
         primary = null;
         index = 0;
     }
@@ -107,20 +107,15 @@ public class ComponentIterator {
      * will be set to each component of that type during iteration. Thus it is recommended
      * to hold onto instance for later use.
      *
-     * @param data The ComponentData that is used to access the required component type
-     *             data of its type
+     * @return A flyweight instance to access the current values for the component type
      *
-     * @return This iterator to chain
-     *
-     * @throws NullPointerException     if data is null
-     * @throws IllegalArgumentException if data was not created by the EntitySystem of
-     *                                  this iterator
+     * @throws NullPointerException if type is null
      */
     public <T extends Component> T addRequired(Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Component type cannot be null");
         }
-        T data = system.getRepository(type).createDataInstance();
+        AbstractComponent<T> data = system.getRepository(type).createDataInstance();
 
         // check to see if the data should be the new primary
         if (primary == null) {
@@ -131,8 +126,8 @@ public class ComponentIterator {
             // putting one data into the required array
             required = Arrays.copyOf(required, required.length + 1);
 
-            if (data.owner.getMaxComponentIndex() <
-                primary.owner.getMaxComponentIndex()) {
+            if (data.getRepository().getMaxComponentIndex() <
+                primary.getRepository().getMaxComponentIndex()) {
                 // new primary
                 required[required.length - 1] = primary;
                 primary = data;
@@ -142,7 +137,7 @@ public class ComponentIterator {
             }
         }
 
-        return data;
+        return (T) data;
     }
 
     /**
@@ -152,30 +147,23 @@ public class ComponentIterator {
      * will be set to each component of that type during iteration. Thus it is recommended
      * to hold onto instance for later use.
      * <p/>
-     * Entities are not required to have components of this type when reported by this
-     * iterator. It is important to check {@link ComponentData#isValid()} first.
      *
-     * @param data The ComponentData that is used to access the required component type
-     *             data of its type
+     * @return A flyweight instance to access the current values for the component type
      *
-     * @return This iterator to chain
-     *
-     * @throws NullPointerException     if data is null
-     * @throws IllegalArgumentException if data was not created by the EntitySystem of
-     *                                  this iterator
+     * @throws NullPointerException if type is null
      */
     public <T extends Component> T addOptional(Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Component type cannot be null");
         }
 
-        T data = system.getRepository(type).createDataInstance();
+        AbstractComponent<T> data = system.getRepository(type).createDataInstance();
 
         // add the data to the optional array
         optional = Arrays.copyOf(optional, optional.length + 1);
         optional[optional.length - 1] = data;
 
-        return data;
+        return (T) data;
     }
 
     /**
@@ -205,36 +193,34 @@ public class ComponentIterator {
         boolean found;
         int entity;
         int component;
-        int count = primary.owner.getMaxComponentIndex();
+        int count = primary.getRepository().getMaxComponentIndex();
         while (index < count - 1) {
             index++; // always increment one
 
             found = true;
-            entity = primary.owner.getEntityIndex(index);
+            entity = primary.getRepository().getEntityIndex(index);
             if (entity != 0) {
                 // we have a possible entity candidate
-                primary.setFast(index);
-                if (ignoreEnabled || primary.isEnabled()) {
-                    for (int i = 0; i < required.length; i++) {
-                        component = required[i].owner.getComponentIndex(entity);
-                        if (!required[i].setFast(component) ||
-                            (!ignoreEnabled && !required[i].isEnabled())) {
-                            found = false;
-                            break;
-                        }
+                primary.setIndex(index);
+                for (int i = 0; i < required.length; i++) {
+                    component = required[i].getRepository().getComponentIndex(entity);
+                    if (component == 0) {
+                        found = false;
+                        break;
+                    } else {
+                        required[i].setIndex(component);
+                    }
+                }
+
+                if (found) {
+                    // we have satisfied all required components,
+                    // so now set all optional requirements as well
+                    for (int i = 0; i < optional.length; i++) {
+                        component = optional[i].getRepository().getComponentIndex(entity);
+                        optional[i].setIndex(component);
                     }
 
-                    if (found) {
-                        // we have satisfied all required components,
-                        // so now set all optional requirements as well
-                        for (int i = 0; i < optional.length; i++) {
-                            component = optional[i].owner.getComponentIndex(entity);
-                            // we don't care if this is valid or not
-                            optional[i].setFast(component);
-                        }
-
-                        return true;
-                    }
+                    return true;
                 }
             }
         }

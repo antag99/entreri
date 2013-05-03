@@ -85,14 +85,16 @@ final class ComponentRepository<T extends Component> {
         this.system = system;
         this.factory = ComponentFactoryProvider.getInstance().getFactory(type);
         this.type = type;
-        requiredTypes = factory.getRequiredTypes().toArray(new Class[factory.getRequiredTypes().size()]);
+        requiredTypes = factory.getRequiredTypes()
+                               .toArray(new Class[factory.getRequiredTypes().size()]);
 
         List<PropertySpecification> spec = factory.getSpecification();
 
         declaredProperties = new ArrayList<DeclaredPropertyStore<?>>();
         decoratedProperties = new ArrayList<DecoratedPropertyStore<?>>(); // empty for now
         for (PropertySpecification p : spec) {
-            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getFactory(), p.getName());
+            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getFactory(),
+                                                                    p.getName());
             declaredProperties.add(store);
         }
 
@@ -246,6 +248,7 @@ final class ComponentRepository<T extends Component> {
 
     /**
      * @param componentIndex The component index
+     *
      * @return The OwnerSupport delegate for the component by the given index
      */
     public OwnerSupport getOwnerDelegate(int componentIndex) {
@@ -304,8 +307,8 @@ final class ComponentRepository<T extends Component> {
      *
      * @return A new component of type T
      *
-     * @throws NullPointerException     if fromTemplate is null
-     * @throws IllegalStateException    if the template is not live
+     * @throws NullPointerException  if fromTemplate is null
+     * @throws IllegalStateException if the template is not live
      */
     public T addComponent(int entityIndex, T fromTemplate) {
         if (!type.isInstance(fromTemplate)) {
@@ -348,7 +351,7 @@ final class ComponentRepository<T extends Component> {
             expandComponentRepository(componentIndex + 1);
         }
 
-        T instance = createDataInstance(componentIndex);
+        T instance = (T) createDataInstance(componentIndex);
         components[componentIndex] = instance;
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentRepository[entityIndex] = componentIndex;
@@ -390,16 +393,16 @@ final class ComponentRepository<T extends Component> {
      *
      * @return A new data instance
      */
-    public T createDataInstance() {
+    public AbstractComponent<T> createDataInstance() {
         return createDataInstance(0);
     }
 
-    private T createDataInstance(int forIndex) {
+    private AbstractComponent<T> createDataInstance(int forIndex) {
         // create a new instance from the factory - it will be completely detached
         AbstractComponent<T> t = factory.newInstance(this);
 
         t.setIndex(forIndex);
-        return (T) t;
+        return t;
     }
 
     /**
@@ -418,7 +421,7 @@ final class ComponentRepository<T extends Component> {
         AbstractComponent<T> casted = (AbstractComponent<T>) oldComponent;
         if (oldComponent != null) {
             oldComponent.setOwner(null);
-            casted.delegate.disownAndRemoveChildren();
+            getOwnerDelegate(componentIndex).disownAndRemoveChildren();
             casted.setIndex(0);
         }
 
@@ -537,7 +540,8 @@ final class ComponentRepository<T extends Component> {
         int[] newComponentRepository = new int[components.length];
         for (int i = 1; i < components.length; i++) {
             if (components[i] != null) {
-                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i].getIndex()]];
+                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i]
+                        .getIndex()]];
                 ((AbstractComponent<T>) components[i]).setIndex(i);
                 componentInsert = i + 1;
             }

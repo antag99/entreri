@@ -32,17 +32,18 @@ import java.util.NoSuchElementException;
 /**
  * <p/>
  * An Entity represents a collection of Components within an EntitySystem. Entities are
- * created by calling {@link com.lhkbob.entreri.EntitySystem#addEntity()} or the similar function that takes
- * another Entity as a template.
+ * created by calling {@link com.lhkbob.entreri.EntitySystem#addEntity()} or the similar
+ * function that takes another Entity as a template.
  * <p/>
- * Entities use instance equality, just like {@link com.lhkbob.entreri.Component}. Once created the Entity
- * object will not change its identity.
+ * Entities use instance equality, just like {@link com.lhkbob.entreri.Component}. Once
+ * created the Entity object will not change its identity.
  * <p/>
  * <p/>
- * Entity implements both {@link com.lhkbob.entreri.Ownable} and {@link com.lhkbob.entreri.Owner}. This can be used to create
- * hierarchies of both components and entities that share a lifetime. When an entity is
- * removed from the system, all of its owned objects are disowned. If any of them were
- * entities or components, they are also removed from the system.
+ * Entity implements both {@link com.lhkbob.entreri.Ownable} and {@link
+ * com.lhkbob.entreri.Owner}. This can be used to create hierarchies of both components
+ * and entities that share a lifetime. When an entity is removed from the system, all of
+ * its owned objects are disowned. If any of them were entities or components, they are
+ * also removed from the system.
  *
  * @author Michael Ludwig
  */
@@ -144,9 +145,10 @@ public final class Entity
      * <p/>
      * The new component is initialized by cloning the property values from
      * <var>toClone</var> into the values of the new component. This is performed by
-     * invoking {@link com.lhkbob.entreri.property.PropertyFactory#clone(com.lhkbob.entreri.property.Property, int, com.lhkbob.entreri.property.Property, int)} with the
-     * factories that created each property. All default property factories perform a copy
-     * by value (or copy by reference for object types).
+     * invoking {@link com.lhkbob.entreri.property.PropertyFactory#clone(com.lhkbob.entreri.property.Property,
+     * int, com.lhkbob.entreri.property.Property, int)} with the factories that created
+     * each property. All default property factories perform a copy by value (or copy by
+     * reference for object types).
      *
      * @param <T>     The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
@@ -164,9 +166,8 @@ public final class Entity
             throw new NullPointerException(
                     "ComponentData template, toClone, cannot be null");
         }
-        // FIXME getClass() won't return the right interface getRepo() expects
-        ComponentRepository ci = system.getRepository(toClone.getClass());
-        return ci.addComponent(index, toClone);
+        ComponentRepository ci = system.getRepository(toClone.getType());
+        return (T) ci.addComponent(index, toClone);
     }
 
     /**
@@ -274,8 +275,9 @@ public final class Entity
     }
 
     @Override
-    public void notifyOwnershipGranted(Ownable obj) {
+    public Owner notifyOwnershipGranted(Ownable obj) {
         delegate.notifyOwnershipGranted(obj);
+        return this;
     }
 
     @Override

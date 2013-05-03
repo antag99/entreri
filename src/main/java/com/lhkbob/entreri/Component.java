@@ -2,25 +2,62 @@ package com.lhkbob.entreri;
 
 /**
  * <p/>
- * ComponentData is used to define types of components that can be added to entities. For
- * performance reasons, the identity of a component is represented by instances of {@link
- * com.lhkbob.entreri.Component}. ComponentData instances are used as views into the data of the components.
- * This allows multiple instances to have their data packed together in primitive arrays
- * or direct memory, allowing for significantly faster iteration.
+ * Component represents a grouping of reusable and related states that are added to an
+ * {@link Entity}. An Entity's behavior is defined by the union of all components attached
+ * to it, and the system's configured tasks that process the entities. Tasks must be
+ * implemented and used in order to take advantage of a particular component
+ * configuration.
  * <p/>
+ * An entity can be considered as a collection of aspects represented by component
+ * instances. An entity can have at most one instance of a component type at a time,
+ * although over its lifetime the specific component instance may change.
  * <p/>
- * Additionally, by using a single ComponentData instance during the iteration, there is
- * no need to follow the usual object references needed for each instance.
+ * Logically a component definition is a set of named and typed properties, and a
+ * method-based API to get and set the values of each property. Specific types of
+ * component are defined by creating a sub-interface of Component. Using the {@link Named}
+ * and {@link SharedInstance} annotations and specific conventions the data properties of
+ * the component type are specified in the sub-interface. A declaration model similar to
+ * the Java Bean model is used and is outlined below:
  * <p/>
+ * <ol> <li>Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a
+ * property. The property type is inspected from the return type of the method. The
+ * property name is the method name minus the 'get'/'is'/'has' prefix with its first
+ * letter made lower-case. The {@link Named} annotation can be used to override the
+ * name.</li> <li>Void, single-argument methods starting with 'set' are assumed to be a
+ * setter corresponding to a property. The single parameter's type must equal the type the
+ * getter. The {@link Named} annotation can be applied to either the setter or the
+ * parameter to specify the property name.</li> <li>Void, multi-argument methods starting
+ * with 'set' are assumed to be a setter that assigns values to multiple property, one for
+ * each argument. Each argument must be annotated with {@link Named} to specify the
+ * property, and the argument type must equal the type of the matching property.</li>
+ * <li>Getters with void return types or arguments, setters without a return type or no
+ * arguments, and any other method not matching the conventions above will cause the
+ * system to throw an {@link IllegalComponentDefinitionException}.</li> </ol>
  * <p/>
- * ComponentData's are defined like any other class, but they are intended to be created
- * and configured by a {@link ComponentDataFactory}. These factories may impose certain
- * restrictions or requirements in what constructors or fields are valid. ComponentData
- * implementations can define a default ComponentDataFactory type with the {@link
- * DefaultFactory} annotation. By default ComponentData implementations are created using
- * The {@link ReflectionComponentDataFactory}
- *
- * @param <T> The self-referencing type of the ComponentData
+ * Internally, the entity system will generate proxy implementations of the component
+ * interfaces that implement the property getters and setters but store all of the values
+ * in {@link com.lhkbob.entreri.property.Property} instances of a compatible type. This
+ * allows iteration over components to have much better cache locality if the component is
+ * defined in terms of primitives or types that have specialized Property implementations
+ * that can pack and unpack an instance. The {@link SharedInstance} annotation can be
+ * added to the getter method of a property to specify that the {@link
+ * com.lhkbob.entreri.property.ShareableProperty} API should be leveraged by the generated
+ * class.
+ * <p/>
+ * The generated proxies will implement equals() and hashCode() based on their type and
+ * the id of their owning entity. The {@link ComponentIterator} class creates flyweight
+ * component instances whose identity changes as iteration proceeds; equals() and
+ * hashCode() will behave appropriately. This means that flyweight components should not
+ * be stored in collections that depend on equality or hashes. Flyweight components are
+ * used for performance reasons when iterating over the entities in a system with specific
+ * component configurations because the JVM does not need to load each unique component
+ * instance into the cache.
+ * <p/>
+ * Component implements both {@link com.lhkbob.entreri.Ownable} and {@link
+ * com.lhkbob.entreri.Owner}. This can be used to create hierarchies of both components
+ * and entities that share a lifetime. When a component is removed from an entity, all of
+ * its owned objects are disowned. If any of them were entities or components, they are
+ * also removed from the system.
  *
  * @author Michael Ludwig
  */
@@ -39,17 +76,48 @@ public interface Component extends Owner, Ownable {
     public Entity getEntity();
 
     /**
+     * <p/>
+     * Get whether or not the component is still attached to an alive entity in an entity
+     * system. This will return false if it or its entity has been removed. If the
+     * component is a flyweight object used in iteration, it can also return false when
+     * iteration has terminated.
+     * <p/>
+     * Using property getters or setters on a dead component produces undefined behavior.
+     *
      * @return True if the component is still attached to an entity in the entity system,
      *         or false if it or its entity has been removed
      */
     public boolean isAlive();
 
     /**
-     * Get the underlying index of this component used to access its properties. In most
-     * cases you can just use {@link ComponentData#getIndex()} because you'll have a
-     * ComponentData instance on hand. However, it can be useful to use this method to
-     * access decorated data to avoid setting the component data to a particular component
-     * just to get its index.
+     * <p/>
+     * Get whether or not this particular instance is a flyweight component object. A
+     * flyweight instance is used by ComponentIterators to efficiently view the underlying
+     * component data iteratively. It is safe to set the owner of a flyweight component or
+     * to set the flyweight as an owner of another object. It will correctly register the
+     * canonical component as the owner.
+     * <p/>
+     * Components returned by {@link Entity#add(Class)}, {@link Entity#get(Class)}, and
+     * its other component returning functions will always return non-flyweight
+     * components. These components are the 'canonical' instances for that component type
+     * and entity.
+     *
+     * @return True if this component is a flyweight instance iterating over a list of
+     *         components
+     */
+    public boolean isFlyweight();
+
+    /**
+     * <p/>
+     * Get the underlying index of this component used to access its properties. For most
+     * uses, you should not need to use this method.  As an EntitySystem manages and
+     * compacts the component data storage, a component's index can change. The index
+     * should be used to access decorated properties, which will be kept in-sync with any
+     * compactions.
+     * <p/>
+     * Additionally, some component instances may be flyweight objects used for iteration.
+     * In this case, every iteration will update its index and the component object's
+     * identity will change as well. See {@link ComponentIterator} for more information.
      *
      * @return The current index of component
      */
@@ -57,24 +125,35 @@ public interface Component extends Owner, Ownable {
 
     /**
      * <p/>
-     * Get the current version of the data accessed by this ComponentData. When data is
-     * mutated by a ComponentData, implementations increment its associated component's
-     * version so comparing a previously cached version number can be used to determine
-     * when changes have been made.
+     * Get the current version of the data of this component. When a component's data is
+     * mutated, implementations increment its version so comparing a previously cached
+     * version number can be used to determine when changes have been made.
      * <p/>
-     * Additionally, for a given component type, versions will be unique. Thus it is
-     * possible to identify when the components are replaced by new components as well.
+     * Within a component type for an entity system, version values will be unique across
+     * component instances. Thus, {@code entity.as(T.class).getVersion() != cachedVersion}
+     * will correctly detect changes to the original component instance as well as the
+     * removal and replacement by a new component of type T.
      *
      * @return The current version, or a negative number if the data is invalid
      */
     public int getVersion();
 
     /**
-     * Increment the version of the component accessed by this instance. It is recommended
-     * for component data implementations to call this automatically from within their
-     * exposed mutators, but if necessary it can be invoked manually as well.
+     * Increment the version of the component accessed by this instance. This will be
+     * automatically called by all exposed setters by the generated proxies, but if
+     * necessary it can be invoked manually as well.
      *
      * @see #getVersion()
      */
     public void updateVersion();
+
+    /**
+     * Get the class identifier for this component. This will be the specific
+     * sub-interface of Component that this object is an instance of. getType() should be
+     * used instead of {@link Object#getClass()} because that will return a specific and
+     * most likely generated proxy implementation of the component type.
+     *
+     * @return The component type
+     */
+    public Class<? extends Component> getType();
 }

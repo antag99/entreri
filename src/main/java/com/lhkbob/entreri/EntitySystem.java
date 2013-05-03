@@ -313,8 +313,7 @@ public final class EntitySystem implements Iterable<Entity> {
 
         if (template != null) {
             for (Component c : template) {
-                // FIXME not correct, may need to bring back getType() in Component to return the interface type
-                addFromTemplate(entityIndex, c.getClass(), c);
+                addFromTemplate(entityIndex, c.getType(), c);
             }
         }
 

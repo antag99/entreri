@@ -39,10 +39,16 @@ public interface Owner {
      * Notify this Owner that it is now <var>obj</var>'s owner. This must only be called
      * by {@link Ownable} implementations in response to calls to {@link
      * Ownable#setOwner(Owner)}.
+     * <p/>
+     * This method returns the true Owner instance, to allow for flyweight objects to act
+     * as Owners. In this case, they will return the canonical owner for the datum they
+     * represent. In regular cases, this will return itself after recording ownership.
      *
      * @param obj The newly owned object
+     *
+     * @return The actual owner in the event that the owner was a flyweight object
      */
-    public void notifyOwnershipGranted(Ownable obj);
+    public Owner notifyOwnershipGranted(Ownable obj);
 
     /**
      * <p/>
