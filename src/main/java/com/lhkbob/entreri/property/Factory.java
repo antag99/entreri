@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.property;
 
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -46,14 +45,14 @@ import java.lang.annotation.Target;
  * <p/>
  * Factory can also be placed at the type level on a Property implementation to declare
  * the default PropertyFactory to use. When using the {@link ReflectionComponentDataFactory},
- * it checks for a constructor taking a single {@link com.lhkbob.entreri.property.Attributes} object, or the default
- * constructor.
+ * it checks for a constructor taking a single {@link com.lhkbob.entreri.property.Attributes}
+ * object, or the default constructor.
  *
  * @author Michael Ludwig
  * @see ReflectionComponentDataFactory
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.TYPE })
+@Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface Factory {
     /**
      * @return Class of the PropertyFactory to instantiate, must have an accessible

@@ -20,8 +20,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
     private final Method getter;
     private final boolean isSharedInstance;
 
-    private PropertySpecification(String name, PropertyFactory<?> factory, Method getter,
-                                  Method setter, int setterParameter) {
+    PropertySpecification(String name, PropertyFactory<?> factory, Method getter,
+                          Method setter, int setterParameter) {
         this.name = name;
         this.factory = factory;
         this.getter = getter;
@@ -61,7 +61,7 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
     public static List<PropertySpecification> getSpecification(
             Class<? extends Component> componentDefinition) {
-        if (Component.class.isAssignableFrom(componentDefinition)) {
+        if (!Component.class.isAssignableFrom(componentDefinition)) {
             throw new IllegalArgumentException("Class must extend Component");
         }
         if (!componentDefinition.isInterface()) {
@@ -80,16 +80,17 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         Map<String, Integer> setterParameters = new HashMap<String, Integer>();
 
         for (int i = 0; i < methods.length; i++) {
-            // exclude methods defined in Component
-            if (methods[i].getDeclaringClass().equals(Component.class)) {
+            // exclude methods defined in Component, Owner, and Ownable
+            Class<?> md = methods[i].getDeclaringClass();
+            if (md.equals(Component.class) || md.equals(Owner.class) ||
+                md.equals(Ownable.class)) {
                 continue;
             }
 
             if (!Component.class.isAssignableFrom(methods[i].getDeclaringClass())) {
                 throw new IllegalComponentDefinitionException(componentDefinition,
                                                               "Method is defined in non-Component interface: " +
-                                                              methods[i]
-                                                                      .getDeclaringClass());
+                                                              md);
             }
 
             if (methods[i].getName().startsWith("is")) {
@@ -102,7 +103,7 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
                 processSetter(methods[i], setters, setterParameters);
             } else {
                 throw new IllegalComponentDefinitionException(
-                        (Class<? extends Component>) methods[i].getDeclaringClass(),
+                        (Class<? extends Component>) md,
                         "Illegal property method: " + methods[i]);
             }
         }
@@ -283,7 +284,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
                                            " does not implement required get() method for type " +
                                            baseType);
             }
-            Method s = propertyType.getMethod("set", int.class, baseType);
+            // FIXME switch back to int, type method but then we have to update all the property defs
+            Method s = propertyType.getMethod("set", baseType, int.class);
             if (!s.getReturnType().equals(void.class)) {
                 throw new RuntimeException(propertyType +
                                            " does not implement required set() method for type " +

@@ -23,16 +23,18 @@ package com.lhkbob.entreri;
  * property. The property type is inspected from the return type of the method. The
  * property name is the method name minus the 'get'/'is'/'has' prefix with its first
  * letter made lower-case. The {@link Named} annotation can be used to override the
- * name.</li> <li>Void, single-argument methods starting with 'set' are assumed to be a
- * setter corresponding to a property. The single parameter's type must equal the type the
+ * name.</li> <li>Single-argument methods starting with 'set' are assumed to be a setter
+ * corresponding to a property. The single parameter's type must equal the type the
  * getter. The {@link Named} annotation can be applied to either the setter or the
- * parameter to specify the property name.</li> <li>Void, multi-argument methods starting
- * with 'set' are assumed to be a setter that assigns values to multiple property, one for
- * each argument. Each argument must be annotated with {@link Named} to specify the
- * property, and the argument type must equal the type of the matching property.</li>
- * <li>Getters with void return types or arguments, setters without a return type or no
- * arguments, and any other method not matching the conventions above will cause the
- * system to throw an {@link IllegalComponentDefinitionException}.</li> </ol>
+ * parameter to specify the property name.</li> <li>Multi-argument methods starting with
+ * 'set' are assumed to be a setter that assigns values to multiple property, one for each
+ * argument. Each argument must be annotated with {@link Named} to specify the property,
+ * and the argument type must equal the type of the matching property.</li> <li>Setter
+ * methods must return void or return the components type, in which case the proxy will
+ * return itself to allow for method chaining.</li> <li>Getters with void return types or
+ * more than 0 arguments, setters with an invalid return type or no arguments, and any
+ * other method not matching the conventions above will cause the system to throw an
+ * {@link IllegalComponentDefinitionException}.</li> </ol>
  * <p/>
  * Internally, the entity system will generate proxy implementations of the component
  * interfaces that implement the property getters and setters but store all of the values
