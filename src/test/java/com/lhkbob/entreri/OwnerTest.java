@@ -31,7 +31,7 @@ import com.lhkbob.entreri.component.IntComponent;
 import junit.framework.Assert;
 import org.junit.Test;
 
-public class OwnershipTest {
+public class OwnerTest {
 
     @Test
     public void testEntitySetOwner() {
@@ -48,7 +48,7 @@ public class OwnershipTest {
         Assert.assertSame(e2, e1.getOwner());
         Assert.assertNull(e2.getOwner());
 
-        Component<IntComponent> c2 = e2.add(IntComponent.class);
+        IntComponent c2 = e2.add(IntComponent.class);
         e1.setOwner(c2);
 
         Assert.assertSame(c2, e1.getOwner());
@@ -61,8 +61,8 @@ public class OwnershipTest {
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
 
-        Component<IntComponent> c1a = e1.add(IntComponent.class);
-        Component<FloatComponent> c1b = e1.add(FloatComponent.class);
+        IntComponent c1a = e1.add(IntComponent.class);
+        FloatComponent c1b = e1.add(FloatComponent.class);
 
         Assert.assertNull(c1a.getOwner());
         Assert.assertNull(c1b.getOwner());
@@ -86,7 +86,8 @@ public class OwnershipTest {
 
         e1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {
+            public Owner notifyOwnershipGranted(Ownable obj) {
+                return this;
             }
 
             @Override
@@ -103,13 +104,14 @@ public class OwnershipTest {
     public void testOwnedComponentRemoval() {
         EntitySystem system = new EntitySystem();
         Entity e1 = system.addEntity();
-        Component<IntComponent> c1 = e1.add(IntComponent.class);
+        IntComponent c1 = e1.add(IntComponent.class);
 
         final boolean[] revoked = new boolean[1];
 
         c1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {
+            public Owner notifyOwnershipGranted(Ownable obj) {
+                return this;
             }
 
             @Override
@@ -127,13 +129,14 @@ public class OwnershipTest {
         EntitySystem system = new EntitySystem();
         Entity e1 = system.addEntity();
 
-        Component<IntComponent> c1 = e1.add(IntComponent.class);
+        IntComponent c1 = e1.add(IntComponent.class);
 
         final boolean[] revoked = new boolean[1];
 
         c1.setOwner(new Owner() {
             @Override
-            public void notifyOwnershipGranted(Ownable obj) {
+            public Owner notifyOwnershipGranted(Ownable obj) {
+                return this;
             }
 
             @Override
@@ -142,7 +145,7 @@ public class OwnershipTest {
             }
         });
 
-        Component<IntComponent> c2 = e1.add(IntComponent.class);
+        IntComponent c2 = e1.add(IntComponent.class);
         Assert.assertTrue(revoked[0]);
         Assert.assertNull(c2.getOwner());
     }
@@ -154,16 +157,16 @@ public class OwnershipTest {
         Entity owner = system.addEntity();
 
         Entity spare = system.addEntity();
-        Component<IntComponent> ownedC = spare.add(IntComponent.class);
+        IntComponent ownedC = spare.add(IntComponent.class);
         ownedC.setOwner(owner);
 
         Entity ownedE = system.addEntity();
         ownedE.setOwner(owner);
 
         system.removeEntity(owner);
-        Assert.assertFalse(ownedC.isLive());
-        Assert.assertFalse(ownedE.isLive());
-        Assert.assertTrue(spare.isLive());
+        Assert.assertFalse(ownedC.isAlive());
+        Assert.assertFalse(ownedE.isAlive());
+        Assert.assertTrue(spare.isAlive());
     }
 
     @Test
@@ -172,16 +175,16 @@ public class OwnershipTest {
 
         Entity e1 = system.addEntity();
 
-        Component<IntComponent> owner = e1.add(IntComponent.class);
-        Component<FloatComponent> ownedC = e1.add(FloatComponent.class);
+        IntComponent owner = e1.add(IntComponent.class);
+        FloatComponent ownedC = e1.add(FloatComponent.class);
         ownedC.setOwner(owner);
 
         Entity ownedE = system.addEntity();
         ownedE.setOwner(owner);
 
         e1.remove(IntComponent.class);
-        Assert.assertFalse(ownedC.isLive());
-        Assert.assertFalse(ownedE.isLive());
+        Assert.assertFalse(ownedC.isAlive());
+        Assert.assertFalse(ownedE.isAlive());
     }
 
     @Test
@@ -189,13 +192,13 @@ public class OwnershipTest {
         EntitySystem system = new EntitySystem();
 
         Entity e1 = system.addEntity();
-        Component<IntComponent> c1 = e1.add(IntComponent.class);
+        IntComponent c1 = e1.add(IntComponent.class);
 
         Entity e2 = system.addEntity();
-        Component<IntComponent> c2 = e2.add(IntComponent.class);
+        IntComponent c2 = e2.add(IntComponent.class);
 
         Entity e3 = system.addEntity();
-        Component<IntComponent> c3 = e3.add(IntComponent.class);
+        IntComponent c3 = e3.add(IntComponent.class);
 
         e1.setOwner(e2);
         e2.setOwner(e3);
@@ -205,24 +208,29 @@ public class OwnershipTest {
 
         e3.remove(IntComponent.class);
 
-        Assert.assertFalse(e1.isLive());
-        Assert.assertFalse(e2.isLive());
-        Assert.assertFalse(e3.isLive());
-        Assert.assertFalse(c1.isLive());
-        Assert.assertFalse(c2.isLive());
-        Assert.assertFalse(c3.isLive());
+        Assert.assertFalse(e1.isAlive());
+        Assert.assertFalse(e2.isAlive());
+        Assert.assertFalse(e3.isAlive());
+        Assert.assertFalse(c1.isAlive());
+        Assert.assertFalse(c2.isAlive());
+        Assert.assertFalse(c3.isAlive());
     }
 
     @Test
     public void testComponentOwningParentEntityRemoval() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        Component<IntComponent> c = e.add(IntComponent.class);
+        IntComponent c = e.add(IntComponent.class);
 
         e.setOwner(c);
 
         system.removeEntity(e);
-        Assert.assertFalse(e.isLive());
-        Assert.assertFalse(c.isLive());
+        Assert.assertFalse(e.isAlive());
+        Assert.assertFalse(c.isAlive());
+    }
+
+    @Test
+    public void testFlyweightComponentOwnership() {
+        Assert.fail();
     }
 }

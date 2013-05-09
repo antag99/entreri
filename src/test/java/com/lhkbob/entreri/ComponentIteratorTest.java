@@ -27,6 +27,7 @@
 package com.lhkbob.entreri;
 
 import com.lhkbob.entreri.component.FloatComponent;
+import com.lhkbob.entreri.component.IntComponent;
 import com.lhkbob.entreri.component.ObjectComponent;
 import org.junit.Assert;
 import org.junit.Before;
@@ -36,15 +37,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class AdvancedIteratorTest {
+public class ComponentIteratorTest {
     private static final int ENTITY_COUNT = 5;
 
     private EntitySystem system;
     private List<Integer> entityIds;
-    private List<Object> entityObjValues;
+    private List<ObjectComponent.FooBlah> entityObjValues;
     private List<Float> entityFloatValues;
 
-    private List<Object> entityCombinedObjValues;
+    private List<ObjectComponent.FooBlah> entityCombinedObjValues;
     private List<Float> entityCombinedFloatValues;
 
     private int countWithObj;
@@ -57,15 +58,12 @@ public class AdvancedIteratorTest {
     @Before
     public void setup() {
         entityIds = new ArrayList<Integer>();
-        entityObjValues = new ArrayList<Object>();
+        entityObjValues = new ArrayList<ObjectComponent.FooBlah>();
         entityFloatValues = new ArrayList<Float>();
-        entityCombinedObjValues = new ArrayList<Object>();
+        entityCombinedObjValues = new ArrayList<ObjectComponent.FooBlah>();
         entityCombinedFloatValues = new ArrayList<Float>();
 
         system = new EntitySystem();
-
-        objData = system.createDataInstance(ObjectComponent.class);
-        floatData = system.createDataInstance(FloatComponent.class);
 
         for (int i = 0; i < ENTITY_COUNT; i++) {
             Entity e = system.addEntity();
@@ -75,13 +73,13 @@ public class AdvancedIteratorTest {
             double c = Math.random();
             if (c > .8) {
                 // both components to add
-                objData.set(e.add(ObjectComponent.class));
-                Object v = new Object();
+                objData = e.add(ObjectComponent.class);
+                ObjectComponent.FooBlah v = new ObjectComponent.FooBlah();
                 entityObjValues.add(v);
                 entityCombinedObjValues.add(v);
                 objData.setObject(v);
 
-                floatData.set(e.add(FloatComponent.class));
+                floatData = e.add(FloatComponent.class);
                 float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 entityCombinedFloatValues.add(fv);
@@ -92,7 +90,7 @@ public class AdvancedIteratorTest {
                 countWithFloat++;
             } else if (c > .4) {
                 // just float component
-                floatData.set(e.add(FloatComponent.class));
+                floatData = e.add(FloatComponent.class);
                 float fv = (float) (Math.random() * 1000);
                 entityFloatValues.add(fv);
                 floatData.setFloat(fv);
@@ -100,8 +98,8 @@ public class AdvancedIteratorTest {
                 countWithFloat++;
             } else {
                 // just object component
-                objData.set(e.add(ObjectComponent.class));
-                Object v = new Object();
+                objData = e.add(ObjectComponent.class);
+                ObjectComponent.FooBlah v = new ObjectComponent.FooBlah();
                 entityObjValues.add(v);
                 objData.setObject(v);
 
@@ -135,8 +133,7 @@ public class AdvancedIteratorTest {
     private void doTestFloatComponentIterator(ComponentIterator it) {
         int i = 0;
         while (it.next()) {
-            Assert.assertEquals(entityFloatValues.get(i).floatValue(),
-                                floatData.getFloat(), .0001f);
+            Assert.assertEquals(entityFloatValues.get(i), floatData.getFloat(), .0001f);
             i++;
         }
 
@@ -148,8 +145,8 @@ public class AdvancedIteratorTest {
         int i = 0;
         while (it.next()) {
             Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject());
-            Assert.assertEquals(entityCombinedFloatValues.get(i).floatValue(),
-                                floatData.getFloat(), .0001f);
+            Assert.assertEquals(entityCombinedFloatValues.get(i), floatData.getFloat(),
+                                .0001f);
             i++;
         }
 
@@ -181,9 +178,9 @@ public class AdvancedIteratorTest {
     @Test
     public void testComponentIterator() {
         ComponentIterator ft = new ComponentIterator(system);
-        ft.addRequired(floatData);
+        floatData = ft.addRequired(FloatComponent.class);
         ComponentIterator it = new ComponentIterator(system);
-        it.addRequired(objData);
+        objData = it.addRequired(ObjectComponent.class);
 
         doTestObjectComponentIterator(it);
         it.reset();
@@ -197,8 +194,8 @@ public class AdvancedIteratorTest {
     @Test
     public void testBulkComponentIterator() {
         ComponentIterator it = new ComponentIterator(system);
-        it.addRequired(floatData);
-        it.addRequired(objData);
+        floatData = it.addRequired(FloatComponent.class);
+        objData = it.addRequired(ObjectComponent.class);
 
         doTestBulkComponentIterator(it);
         it.reset();
@@ -209,5 +206,24 @@ public class AdvancedIteratorTest {
     public void testEntityIteratorRemove() {
         doIteratorRemove(system.iterator());
         doTestIterator(system.iterator());
+    }
+
+    @Test
+    public void testFlyweightComponent() {
+        ComponentIterator it = new ComponentIterator(system);
+        IntComponent c = it.addRequired(IntComponent.class);
+
+        Assert.assertTrue(c.isFlyweight());
+        Assert.assertFalse(c.isAlive());
+
+        int count = 0;
+        system.addEntity().add(IntComponent.class);
+        while (it.next()) {
+            Assert.assertTrue(c.isFlyweight());
+            Assert.assertTrue(c.isAlive());
+            count++;
+        }
+
+        Assert.assertEquals(1, count);
     }
 }

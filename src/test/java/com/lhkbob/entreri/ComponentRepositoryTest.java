@@ -26,11 +26,10 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.component.ComplexComponent;
 import com.lhkbob.entreri.component.IntComponent;
-import com.lhkbob.entreri.component.MultiPropertyComponent;
 import com.lhkbob.entreri.property.FloatProperty;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
-import com.lhkbob.entreri.proxy.ComponentRepository;
 import com.lhkbob.entreri.property.Property;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,8 +43,7 @@ public class ComponentRepositoryTest {
     @Test
     public void testFactorySetValue() {
         EntitySystem system = new EntitySystem();
-        MultiPropertyComponent c = system.addEntity().add(MultiPropertyComponent.class)
-                                         .getData();
+        ComplexComponent c = system.addEntity().add(ComplexComponent.class);
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
 
@@ -53,7 +51,7 @@ public class ComponentRepositoryTest {
     public void testDecorateProperty() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(IntComponent.class).getData();
+        IntComponent c = e.add(IntComponent.class);
 
         FloatProperty decorated = system
                 .decorate(IntComponent.class, new FloatPropertyFactory());
@@ -61,7 +59,7 @@ public class ComponentRepositoryTest {
 
         int count = 0;
         for (Entity entity : system) {
-            Assert.assertTrue(entity.get(c));
+            Assert.assertNotNull(entity.get(IntComponent.class));
             count++;
 
             Assert.assertEquals(1f, decorated.getIndexedData()[c.getIndex()], .0001f);
@@ -73,19 +71,19 @@ public class ComponentRepositoryTest {
     public void testDecoratePropertyAddComponent() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        IntComponent c = e.add(IntComponent.class).getData();
+        IntComponent c = e.add(IntComponent.class);
 
         FloatProperty decorated = system
                 .decorate(IntComponent.class, new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         Entity e2 = system.addEntity();
-        IntComponent c2 = e2.add(IntComponent.class).getData();
+        IntComponent c2 = e2.add(IntComponent.class);
         decorated.getIndexedData()[c2.getIndex()] = 2f;
 
         int count = 0;
         for (Entity entity : system) {
-            IntComponent c3 = entity.get(IntComponent.class).getData();
+            IntComponent c3 = entity.get(IntComponent.class);
             count++;
 
             if (c3.getIndex() == c.getIndex()) {

@@ -26,17 +26,17 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.property.Attributes;
 import com.lhkbob.entreri.property.Clone;
 import com.lhkbob.entreri.property.Clone.Policy;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
-import com.lhkbob.entreri.property.Attributes;
 import junit.framework.Assert;
 import org.junit.Test;
 
 @SuppressWarnings({ "unused", "rawtypes", "unchecked" })
-public class PropertyTest {
+public class PropertyFactoryTest {
     /*
      * ObjectProperty fields for Attributes creation
      */
@@ -68,7 +68,7 @@ public class PropertyTest {
     private DoubleProperty doublePropertyInvoke;
 
     private Attributes createAttributes(String fieldName) throws Exception {
-        return new Attributes(getClass().getDeclaredField(fieldName));
+        return new Attributes(getClass().getDeclaredField(fieldName).getAnnotations());
     }
 
     @Test

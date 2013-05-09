@@ -26,11 +26,14 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.DefaultFactory;
-import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.Component;
 
-@DefaultFactory(DefaultComponentDataFactory.class)
-public class DefaultFactoryComponent extends ComponentData<DefaultFactoryComponent> {
-    public IntProperty prop;
+/**
+ * A test component that has a mismatched property definition by missing a setter for the
+ * getter.
+ *
+ * @author Michael Ludwig
+ */
+public interface MissingSetterComponent extends Component {
+    public int getValue();
 }

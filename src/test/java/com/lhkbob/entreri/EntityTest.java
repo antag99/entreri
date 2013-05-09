@@ -26,7 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.component.*;
+import com.lhkbob.entreri.component.FloatComponent;
+import com.lhkbob.entreri.component.IntComponent;
+import com.lhkbob.entreri.component.RequiresAComponent;
+import com.lhkbob.entreri.component.RequiresBComponent;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,8 +49,8 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<RequiresBComponent> rb = e.add(RequiresBComponent.class);
-        Component<RequiresAComponent> ra = e.get(RequiresAComponent.class);
+        RequiresBComponent rb = e.add(RequiresBComponent.class);
+        RequiresAComponent ra = e.get(RequiresAComponent.class);
         Assert.assertNotNull(ra);
         Assert.assertNotNull(e.get(IntComponent.class));
         Assert.assertNotNull(e.get(FloatComponent.class));
@@ -68,9 +71,9 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> ci = e.add(IntComponent.class);
+        IntComponent ci = e.add(IntComponent.class);
 
-        Component<RequiresAComponent> ra = e.add(RequiresAComponent.class);
+        RequiresAComponent ra = e.add(RequiresAComponent.class);
         Assert.assertSame(ci, e.get(IntComponent.class));
         Assert.assertNotNull(e.get(FloatComponent.class));
 
@@ -88,21 +91,20 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(IntComponent.class);
+        IntComponent c = e.add(IntComponent.class);
 
-        c.getData().setInt(1);
-        Assert.assertEquals(1, c.getData().getInt());
+        c.setInt(1);
+        Assert.assertEquals(1, c.getInt());
 
         Assert.assertEquals(c, e.get(IntComponent.class));
-        Assert.assertEquals(1, e.get(IntComponent.class).getData().getInt());
+        Assert.assertEquals(1, e.get(IntComponent.class).getInt());
 
         Assert.assertTrue(e.remove(IntComponent.class));
 
         Assert.assertNull(e.get(IntComponent.class));
         Assert.assertNull(e.get(FloatComponent.class));
 
-        Assert.assertFalse(c.isLive());
-        Assert.assertFalse(e.get(system.createDataInstance(IntComponent.class)));
+        Assert.assertFalse(c.isAlive());
     }
 
     @Test
@@ -110,12 +112,12 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(IntComponent.class);
-        Component<IntComponent> c2 = e.add(IntComponent.class);
+        IntComponent c = e.add(IntComponent.class);
+        IntComponent c2 = e.add(IntComponent.class);
 
         Assert.assertNotSame(c, c2);
-        Assert.assertFalse(c.isLive());
-        Assert.assertTrue(c2.isLive());
+        Assert.assertFalse(c.isAlive());
+        Assert.assertTrue(c2.isAlive());
         Assert.assertSame(c2, e.get(IntComponent.class));
     }
 
@@ -124,14 +126,14 @@ public class EntityTest {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
 
-        Component<IntComponent> c = e.add(IntComponent.class);
-        c.getData().setInt(2);
+        IntComponent c = e.add(IntComponent.class);
+        c.setInt(2);
 
         int count = 0;
         for (Entity e2 : system) {
             Assert.assertSame(e, e2);
             Assert.assertSame(c, e2.get(IntComponent.class));
-            Assert.assertEquals(2, e2.get(IntComponent.class).getData().getInt());
+            Assert.assertEquals(2, e2.get(IntComponent.class).getInt());
             count++;
         }
 
@@ -139,59 +141,15 @@ public class EntityTest {
     }
 
     @Test
-    public void testDisabledComponent() {
-        EntitySystem system = new EntitySystem();
-        Entity e = system.addEntity();
-
-        Component<IntComponent> c = e.add(IntComponent.class);
-        c.setEnabled(false);
-
-        Assert.assertNull(e.get(IntComponent.class));
-        Assert.assertSame(c, e.get(IntComponent.class, true));
-
-        // test removing a disabled component
-        Assert.assertTrue(e.remove(IntComponent.class));
-    }
-
-    @Test
-    public void testGetComponentData() {
-        EntitySystem system = new EntitySystem();
-
-        Entity e1 = system.addEntity();
-        Entity e2 = system.addEntity();
-
-        IntComponent data = system.createDataInstance(IntComponent.class);
-
-        Assert.assertTrue(data.set(e1.add(IntComponent.class)));
-        data.setInt(1);
-
-        Assert.assertTrue(data.set(e2.add(IntComponent.class)));
-        data.setInt(2);
-
-        Assert.assertTrue(e1.get(data));
-        Assert.assertEquals(1, data.getInt());
-        Assert.assertTrue(e2.get(data));
-        Assert.assertEquals(2, data.getInt());
-
-        // now test disabled'ness
-        e1.get(IntComponent.class).setEnabled(false);
-        Assert.assertFalse(e1.get(data));
-        Assert.assertTrue(data.isValid());
-        Assert.assertFalse(data.isEnabled());
-    }
-
-    @Test
     public void testIterateComponents() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        Component<IntComponent> ic = e.add(IntComponent.class);
-        Component<FloatComponent> fc = e.add(FloatComponent.class);
-
-        e.add(ObjectComponent.class).setEnabled(false);
+        IntComponent ic = e.add(IntComponent.class);
+        FloatComponent fc = e.add(FloatComponent.class);
 
         boolean intFound = false;
         boolean floatFound = false;
-        for (Component<?> c : e) {
+        for (Component c : e) {
             if (ic == c) {
                 Assert.assertFalse(intFound);
                 intFound = true;
@@ -205,59 +163,24 @@ public class EntityTest {
 
         Assert.assertTrue(intFound);
         Assert.assertTrue(floatFound);
-    }
-
-    @Test
-    public void testIterateDisabledComponents() {
-        EntitySystem system = new EntitySystem();
-        Entity e = system.addEntity();
-        Component<IntComponent> ic = e.add(IntComponent.class);
-        Component<FloatComponent> fc = e.add(FloatComponent.class);
-
-        Component<ObjectComponent> oc = e.add(ObjectComponent.class);
-        oc.setEnabled(false);
-
-        boolean intFound = false;
-        boolean floatFound = false;
-        boolean objFound = false;
-        Iterator<Component<?>> it = e.iterator(true);
-        while (it.hasNext()) {
-            Component<?> c = it.next();
-            if (ic == c) {
-                Assert.assertFalse(intFound);
-                intFound = true;
-            } else if (fc == c) {
-                Assert.assertFalse(floatFound);
-                floatFound = true;
-            } else if (oc == c) {
-                Assert.assertFalse(objFound);
-                objFound = true;
-            } else {
-                Assert.fail();
-            }
-        }
-
-        Assert.assertTrue(intFound);
-        Assert.assertTrue(floatFound);
-        Assert.assertTrue(objFound);
     }
 
     @Test
     public void testIterateRemoveComponent() {
         EntitySystem system = new EntitySystem();
         Entity e = system.addEntity();
-        Component<IntComponent> ic = e.add(IntComponent.class);
-        Component<FloatComponent> fc = e.add(FloatComponent.class);
+        IntComponent ic = e.add(IntComponent.class);
+        FloatComponent fc = e.add(FloatComponent.class);
 
-        Iterator<Component<?>> it = e.iterator();
+        Iterator<Component> it = e.iterator();
         while (it.hasNext()) {
-            Component<?> c = it.next();
+            Component c = it.next();
             if (c.getType().equals(IntComponent.class)) {
                 Assert.assertSame(ic, c);
                 it.remove();
 
                 Assert.assertNull(c.getEntity());
-                Assert.assertEquals(0, c.index);
+                Assert.assertEquals(0, c.getIndex());
             } else {
                 Assert.assertSame(fc, c);
             }
@@ -265,7 +188,6 @@ public class EntityTest {
 
         Assert.assertNull(e.get(IntComponent.class));
         Assert.assertNotNull(e.get(FloatComponent.class));
-        Assert.assertFalse(ic.isLive());
-        Assert.assertFalse(e.get(system.createDataInstance(IntComponent.class)));
+        Assert.assertFalse(ic.isAlive());
     }
 }

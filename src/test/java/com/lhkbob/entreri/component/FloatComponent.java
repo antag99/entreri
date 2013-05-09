@@ -26,25 +26,15 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.Component;
 
 /**
- * A test component that tests the parameter for FloatProperty.
+ * A test component that tests the float primitive type.
  *
  * @author Michael Ludwig
  */
-public class FloatComponent extends ComponentData<FloatComponent> {
-    private FloatProperty property;
+public interface FloatComponent extends Component {
+    public float getFloat();
 
-    protected FloatComponent() {
-    }
-
-    public float getFloat() {
-        return property.get(getIndex());
-    }
-
-    public void setFloat(float value) {
-        property.set(value, getIndex());
-    }
+    public void setFloat(float value);
 }

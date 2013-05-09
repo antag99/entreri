@@ -26,19 +26,49 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.NoFactoryProperty;
+import com.lhkbob.entreri.Named;
+import com.lhkbob.entreri.SharedInstance;
+import com.lhkbob.entreri.property.CustomProperty;
+import com.lhkbob.entreri.property.Factory;
+import com.lhkbob.entreri.property.FloatPropertyFactory;
+import com.lhkbob.entreri.property.IntProperty.DefaultInt;
+import com.lhkbob.entreri.property.LongProperty.DefaultLong;
 
 /**
- * A test component that specifies invalid or incorrect factories for its properties.
+ * A Component that tests a variety of things: multiple properties, different types,
+ * customized default values, an overridden property factory, named properties, and
+ * multi-parameter methods, extending component types, auto-detected properties, sharable
+ * instances.
  *
  * @author Michael Ludwig
  */
-public class InvalidFactoryMethodComponent
-        extends ComponentData<InvalidFactoryMethodComponent> {
-    // NoFactoryProperty has no available factory method
-    protected NoFactoryProperty prop;
+public interface ComplexComponent extends IntComponent, FloatComponent {
+    public void setLong(long i);
 
-    protected InvalidFactoryMethodComponent() {
-    }
+    @DefaultLong(Long.MAX_VALUE)
+    public long getLong();
+
+    public void setFactoryFloat(float f);
+
+    @Factory(FloatPropertyFactory.class)
+    public float getFactoryFloat();
+
+    public short getParam1();
+
+    public short getParam2();
+
+    public ComplexComponent setParams(@Named("param1") short p1,
+                                      @Named("param2") short p2);
+
+    @Named("foo-blah")
+    public boolean isNamedParamGetter();
+
+    @Named("foo-blah")
+    public ComplexComponent setNamedParamSetter(int foo);
+
+    @DefaultInt(14)
+    @SharedInstance
+    public CustomProperty.Bletch hasBletch();
+
+    public void setBletch(CustomProperty.Bletch b);
 }

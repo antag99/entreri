@@ -26,12 +26,12 @@
  */
 package com.lhkbob.entreri.property;
 
-@Factory(NoParameterProperty.NoArgFactory.class)
-public class NoParameterProperty implements Property {
-    private final IntProperty property;
+@Factory(CustomProperty.CustomFactoryWithAttributes.class)
+public class CustomProperty implements ShareableProperty {
+    private final ObjectProperty<Bletch> property;
 
-    public NoParameterProperty() {
-        property = new IntProperty();
+    public CustomProperty() {
+        property = new ObjectProperty<Bletch>();
     }
 
     @Override
@@ -44,20 +44,41 @@ public class NoParameterProperty implements Property {
         property.setDataStore(store);
     }
 
-    public static class NoArgFactory
-            extends AbstractPropertyFactory<NoParameterProperty> {
-        public NoArgFactory() {
-            super(null);
+    public void set(Bletch b, int index) {
+        property.set(b, index);
+    }
+
+    public Bletch get(int index) {
+        return property.get(index);
+    }
+
+    // FIXME might be wrong signature
+    public void get(int index, Bletch b) {
+        b.value = property.get(index).value;
+    }
+
+    public static class CustomFactoryWithAttributes
+            extends AbstractPropertyFactory<CustomProperty> {
+        public CustomFactoryWithAttributes(Attributes attrs) {
+            super(attrs);
         }
 
         @Override
-        public NoParameterProperty create() {
-            return new NoParameterProperty();
+        public CustomProperty create() {
+            return new CustomProperty();
         }
 
         @Override
-        public void setDefaultValue(NoParameterProperty property, int index) {
-            property.property.set(0, index);
+        public void setDefaultValue(CustomProperty property, int index) {
+            Bletch b = new Bletch();
+            b.value = (attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
+                                                                             : attributes
+                               .getAttribute(IntProperty.DefaultInt.class).value());
+            property.property.set(b, index);
         }
+    }
+
+    public static class Bletch {
+        public int value;
     }
 }

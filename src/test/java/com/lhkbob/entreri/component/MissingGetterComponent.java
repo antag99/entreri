@@ -26,21 +26,14 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.Component;
 
 /**
- * A test component that defines a non-Property field.
+ * A test component that has a mismatched property definition by missing a getter for the
+ * setter.
  *
  * @author Michael Ludwig
  */
-public class ExtraFieldComponent extends ComponentData<ExtraFieldComponent> {
-    @SuppressWarnings("unused")
-    private FloatProperty property;
-
-    @SuppressWarnings("unused")
-    private Object otherField;
-
-    protected ExtraFieldComponent() {
-    }
+public interface MissingGetterComponent extends Component {
+    public void setValue(int v);
 }

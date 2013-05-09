@@ -26,24 +26,18 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.Component;
 
 /**
- * A test component that tests the parameter constructor for ObjectProperty.
+ * A test component that tests the default object property for unknown types.
  *
  * @author Michael Ludwig
  */
-public class ObjectComponent extends AbstractComponent<ObjectComponent> {
-    private ObjectProperty<Object> property;
+public interface ObjectComponent extends Component {
+    public FooBlah getObject();
 
-    protected ObjectComponent() {
-    }
+    public void setObject(FooBlah value);
 
-    public Object getObject() {
-        return property.get(getIndex());
-    }
-
-    public void setObject(Object value) {
-        property.set(value, getIndex());
+    public static class FooBlah {
     }
 }

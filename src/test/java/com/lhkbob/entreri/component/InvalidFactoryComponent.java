@@ -26,22 +26,19 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.Factory;
 import com.lhkbob.entreri.property.FloatPropertyFactory;
-import com.lhkbob.entreri.property.IntProperty;
 
 /**
- * A test component that mis-configures a component so it can't find the necessary
- * factory() method.
+ * A test component that mis-configures a component so that the property factory has the
+ * incorrect type.
  *
  * @author Michael Ludwig
  */
-public class InvalidFactoryComponent extends ComponentData<InvalidFactoryComponent> {
-    // use a FloatPropertyFactory for the wrong property type
-    @Factory(FloatPropertyFactory.class)
-    protected IntProperty prop;
+public interface InvalidFactoryComponent extends Component {
+    public void setValue(int v);
 
-    protected InvalidFactoryComponent() {
-    }
+    @Factory(FloatPropertyFactory.class)
+    public int getValue();
 }

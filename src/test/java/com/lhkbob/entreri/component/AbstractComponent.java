@@ -26,26 +26,17 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.Component;
 
 /**
- * A test component that is abstract to test valid class hierarchies.
+ * A test component that is abstract to test component validation, e.g. this type is
+ * invalid.
  *
  * @author Michael Ludwig
  */
-public abstract class AbstractComponent<T extends AbstractComponent<T>>
-        extends ComponentData<T> {
-    private ObjectProperty<Object> property;
+public abstract class AbstractComponent implements Component {
 
-    protected AbstractComponent() {
-    }
+    public abstract Object getUserData();
 
-    public Object getUserData() {
-        return property.getIndexedData()[getIndex()];
-    }
-
-    public void setUserData(Object value) {
-        property.getIndexedData()[getIndex()] = value;
-    }
+    public abstract void setUserData(Object value);
 }

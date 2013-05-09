@@ -26,25 +26,15 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
-import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.Component;
 
 /**
- * A test component that tests the parameter constructor for IntProperty.
+ * A test component that tests the int primitive type.
  *
  * @author Michael Ludwig
  */
-public class IntComponent extends ComponentData<IntComponent> {
-    private IntProperty property;
+public interface IntComponent extends Component {
+    public int getInt();
 
-    protected IntComponent() {
-    }
-
-    public int getInt() {
-        return property.get(getIndex());
-    }
-
-    public void setInt(int value) {
-        property.set(value, getIndex());
-    }
+    public void setInt(int value);
 }

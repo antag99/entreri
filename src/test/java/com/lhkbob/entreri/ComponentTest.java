@@ -1,0 +1,175 @@
+/*
+ * Entreri, an entity-component framework in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.lhkbob.entreri;
+
+import com.lhkbob.entreri.component.IntComponent;
+import junit.framework.Assert;
+import org.junit.Test;
+
+public class ComponentTest {
+    @Test
+    public void testIsAliveComponentRemove() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        IntComponent c = e.add(IntComponent.class);
+
+        Assert.assertTrue(c.isAlive()); // sanity check
+        e.remove(IntComponent.class);
+        Assert.assertFalse(c.isAlive());
+    }
+
+    @Test
+    public void testIsAliveEntityRemove() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        IntComponent c = e.add(IntComponent.class);
+
+        Assert.assertTrue(c.isAlive()); // sanity check
+        system.removeEntity(e);
+        Assert.assertFalse(c.isAlive());
+    }
+
+    @Test
+    public void testIsAlivePostCompact() {
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+        Entity e2 = system.addEntity();
+        Entity e3 = system.addEntity();
+
+        IntComponent cd1 = e1.add(IntComponent.class); // removed
+        IntComponent cd2 = e2.add(IntComponent.class); // will shift over
+        IntComponent cd3 = e3.add(IntComponent.class); // will shift over
+
+        cd2.setOwner(e2);
+        cd3.setOwner(e3);
+
+        int v2 = cd2.getVersion();
+        int v3 = cd3.getVersion();
+
+        e1.remove(IntComponent.class);
+        system.compact(); // since e1's component was moved, this shifts e2 and e3
+
+        // verify all state of the component
+        Assert.assertFalse(cd1.isAlive());
+
+        Assert.assertTrue(cd2.isAlive());
+        Assert.assertFalse(cd2.isFlyweight());
+        Assert.assertSame(e2, cd2.getEntity());
+        Assert.assertSame(e2, cd2.getOwner());
+        Assert.assertEquals(v2, cd2.getVersion());
+
+        Assert.assertTrue(cd3.isAlive());
+        Assert.assertFalse(cd3.isFlyweight());
+        Assert.assertSame(e3, cd3.getEntity());
+        Assert.assertSame(e3, cd3.getOwner());
+        Assert.assertEquals(v3, cd3.getVersion());
+    }
+
+    @Test
+    public void testNewlyAddedComponentState() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+
+        IntComponent c = e.add(IntComponent.class);
+
+        Assert.assertTrue(c.isAlive());
+        Assert.assertFalse(c.isFlyweight());
+        Assert.assertNull(c.getOwner());
+        Assert.assertSame(system, c.getEntitySystem());
+        Assert.assertSame(e, c.getEntity());
+    }
+
+    @Test
+    public void testIsAlivePostNoopCompact() {
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+        Entity e2 = system.addEntity();
+
+        e1.add(IntComponent.class);
+        e2.add(IntComponent.class);
+        IntComponent cd = e2.get(IntComponent.class);
+
+        Assert.assertTrue(cd.isAlive()); // sanity check
+        Assert.assertFalse(cd.isFlyweight());
+        system.compact(); // no changes
+        Assert.assertTrue(cd.isAlive());
+        Assert.assertFalse(cd.isFlyweight());
+    }
+
+    @Test
+    public void testVersionUpdate() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        IntComponent cd = e.add(IntComponent.class);
+
+        Assert.assertEquals(0, cd.getVersion());
+        cd.updateVersion();
+        Assert.assertEquals(1, cd.getVersion());
+    }
+
+    @Test
+    public void testUniqueVersionUpdate() {
+        EntitySystem system = new EntitySystem();
+        IntComponent cd1 = system.addEntity().add(IntComponent.class);
+        IntComponent cd2 = system.addEntity().add(IntComponent.class);
+
+        Assert.assertEquals(0, cd1.getVersion());
+        Assert.assertEquals(1, cd2.getVersion());
+
+        cd1.updateVersion();
+        cd2.updateVersion();
+
+        Assert.assertEquals(2, cd1.getVersion());
+        Assert.assertEquals(3, cd2.getVersion());
+
+        // assert unique version after a re-add
+        Assert.assertEquals(4, cd1.getEntity().add(IntComponent.class).getVersion());
+    }
+
+    @Test
+    public void testInvalidComponentVersion() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        IntComponent cd = e.add(IntComponent.class);
+        e.remove(IntComponent.class);
+
+        // sanity check
+        Assert.assertEquals(0, cd.getIndex());
+
+        int oldVersion = cd.getVersion();
+        Assert.assertTrue(oldVersion < 0);
+        cd.updateVersion();
+        Assert.assertEquals(oldVersion, cd.getVersion());
+    }
+
+    @Test
+    public void testBeanMethodInvocation() {
+        Assert.fail();
+    }
+}

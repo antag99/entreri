@@ -27,10 +27,10 @@
 package com.lhkbob.entreri.property;
 
 public class NoFactoryProperty implements Property {
-    private final IntProperty property;
+    private final ObjectProperty<Crass> property;
 
     public NoFactoryProperty() {
-        property = new IntProperty();
+        property = new ObjectProperty<Crass>();
     }
 
     @Override
@@ -41,5 +41,17 @@ public class NoFactoryProperty implements Property {
     @Override
     public void setDataStore(IndexedDataStore store) {
         property.setDataStore(store);
+    }
+
+    public void set(Crass b, int index) {
+        property.set(b, index);
+    }
+
+    public Crass get(int index) {
+        return property.get(index);
+    }
+
+    public static class Crass {
+
     }
 }

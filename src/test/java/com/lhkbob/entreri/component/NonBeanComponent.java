@@ -26,16 +26,12 @@
  */
 package com.lhkbob.entreri.component;
 
-import com.lhkbob.entreri.ComponentData;
+import com.lhkbob.entreri.Component;
 
 /**
- * A ComponentData definition with a public constructor.
- *
- * @author Michael Ludwig
+ * Test component that declares a method that doesn't follow the bean conventions and is
+ * thus invalid.
  */
-public class PublicConstructorComponent
-        extends ComponentData<PublicConstructorComponent> {
-
-    public PublicConstructorComponent() {
-    }
+public interface NonBeanComponent extends Component {
+    public void thisCantPossiblyBeABeanMethod();
 }
