@@ -30,6 +30,10 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         isSharedInstance = isShared(getter);
     }
 
+    public Class<?> getPropertyType() {
+        return getter.getReturnType();
+    }
+
     public boolean isSharedInstance() {
         return isSharedInstance;
     }
@@ -109,18 +113,25 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
 
         for (String property : getters.keySet()) {
-            if (!setters.containsKey(property)) {
+            Method getter = getters.get(property);
+            Method setter = setters.remove(property);
+            Integer param = setterParameters.remove(property);
+
+            if (setter == null) {
                 throw new IllegalComponentDefinitionException(componentDefinition,
                                                               "No setter for property: " +
+                                                              property);
+            } else if (!setter.getParameterTypes()[param]
+                    .equals(getter.getReturnType())) {
+                throw new IllegalComponentDefinitionException(componentDefinition,
+                                                              "Mismatched type between getter and setter for: " +
                                                               property);
             }
 
             properties.add(new PropertySpecification(property,
                                                      createFactory(getters.get(property),
-                                                                   property),
-                                                     getters.get(property),
-                                                     setters.remove(property),
-                                                     setterParameters.remove(property)));
+                                                                   property), getter,
+                                                     setter, param));
         }
 
         if (!setters.isEmpty()) {
@@ -254,7 +265,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
     private static void validateFactory(Method getter, boolean isShared,
                                         Class<? extends PropertyFactory<?>> factory,
-                                        Class<? extends Property> propertyType) {
+                                        Class<? extends Property> propertyType,
+                                        Class<? extends Component> forType) {
         Class<?> baseType = getter.getReturnType();
         Class<? extends Property> createdType;
         try {
@@ -277,24 +289,29 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
 
         // verify contract of property
+        // FIXME we need to handle parameterized property types a bit better
+        if (propertyType.equals(ObjectProperty.class)) {
+            return;
+        }
+
         try {
             Method g = propertyType.getMethod("get", int.class);
             if (!g.getReturnType().equals(baseType)) {
-                throw new RuntimeException(propertyType +
-                                           " does not implement required get() method for type " +
-                                           baseType);
+                throw new IllegalComponentDefinitionException(forType,
+                                                              "Does not implement required get() method for type " +
+                                                              baseType);
             }
             // FIXME switch back to int, type method but then we have to update all the property defs
             Method s = propertyType.getMethod("set", baseType, int.class);
             if (!s.getReturnType().equals(void.class)) {
-                throw new RuntimeException(propertyType +
-                                           " does not implement required set() method for type " +
-                                           baseType);
+                throw new IllegalComponentDefinitionException(forType,
+                                                              " does not implement required set() method for type " +
+                                                              baseType);
             }
         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(propertyType +
-                                       " does not implement required get() or set() method for type " +
-                                       baseType, e);
+            throw new IllegalComponentDefinitionException(forType,
+                                                          " does not implement required get() or set() method for type " +
+                                                          baseType);
         }
 
         if (isShared) {
@@ -323,25 +340,26 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
     private static PropertyFactory<?> createFactory(Method getter, String name) {
         boolean isShared = isShared(getter);
         Class<?> baseType = getter.getReturnType();
+        Class<? extends Component> cType = (Class<? extends Component>) getter
+                .getDeclaringClass();
 
         Class<? extends PropertyFactory<?>> factoryType;
         if (getter.getAnnotation(Factory.class) != null) {
             // prefer getter specification to allow default overriding
             factoryType = getter.getAnnotation(Factory.class).value();
-            validateFactory(getter, isShared, factoryType, null);
+            validateFactory(getter, isShared, factoryType, null, cType);
         } else {
             // try to find a default property type
             Class<? extends Property> mappedType = TypePropertyMapping
                     .getPropertyForType(baseType);
             if (mappedType.getAnnotation(Factory.class) == null) {
-                throw new IllegalComponentDefinitionException(
-                        (Class<? extends Component>) getter.getDeclaringClass(),
-                        "Cannot create PropertyFactory for " +
-                        mappedType +
-                        ", no @Factory annotation on type");
+                throw new IllegalComponentDefinitionException(cType,
+                                                              "Cannot create PropertyFactory for " +
+                                                              mappedType +
+                                                              ", no @Factory annotation on type");
             } else {
                 factoryType = mappedType.getAnnotation(Factory.class).value();
-                validateFactory(getter, isShared, factoryType, mappedType);
+                validateFactory(getter, isShared, factoryType, mappedType, cType);
             }
         }
 
@@ -353,9 +371,9 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
         if (factory == null) {
             // unable to create a PropertyFactory
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) getter.getDeclaringClass(),
-                    "Unable to create PropertyFactory for " + name);
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Unable to create PropertyFactory for " +
+                                                          name);
         } else {
             return factory;
         }

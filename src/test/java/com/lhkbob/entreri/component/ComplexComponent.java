@@ -64,7 +64,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent {
     public boolean isNamedParamGetter();
 
     @Named("foo-blah")
-    public ComplexComponent setNamedParamSetter(int foo);
+    public ComplexComponent setNamedParamSetter(boolean foo);
 
     @DefaultInt(14)
     @SharedInstance

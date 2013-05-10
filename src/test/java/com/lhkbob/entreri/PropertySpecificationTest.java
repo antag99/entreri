@@ -55,7 +55,7 @@ public class PropertySpecificationTest {
         doInvalidComponentDefinitionTest(MissingGetterComponent.class);
         doInvalidComponentDefinitionTest(MismatchedNameComponent.class);
         doInvalidComponentDefinitionTest(MismatchedTypeComponent.class);
-        doValidComponentDefinitionTest(NonBeanComponent.class);
+        doInvalidComponentDefinitionTest(NonBeanComponent.class);
         doInvalidComponentDefinitionTest(InvalidPropertyComponent.class);
     }
 
@@ -110,7 +110,7 @@ public class PropertySpecificationTest {
         Assert.assertEquals(0f, floatProp.get(0), 0.0001f);
         Assert.assertEquals(FloatComponent.class.getMethod("getFloat"),
                             floatSpec.getGetterMethod());
-        Assert.assertEquals(FloatComponent.class.getMethod("setFloat", int.class),
+        Assert.assertEquals(FloatComponent.class.getMethod("setFloat", float.class),
                             floatSpec.getSetterMethod());
         Assert.assertEquals(0, floatSpec.getSetterParameter());
 

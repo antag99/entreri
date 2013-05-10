@@ -71,8 +71,8 @@ public class CustomProperty implements ShareableProperty {
         @Override
         public void setDefaultValue(CustomProperty property, int index) {
             Bletch b = new Bletch();
-            b.value = (attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
-                                                                             : attributes
+            b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
+                                                                              : attributes
                                .getAttribute(IntProperty.DefaultInt.class).value());
             property.property.set(b, index);
         }
