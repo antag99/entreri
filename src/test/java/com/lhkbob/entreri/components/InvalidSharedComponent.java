@@ -1,4 +1,4 @@
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.SharedInstance;

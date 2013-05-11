@@ -5,7 +5,10 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  *
@@ -19,35 +22,26 @@ abstract class ComponentFactoryProvider {
     private static final String PROXY_PACKAGE_NAME = ComponentFactoryProvider.class
             .getPackage().getName();
 
+    private static final ComponentFactoryProvider INSTANCE = new CachingDelegatingFactoryProvider();
+
     public static interface Factory<T extends Component> {
         public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository);
 
         public List<PropertySpecification> getSpecification();
-
-        public Set<Class<? extends Component>> getRequiredTypes();
     }
 
     public abstract <T extends Component> Factory<T> getFactory(Class<T> componentType);
 
     public static ComponentFactoryProvider getInstance() {
-        return new ComponentFactoryProvider() {
-            @Override
-            public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
-                List<PropertySpecification> spec = PropertySpecification
-                        .getSpecification(componentType);
-                // FIXME impl
-                throw new UnsupportedOperationException(
-                        generateJavaCode(componentType, spec));
-            }
-        };
+        return INSTANCE;
     }
 
     private static String safeName(Class<?> type) {
         return type.getName().replace('$', '.');
     }
 
-    public static String getImplementationClassName(Class<? extends Component> type,
-                                                    boolean includePackage) {
+    protected static String getImplementationClassName(Class<? extends Component> type,
+                                                       boolean includePackage) {
         // first get the simple name, concatenating all types in the hierarchy
         // (e.g. if its an inner class the name is Foo$Blah and this converts it to FooBlah)
         String scrubbed = type.getSimpleName().replace("[\\.$]", "");
@@ -65,52 +59,58 @@ abstract class ComponentFactoryProvider {
             throw new RuntimeException("JVM does not support MD5", e);
         }
 
-        StringBuilder sb = new StringBuilder().append(scrubbed).append("Impl")
-                                              .append(hash);
-        // FIXME is this worth it in the method signature?
+        StringBuilder sb = new StringBuilder();
         if (includePackage) {
-            sb.append(PROXY_PACKAGE_NAME);
+            sb.append(PROXY_PACKAGE_NAME).append('.');
         }
+        sb.append(scrubbed).append("Impl").append(hash);
+
         return sb.toString();
     }
 
-    public static String generateJavaCode(Class<? extends Component> type,
-                                          List<PropertySpecification> spec) {
+    protected static String generateJavaCode(Class<? extends Component> type,
+                                             List<PropertySpecification> spec) {
         String baseTypeName = safeName(type);
 
         String implName = getImplementationClassName(type, false);
 
-        // place the implementation in the same package as the original type
+        // the implementation will extend AbstractComponent sans generics because
+        // Janino does not support them right now
         StringBuilder sb = new StringBuilder();
         sb.append("package ").append(PROXY_PACKAGE_NAME).append(";\n")
           .append("public class ").append(implName).append(" extends ")
-                // FIXME I'm not sure if Janino supports generics
-                .append(ABSTRACT_COMPONENT_NAME).append('<').append(baseTypeName)
-                .append("> implements ").append(baseTypeName).append("{\n");
+          .append(ABSTRACT_COMPONENT_NAME).append(" implements ").append(baseTypeName)
+          .append("{\n");
 
-        // add any shared instance field declarations
+        // add property instances with proper cast so we don't have to do that every
+        // time a property is accessed, and add any shared instance field declarations
         int property = 0;
         for (PropertySpecification s : spec) {
+            sb.append("\tprivate final ").append(safeName(s.getPropertyType()))
+              .append(" property").append(property).append(";\n");
             if (s.isSharedInstance()) {
-                sb.append("\tprivate final ").append(safeName(s.getPropertyType()))
+                sb.append("\tprivate final ").append(safeName(s.getType()))
                   .append(" sharedInstance").append(property).append(";\n");
             }
             property++;
         }
 
-        // define the constructor, must invoke super and allocate shared instances
+        // define the constructor, must invoke super, assign properties, and allocate
+        // shared instances; as with type declaration we cannot use generics
         // FIXME make owner a magic constant and sharedInstance a magic constant
         sb.append("\n\tpublic ").append(implName).append("(").append(COMPONENT_REPO_NAME)
-          .append('<').append(baseTypeName).append("> owner) {\n")
-          .append("\t\tsuper(owner);\n");
+          .append(" owner) {\n").append("\t\tsuper(owner);\n");
         property = 0;
         for (PropertySpecification s : spec) {
+            sb.append("\t\tproperty").append(property).append(" = (")
+              .append(safeName(s.getPropertyType())).append(") owner.getProperty(")
+              .append(property).append(");\n");
             if (s.isSharedInstance()) {
-                // FIXME need to add getProperty() to ComponentRepository, and a createShareableInstance(),
+                // FIXME need to add  a createShareableInstance(),
                 // FIXME unless I want to create the objects via reflection ...
-                sb.append("sharedInstance").append(property).append(" = ")
-                  .append("owner.getProperty(").append(property)
-                  .append(").createShareableInstance();\n");
+                sb.append("\t\tsharedInstance").append(property).append(" = ")
+                  .append("property").append(property)
+                  .append(".createShareableInstance();\n");
             }
             property++;
         }
@@ -147,17 +147,16 @@ abstract class ComponentFactoryProvider {
 
         // method signature
         int idx = spec.indexOf(forProperty);
-        sb.append("\n\tpublic ").append(safeName(forProperty.getPropertyType()))
-          .append(" ").append(getter.getName()).append("() {\n\t\t");
+        sb.append("\n\tpublic ").append(safeName(forProperty.getType())).append(" ")
+          .append(getter.getName()).append("() {\n\t\t");
 
         // implementation body, depending on if we use a shared instance variable or not
         if (forProperty.isSharedInstance()) {
-            sb.append("owner.getProperty(").append(idx).append(").get(getIndex(), ")
+            sb.append("property").append(idx).append(".get(getIndex(), ")
               .append("sharedInstance").append(idx)
               .append(");\n\t\treturn sharedInstance").append(idx).append(";");
         } else {
-            sb.append("return owner.getProperty(").append(idx)
-              .append(").get(getIndex());");
+            sb.append("return property").append(idx).append(".get(getIndex());");
         }
 
         sb.append("\n\t}\n");
@@ -189,16 +188,15 @@ abstract class ComponentFactoryProvider {
             } else {
                 sb.append(", ");
             }
-            sb.append(safeName(p.getPropertyType())).append(" prop")
-              .append(spec.indexOf(p));
+            sb.append(safeName(p.getType())).append(" prop").append(spec.indexOf(p));
         }
         sb.append(") {\n");
 
         // implement the body
         for (PropertySpecification p : params) {
             int idx = spec.indexOf(p);
-            sb.append("\t\towner.getProperty(").append(idx).append(").set(prop")
-              .append(idx).append(", getIndex());\n");
+            sb.append("\t\tproperty").append(idx).append(".set(prop").append(idx)
+              .append(", getIndex());\n");
         }
 
         // return this component if we're not a void setter

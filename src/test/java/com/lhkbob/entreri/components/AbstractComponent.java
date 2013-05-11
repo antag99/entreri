@@ -24,17 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
 
 /**
- * A test component that tests the int primitive type.
+ * A test component that is abstract to test component validation, e.g. this type is
+ * invalid.
  *
  * @author Michael Ludwig
  */
-public interface IntComponent extends Component {
-    public int getInt();
+public abstract class AbstractComponent implements Component {
 
-    public void setInt(int value);
+    public abstract Object getUserData();
+
+    public abstract void setUserData(Object value);
 }

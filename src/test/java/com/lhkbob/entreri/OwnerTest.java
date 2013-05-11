@@ -26,8 +26,8 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
+import com.lhkbob.entreri.components.FloatComponent;
+import com.lhkbob.entreri.components.IntComponent;
 import junit.framework.Assert;
 import org.junit.Test;
 

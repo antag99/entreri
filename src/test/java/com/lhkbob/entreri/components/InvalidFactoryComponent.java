@@ -24,19 +24,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.property.Factory;
+import com.lhkbob.entreri.property.FloatPropertyFactory;
 
 /**
- * A test component that is abstract to test component validation, e.g. this type is
- * invalid.
+ * A test component that mis-configures a component so that the property factory has the
+ * incorrect type.
  *
  * @author Michael Ludwig
  */
-public abstract class AbstractComponent implements Component {
+public interface InvalidFactoryComponent extends Component {
+    public void setValue(int v);
 
-    public abstract Object getUserData();
-
-    public abstract void setUserData(Object value);
+    @Factory(FloatPropertyFactory.class)
+    public int getValue();
 }

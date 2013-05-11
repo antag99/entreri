@@ -20,6 +20,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
     private final Method getter;
     private final boolean isSharedInstance;
 
+    private final Class<? extends Property> propertyType;
+
     PropertySpecification(String name, PropertyFactory<?> factory, Method getter,
                           Method setter, int setterParameter) {
         this.name = name;
@@ -28,10 +30,17 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         this.setter = setter;
         this.setterParameter = setterParameter;
         isSharedInstance = isShared(getter);
+
+        propertyType = getCreatedType(
+                (Class<? extends PropertyFactory<?>>) factory.getClass());
     }
 
-    public Class<?> getPropertyType() {
+    public Class<?> getType() {
         return getter.getReturnType();
+    }
+
+    public Class<? extends Property> getPropertyType() {
+        return propertyType;
     }
 
     public boolean isSharedInstance() {
@@ -263,18 +272,22 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
     }
 
+    private static Class<? extends Property> getCreatedType(
+            Class<? extends PropertyFactory<?>> factory) {
+        try {
+            return (Class<? extends Property>) factory.getMethod("create")
+                                                      .getReturnType();
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Cannot inspect property factory " + factory, e);
+        }
+    }
+
     private static void validateFactory(Method getter, boolean isShared,
                                         Class<? extends PropertyFactory<?>> factory,
                                         Class<? extends Property> propertyType,
                                         Class<? extends Component> forType) {
         Class<?> baseType = getter.getReturnType();
-        Class<? extends Property> createdType;
-        try {
-            createdType = (Class<? extends Property>) factory.getMethod("create")
-                                                             .getReturnType();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Cannot inspect property factory " + factory, e);
-        }
+        Class<? extends Property> createdType = getCreatedType(factory);
 
         if (propertyType == null) {
             // rely on factory to determine property type

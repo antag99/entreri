@@ -44,6 +44,10 @@ public class CustomProperty implements ShareableProperty {
         property.setDataStore(store);
     }
 
+    public Bletch createShareableInstance() {
+        return new Bletch();
+    }
+
     public void set(Bletch b, int index) {
         property.set(b, index);
     }

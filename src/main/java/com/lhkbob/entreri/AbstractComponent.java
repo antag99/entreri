@@ -35,7 +35,7 @@ package com.lhkbob.entreri;
  *
  * @param <T> The type of component the AbstractComponent is safely cast-able to
  */
-abstract class AbstractComponent<T extends Component> implements Component {
+public abstract class AbstractComponent<T extends Component> implements Component {
     protected final ComponentRepository<T> owner;
 
     private int index;

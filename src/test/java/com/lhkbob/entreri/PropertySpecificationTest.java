@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.component.*;
+import com.lhkbob.entreri.components.*;
 import com.lhkbob.entreri.property.*;
 import org.junit.Assert;
 import org.junit.Test;

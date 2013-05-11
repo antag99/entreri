@@ -24,51 +24,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.Named;
-import com.lhkbob.entreri.SharedInstance;
-import com.lhkbob.entreri.property.CustomProperty;
-import com.lhkbob.entreri.property.Factory;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
-import com.lhkbob.entreri.property.IntProperty.DefaultInt;
-import com.lhkbob.entreri.property.LongProperty.DefaultLong;
+import com.lhkbob.entreri.Component;
 
 /**
- * A Component that tests a variety of things: multiple properties, different types,
- * customized default values, an overridden property factory, named properties, and
- * multi-parameter methods, extending component types, auto-detected properties, sharable
- * instances.
+ * A test component that tests the default object property for unknown types.
  *
  * @author Michael Ludwig
  */
-public interface ComplexComponent extends IntComponent, FloatComponent {
-    public void setLong(long i);
+public interface ObjectComponent extends Component {
+    public FooBlah getObject();
 
-    @DefaultLong(Long.MAX_VALUE)
-    public long getLong();
+    public void setObject(FooBlah value);
 
-    public void setFactoryFloat(float f);
-
-    @Factory(FloatPropertyFactory.class)
-    public float getFactoryFloat();
-
-    public short getParam1();
-
-    public short getParam2();
-
-    public ComplexComponent setParams(@Named("param1") short p1,
-                                      @Named("param2") short p2);
-
-    @Named("foo-blah")
-    public boolean isNamedParamGetter();
-
-    @Named("foo-blah")
-    public ComplexComponent setNamedParamSetter(boolean foo);
-
-    @DefaultInt(14)
-    @SharedInstance
-    public CustomProperty.Bletch hasBletch();
-
-    public void setBletch(CustomProperty.Bletch b);
+    public static class FooBlah {
+    }
 }

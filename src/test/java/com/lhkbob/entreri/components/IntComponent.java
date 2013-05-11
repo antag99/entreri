@@ -24,14 +24,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
 
 /**
- * Test component that declares a method that doesn't follow the bean conventions and is
- * thus invalid.
+ * A test component that tests the int primitive type.
+ *
+ * @author Michael Ludwig
  */
-public interface NonBeanComponent extends Component {
-    public void thisCantPossiblyBeABeanMethod();
+public interface IntComponent extends Component {
+    public int getInt();
+
+    public void setInt(int value);
 }

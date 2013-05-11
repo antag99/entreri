@@ -24,11 +24,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.Requires;
 
-@Requires({ IntComponent.class, FloatComponent.class })
-public interface RequiresAComponent extends Component {
+/**
+ * A test component that has a mismatched property definition by missing a getter for the
+ * setter.
+ *
+ * @author Michael Ludwig
+ */
+public interface MissingGetterComponent extends Component {
+    public void setValue(int v);
 }

@@ -26,9 +26,9 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.component.ComplexComponent;
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
+import com.lhkbob.entreri.components.ComplexComponent;
+import com.lhkbob.entreri.components.FloatComponent;
+import com.lhkbob.entreri.components.IntComponent;
 import org.junit.Assert;
 import org.junit.Test;
 

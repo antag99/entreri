@@ -41,7 +41,7 @@ import java.util.*;
  * @author Michael Ludwig
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-final class ComponentRepository<T extends Component> {
+public final class ComponentRepository<T extends Component> {
     private final EntitySystem system;
     private final Class<T> type;
 
@@ -85,8 +85,12 @@ final class ComponentRepository<T extends Component> {
         this.system = system;
         this.factory = ComponentFactoryProvider.getInstance().getFactory(type);
         this.type = type;
-        requiredTypes = factory.getRequiredTypes()
-                               .toArray(new Class[factory.getRequiredTypes().size()]);
+
+        if (type.getAnnotation(Requires.class) != null) {
+            requiredTypes = type.getAnnotation(Requires.class).value();
+        } else {
+            requiredTypes = new Class[0];
+        }
 
         List<PropertySpecification> spec = factory.getSpecification();
 
@@ -255,6 +259,10 @@ final class ComponentRepository<T extends Component> {
         return ownerDelegatesProperty.get(componentIndex);
     }
 
+    public Property getProperty(int propertyIndex) {
+        return declaredProperties.get(propertyIndex).getProperty();
+    }
+
     /*
      * As expandEntityIndex() but expands all related component data and arrays
      * to hold the number of components.
@@ -351,8 +359,8 @@ final class ComponentRepository<T extends Component> {
             expandComponentRepository(componentIndex + 1);
         }
 
-        T instance = (T) createDataInstance(componentIndex);
-        components[componentIndex] = instance;
+        AbstractComponent<T> instance = factory.newInstance(this);
+        components[componentIndex] = (T) instance;
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentRepository[entityIndex] = componentIndex;
 
@@ -375,6 +383,9 @@ final class ComponentRepository<T extends Component> {
         // start with a unique version as well
         incrementVersion(componentIndex);
 
+        // connect component back to the index too
+        instance.setIndex(componentIndex);
+
         // ensure required components are added as well
         Entity entity = system.getEntityByIndex(entityIndex);
         for (int i = 0; i < requiredTypes.length; i++) {
@@ -384,7 +395,7 @@ final class ComponentRepository<T extends Component> {
             }
         }
 
-        return instance;
+        return (T) instance;
     }
 
     /**
@@ -394,14 +405,8 @@ final class ComponentRepository<T extends Component> {
      * @return A new data instance
      */
     public AbstractComponent<T> createDataInstance() {
-        return createDataInstance(0);
-    }
-
-    private AbstractComponent<T> createDataInstance(int forIndex) {
-        // create a new instance from the factory - it will be completely detached
         AbstractComponent<T> t = factory.newInstance(this);
-
-        t.setIndex(forIndex);
+        t.setIndex(0);
         return t;
     }
 

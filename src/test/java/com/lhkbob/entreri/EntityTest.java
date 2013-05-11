@@ -26,10 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.component.FloatComponent;
-import com.lhkbob.entreri.component.IntComponent;
-import com.lhkbob.entreri.component.RequiresAComponent;
-import com.lhkbob.entreri.component.RequiresBComponent;
+import com.lhkbob.entreri.components.FloatComponent;
+import com.lhkbob.entreri.components.IntComponent;
+import com.lhkbob.entreri.components.RequiresAComponent;
+import com.lhkbob.entreri.components.RequiresBComponent;
 import org.junit.Assert;
 import org.junit.Test;
 

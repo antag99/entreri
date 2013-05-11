@@ -24,20 +24,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.component;
+package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Requires;
 
-/**
- * A test component that tests the default object property for unknown types.
- *
- * @author Michael Ludwig
- */
-public interface ObjectComponent extends Component {
-    public FooBlah getObject();
-
-    public void setObject(FooBlah value);
-
-    public static class FooBlah {
-    }
+@Requires(RequiresAComponent.class)
+public interface RequiresBComponent extends Component {
 }
