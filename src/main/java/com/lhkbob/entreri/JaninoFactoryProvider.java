@@ -58,8 +58,9 @@ class JaninoFactoryProvider extends ComponentFactoryProvider {
                     .getImplementationClassName(type, true);
             specification = PropertySpecification.getSpecification(type);
 
+            // make sure to not use generics since that is not supported by janino
             String source = ComponentFactoryProvider
-                    .generateJavaCode(type, specification);
+                    .generateJavaCode(type, specification, false);
             SimpleCompiler compiler = new SimpleCompiler();
             compiler.setParentClassLoader(getClass().getClassLoader());
 
