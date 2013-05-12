@@ -50,7 +50,6 @@ abstract class ComponentFactoryProvider {
     private static final String PROXY_PACKAGE_NAME = ComponentFactoryProvider.class
             .getPackage().getName();
 
-    private static final ComponentFactoryProvider INSTANCE = new CachingDelegatingFactoryProvider();
 
     public static interface Factory<T extends Component> {
         public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository);
@@ -59,6 +58,8 @@ abstract class ComponentFactoryProvider {
     }
 
     public abstract <T extends Component> Factory<T> getFactory(Class<T> componentType);
+
+    private static final ComponentFactoryProvider INSTANCE = new CachingDelegatingFactoryProvider();
 
     public static ComponentFactoryProvider getInstance() {
         return INSTANCE;
@@ -233,6 +234,8 @@ abstract class ComponentFactoryProvider {
             sb.append("\t\tproperty").append(idx).append(".set(prop").append(idx)
               .append(", getIndex());\n");
         }
+
+        sb.append("\t\towner.incrementVersion(getIndex());\n");
 
         // return this component if we're not a void setter
         if (returnComponent) {

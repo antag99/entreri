@@ -137,6 +137,17 @@ public class ComponentTest {
     }
 
     @Test
+    public void testAutomaticVersionUpdate() {
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        IntComponent cd = e.add(IntComponent.class);
+
+        int originalVersion = cd.getVersion();
+        cd.setInt(1500);
+        Assert.assertFalse(originalVersion == cd.getVersion());
+    }
+
+    @Test
     public void testUniqueVersionUpdate() {
         EntitySystem system = new EntitySystem();
         IntComponent cd1 = system.addEntity().add(IntComponent.class);
