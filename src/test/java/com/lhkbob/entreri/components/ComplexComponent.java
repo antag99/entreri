@@ -28,9 +28,7 @@ package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Named;
 import com.lhkbob.entreri.SharedInstance;
-import com.lhkbob.entreri.property.CustomProperty;
 import com.lhkbob.entreri.property.Factory;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import com.lhkbob.entreri.property.LongProperty.DefaultLong;
 

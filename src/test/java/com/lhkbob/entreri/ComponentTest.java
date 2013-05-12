@@ -27,9 +27,9 @@
 package com.lhkbob.entreri;
 
 import com.lhkbob.entreri.components.ComplexComponent;
+import com.lhkbob.entreri.components.CustomProperty;
+import com.lhkbob.entreri.components.FloatPropertyFactory;
 import com.lhkbob.entreri.components.IntComponent;
-import com.lhkbob.entreri.property.CustomProperty;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
 import junit.framework.Assert;
 import org.junit.Test;
 

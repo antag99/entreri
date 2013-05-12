@@ -24,34 +24,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.property;
+package com.lhkbob.entreri.components;
 
-public class NoFactoryProperty implements Property {
-    private final ObjectProperty<Crass> property;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.SharedInstance;
 
-    public NoFactoryProperty() {
-        property = new ObjectProperty<Crass>();
-    }
+/**
+ * Invalid component definition that double checks that we fail when using a shared
+ * instance annotation with a object properties.
+ */
+public interface InvalidSharedObjectComponent extends Component {
+    @SharedInstance
+    public Object getValue();
 
-    @Override
-    public IndexedDataStore getDataStore() {
-        return property.getDataStore();
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        property.setDataStore(store);
-    }
-
-    public void set(Crass b, int index) {
-        property.set(b, index);
-    }
-
-    public Crass get(int index) {
-        return property.get(index);
-    }
-
-    public static class Crass {
-
-    }
+    public void setValue(Object v);
 }

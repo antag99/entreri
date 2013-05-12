@@ -24,22 +24,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.property;
+package com.lhkbob.entreri.components;
 
-public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
-    public static final float DEFAULT = 5f;
+import com.lhkbob.entreri.property.IndexedDataStore;
+import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.property.Property;
 
-    public FloatPropertyFactory() {
-        super(null);
+public class NoFactoryProperty implements Property {
+    private final ObjectProperty<Crass> property;
+
+    public NoFactoryProperty() {
+        property = new ObjectProperty<Crass>();
     }
 
     @Override
-    public FloatProperty create() {
-        return new FloatProperty();
+    public IndexedDataStore getDataStore() {
+        return property.getDataStore();
     }
 
     @Override
-    public void setDefaultValue(FloatProperty p, int index) {
-        p.set(DEFAULT, index);
+    public void setDataStore(IndexedDataStore store) {
+        property.setDataStore(store);
+    }
+
+    public void set(Crass b, int index) {
+        property.set(b, index);
+    }
+
+    public Crass get(int index) {
+        return property.get(index);
+    }
+
+    public static class Crass {
+
     }
 }

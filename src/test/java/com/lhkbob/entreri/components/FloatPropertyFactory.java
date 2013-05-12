@@ -26,16 +26,23 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.SharedInstance;
+import com.lhkbob.entreri.property.AbstractPropertyFactory;
+import com.lhkbob.entreri.property.FloatProperty;
 
-/**
- * Invalid component definition that double checks that we fail when using a shared
- * instance annotation with an incompatible type
- */
-public interface IllegalSharedPropertyComponent extends Component {
-    @SharedInstance
-    public Object getValue();
+public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
+    public static final float DEFAULT = 5f;
 
-    public void setValue(Object v);
+    public FloatPropertyFactory() {
+        super(null);
+    }
+
+    @Override
+    public FloatProperty create() {
+        return new FloatProperty();
+    }
+
+    @Override
+    public void setDefaultValue(FloatProperty p, int index) {
+        p.set(DEFAULT, index);
+    }
 }

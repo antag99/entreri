@@ -28,7 +28,6 @@ package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.Factory;
-import com.lhkbob.entreri.property.FloatPropertyFactory;
 
 /**
  * A test component that mis-configures a component so that the property factory has the

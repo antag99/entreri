@@ -57,12 +57,10 @@ public class PropertySpecificationTest {
         doInvalidComponentDefinitionTest(MismatchedTypeComponent.class);
         doInvalidComponentDefinitionTest(NonBeanComponent.class);
         doInvalidComponentDefinitionTest(InvalidPropertyComponent.class);
-        doInvalidComponentDefinitionTest(IllegalSharedPropertyComponent.class);
-
-        // FIXME additional tests
-        // 1. invalid shared instance property on a primitive property type (or anything other than ObjectProperty)
-        // 2. properties that are missing a setter or getter
-        // 3. shareable properties that are missing the extra getter or the create method
+        doInvalidComponentDefinitionTest(InvalidSharedObjectComponent.class);
+        doInvalidComponentDefinitionTest(InvalidSharedPrimitiveComponent.class);
+        doInvalidComponentDefinitionTest(MissingPropertyGetComponent.class);
+        doInvalidComponentDefinitionTest(MissingPropertySetComponent.class);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

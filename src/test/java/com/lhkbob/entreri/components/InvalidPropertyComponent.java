@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.NoFactoryProperty;
 
 /**
  * Test component that uses the invalid property type NoFactoryProperty.
