@@ -10,6 +10,7 @@ import java.util.*;
 /**
  *
  */
+@SuppressWarnings("unchecked")
 final class PropertySpecification implements Comparable<PropertySpecification> {
     private final String name;
     private final PropertyFactory<?> factory;
@@ -22,8 +23,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
     private final Class<? extends Property> propertyType;
 
-    PropertySpecification(String name, PropertyFactory<?> factory, Method getter,
-                          Method setter, int setterParameter) {
+    private PropertySpecification(String name, PropertyFactory<?> factory, Method getter,
+                                  Method setter, int setterParameter) {
         this.name = name;
         this.factory = factory;
         this.getter = getter;
@@ -155,17 +156,18 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
     private static void processSetter(Method m, Map<String, Method> setters,
                                       Map<String, Integer> parameters) {
+        Class<? extends Component> cType = (Class<? extends Component>) m
+                .getDeclaringClass();
         if (!m.getReturnType().equals(m.getDeclaringClass()) &&
             !m.getReturnType().equals(void.class)) {
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) m.getDeclaringClass(),
-                    "Setter method must have a return type equal to its declaring class, or return void: " +
-                    m.getName());
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Setter method must have a return type equal to its declaring class, or return void: " +
+                                                          m.getName());
         }
         if (m.getParameterTypes().length == 0) {
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) m.getDeclaringClass(),
-                    "Setter method must have at least 1 parameter: " + m.getName());
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Setter method must have at least 1 parameter: " +
+                                                          m.getName());
         }
 
         if (m.getParameterTypes().length == 1) {
@@ -173,45 +175,42 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
             if (name != null) {
                 // verify absence of @Named on actual setter
                 if (m.getAnnotation(Named.class) != null) {
-                    throw new IllegalComponentDefinitionException(
-                            (Class<? extends Component>) m.getDeclaringClass(),
-                            "@Named cannot be on both parameter and method: " +
-                            m.getName());
+                    throw new IllegalComponentDefinitionException(cType,
+                                                                  "@Named cannot be on both parameter and method: " +
+                                                                  m.getName());
                 }
             } else {
                 name = getName(m, "set");
             }
 
             if (setters.containsKey(name)) {
-                throw new IllegalComponentDefinitionException(
-                        (Class<? extends Component>) m.getDeclaringClass(),
-                        "Property name collision: " + name);
+                throw new IllegalComponentDefinitionException(cType,
+                                                              "Property name collision: " +
+                                                              name);
             }
             setters.put(name, m);
             parameters.put(name, 0);
         } else {
             // verify absence of @Named on actual setter
             if (m.getAnnotation(Named.class) != null) {
-                throw new IllegalComponentDefinitionException(
-                        (Class<? extends Component>) m.getDeclaringClass(),
-                        "@Named cannot be applied to setter method with multiple parameters: " +
-                        m.getName());
+                throw new IllegalComponentDefinitionException(cType,
+                                                              "@Named cannot be applied to setter method with multiple parameters: " +
+                                                              m.getName());
             }
 
             int numP = m.getGenericParameterTypes().length;
             for (int i = 0; i < numP; i++) {
                 String name = getNameFromParameter(m, i);
                 if (name == null) {
-                    throw new IllegalComponentDefinitionException(
-                            (Class<? extends Component>) m.getDeclaringClass(),
-                            "@Named must be applied to each parameter for setter methods with multiple parameters: " +
-                            m.getName());
+                    throw new IllegalComponentDefinitionException(cType,
+                                                                  "@Named must be applied to each parameter for setter methods with multiple parameters: " +
+                                                                  m.getName());
                 }
 
                 if (setters.containsKey(name)) {
-                    throw new IllegalComponentDefinitionException(
-                            (Class<? extends Component>) m.getDeclaringClass(),
-                            "Property name collision: " + name);
+                    throw new IllegalComponentDefinitionException(cType,
+                                                                  "Property name collision: " +
+                                                                  name);
                 }
 
                 setters.put(name, m);
@@ -222,21 +221,23 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
 
     private static void processGetter(Method m, String prefix,
                                       Map<String, Method> getters) {
+        Class<? extends Component> cType = (Class<? extends Component>) m
+                .getDeclaringClass();
         String name = getName(m, prefix);
         if (getters.containsKey(name)) {
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) m.getDeclaringClass(),
-                    "Property name collision: " + name);
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Property name collision: " +
+                                                          name);
         }
         if (m.getParameterTypes().length != 0) {
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) m.getDeclaringClass(),
-                    "Getter method cannot take arguments: " + m.getName());
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Getter method cannot take arguments: " +
+                                                          m.getName());
         }
         if (m.getReturnType().equals(void.class)) {
-            throw new IllegalComponentDefinitionException(
-                    (Class<? extends Component>) m.getDeclaringClass(),
-                    "Getter method must have a non-void return type: " + m.getName());
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Getter method must have a non-void return type: " +
+                                                          m.getName());
         }
 
         getters.put(name, m);
@@ -302,50 +303,73 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
 
         // verify contract of property
-        // FIXME we need to handle parameterized property types a bit better
         if (propertyType.equals(ObjectProperty.class)) {
-            return;
-        }
-
-        try {
-            Method g = propertyType.getMethod("get", int.class);
-            if (!g.getReturnType().equals(baseType)) {
+            // special case for ObjectProperty to support more permissive assignments
+            // (which to record requires a similar special case in the code generation)
+            if (isShared) {
                 throw new IllegalComponentDefinitionException(forType,
-                                                              "Does not implement required get() method for type " +
-                                                              baseType);
-            }
-            // FIXME switch back to int, type method but then we have to update all the property defs
-            Method s = propertyType.getMethod("set", baseType, int.class);
-            if (!s.getReturnType().equals(void.class)) {
+                                                              "Property cannot be used with @SharedInstance: " +
+                                                              propertyType);
+            } else if (baseType.isPrimitive()) {
                 throw new IllegalComponentDefinitionException(forType,
-                                                              " does not implement required set() method for type " +
-                                                              baseType);
+                                                              "ObjectProperty cannot be used with primitive types");
             }
-        } catch (NoSuchMethodException e) {
-            throw new IllegalComponentDefinitionException(forType,
-                                                          " does not implement required get() or set() method for type " +
-                                                          baseType);
-        }
-
-        if (isShared) {
-            if (!ShareableProperty.class.isAssignableFrom(propertyType)) {
-                throw new IllegalComponentDefinitionException(
-                        (Class<? extends Component>) getter.getDeclaringClass(),
-                        "Property cannot be used with @SharedInstance: " + propertyType);
-            }
-
-            // verify additional shareable property contract
+            // else we know ObjectProperty is defined correctly because its part of the core library
+        } else {
             try {
-                Method sg = propertyType.getMethod("get", int.class, baseType);
-                if (!sg.getReturnType().equals(void.class)) {
-                    throw new RuntimeException(propertyType +
-                                               " does not implement required shared get() method for type " +
-                                               baseType);
+                Method g = propertyType.getMethod("get", int.class);
+                if (!g.getReturnType().equals(baseType)) {
+                    throw new IllegalComponentDefinitionException(forType, "Property " +
+                                                                           propertyType +
+                                                                           " does not implement required get() method for type " +
+                                                                           baseType);
+                }
+                // FIXME switch back to int, type method but then we have to update all the property defs
+                Method s = propertyType.getMethod("set", baseType, int.class);
+                if (!s.getReturnType().equals(void.class)) {
+                    throw new IllegalComponentDefinitionException(forType, "Property " +
+                                                                           propertyType +
+                                                                           " does not implement required set() method for type " +
+                                                                           baseType);
                 }
             } catch (NoSuchMethodException e) {
-                throw new RuntimeException(propertyType +
-                                           " does not implement required shared get() method for type " +
-                                           baseType, e);
+                throw new IllegalComponentDefinitionException(forType, "Property " +
+                                                                       propertyType +
+                                                                       " does not implement required get() or set() method for type " +
+                                                                       baseType);
+            }
+
+            if (isShared) {
+                if (!ShareableProperty.class.isAssignableFrom(propertyType)) {
+                    throw new IllegalComponentDefinitionException(forType, "Property " +
+                                                                           propertyType +
+                                                                           " cannot be used with @SharedInstance: " +
+                                                                           propertyType);
+                }
+
+                // verify additional shareable property contract
+                try {
+                    Method sg = propertyType.getMethod("get", int.class, baseType);
+                    if (!sg.getReturnType().equals(void.class)) {
+                        throw new IllegalComponentDefinitionException(forType,
+                                                                      "Property " +
+                                                                      propertyType +
+                                                                      " does not implement shareable get() for " +
+                                                                      baseType);
+                    }
+                    Method creator = propertyType.getMethod("createShareableInstance");
+                    if (!creator.getReturnType().equals(baseType)) {
+                        throw new IllegalComponentDefinitionException(forType,
+                                                                      "Property " +
+                                                                      propertyType +
+                                                                      " does not implement createShareableInstance() for " +
+                                                                      baseType);
+                    }
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(propertyType +
+                                               " does not implement required shareable methods for type " +
+                                               baseType, e);
+                }
             }
         }
     }
