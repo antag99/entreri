@@ -34,7 +34,12 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * PropertySpecification instances hold the required information to implement the accessor
+ * and mutator methods for a single property declared in a component type. Instances are
+ * not created directly, but are gotten by {@link #getSpecification(Class)} that analyzes
+ * and validates a component type.
  *
+ * @author Michael Ludwig
  */
 @SuppressWarnings("unchecked")
 final class PropertySpecification implements Comparable<PropertySpecification> {
@@ -56,40 +61,68 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         this.getter = getter;
         this.setter = setter;
         this.setterParameter = setterParameter;
-        isSharedInstance = isShared(getter);
+        isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
 
         propertyType = getCreatedType(
                 (Class<? extends PropertyFactory<?>>) factory.getClass());
     }
 
+    /**
+     * @return The class type of returned by the getter, required by the setter, and
+     *         effective data type of the property.
+     */
     public Class<?> getType() {
         return getter.getReturnType();
     }
 
+    /**
+     * @return The property implementation class that will store the property data, and is
+     *         the type created by the associated property factory
+     */
     public Class<? extends Property> getPropertyType() {
         return propertyType;
     }
 
+    /**
+     * @return True if the property uses an internal shared instance
+     */
     public boolean isSharedInstance() {
         return isSharedInstance;
     }
 
+    /**
+     * @return The name of the property
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * @return The property factory instance that can create properties for systems that
+     *         use this component type
+     */
     public PropertyFactory<?> getFactory() {
         return factory;
     }
 
+    /**
+     * @return The setter method that mutates the property
+     */
     public Method getSetterMethod() {
         return setter;
     }
 
+    /**
+     * @return The specific parameter index of the setter's arguments that has the
+     *         property's value (will always be 0 for a single-argument setter)
+     */
     public int getSetterParameter() {
         return setterParameter;
     }
 
+    /**
+     * @return The getter method that accesses the property
+     */
     public Method getGetterMethod() {
         return getter;
     }
@@ -99,6 +132,21 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         return name.compareTo(o.name);
     }
 
+    /**
+     * Analyze the given component class and return the property specification. This will
+     * validate the class as well and throw an exception if it violates any of the rules
+     * specified in {@link Component}. Each PropertySpecification instance in the returned
+     * list will have a unique name. The list will be ordered by PropertySpecification's
+     * natural ordering and is immutable.
+     *
+     * @param componentDefinition The component type to analyze
+     *
+     * @return The ordered set of properties declared in the component
+     *
+     * @throws IllegalComponentDefinitionException
+     *          if the component class or any referenced PropertyFactories or Properties
+     *          are invalid
+     */
     public static List<PropertySpecification> getSpecification(
             Class<? extends Component> componentDefinition) {
         if (!Component.class.isAssignableFrom(componentDefinition)) {
@@ -165,9 +213,8 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
             }
 
             properties.add(new PropertySpecification(property,
-                                                     createFactory(getters.get(property),
-                                                                   property), getter,
-                                                     setter, param));
+                                                     createFactory(getters.get(property)),
+                                                     getter, setter, param));
         }
 
         if (!setters.isEmpty()) {
@@ -176,10 +223,24 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
                                                           setters.keySet());
         }
 
+        // order the list of properties by their natural ordering
         Collections.sort(properties);
         return Collections.unmodifiableList(properties);
     }
 
+    /**
+     * Validate the method, which is assumed to be a bean mutator method starting with
+     * 'set'. . If the method is valid, it will be placed in the <var>setters</var> map by
+     * the determined name of the property. The method parameter is placed into
+     * <var>parameters</var> with the same key.
+     *
+     * @param m          The getter method
+     * @param setters    The name to mutator map that will be updated
+     * @param parameters The name to index map to be updated
+     *
+     * @throws IllegalComponentDefinitionException
+     *          if the method is invalid
+     */
     private static void processSetter(Method m, Map<String, Method> setters,
                                       Map<String, Integer> parameters) {
         Class<? extends Component> cType = (Class<? extends Component>) m
@@ -245,6 +306,19 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
     }
 
+    /**
+     * Validate the method, which is assumed to be a bean accessor method starting with
+     * 'get', 'is', or 'has'. The correct prefix must be passed in through
+     * <var>prefix</var>. If the method is valid, it will be placed in the
+     * <var>getters</var> map by the determined name of the property.
+     *
+     * @param m       The getter method
+     * @param prefix  The prefix of the getter method
+     * @param getters The name to accessor map that will be updated
+     *
+     * @throws IllegalComponentDefinitionException
+     *          if the method is invalid
+     */
     private static void processGetter(Method m, String prefix,
                                       Map<String, Method> getters) {
         Class<? extends Component> cType = (Class<? extends Component>) m
@@ -269,16 +343,16 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         getters.put(name, m);
     }
 
-    private static boolean isShared(Method getter) {
-        Annotation[] annots = getter.getAnnotations();
-        for (int i = 0; i < annots.length; i++) {
-            if (annots[i] instanceof SharedInstance) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    /**
+     * Extract the property name from a {@link Named} annotation applied to the
+     * <var>p</var>th parameter. Null is returned if the parameter has not been annotated.
+     * This is intended for setter methods.
+     *
+     * @param m The method to inspect
+     * @param p The specific parameter whose name should be returned
+     *
+     * @return The name if it exists
+     */
     private static String getNameFromParameter(Method m, int p) {
         Annotation[] annots = m.getParameterAnnotations()[p];
         for (int i = 0; i < annots.length; i++) {
@@ -289,6 +363,16 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         return null;
     }
 
+    /**
+     * Extract the bean name from the method given the prefix, which is assumed to be
+     * 'set', 'get', 'is', or 'has'. If the method is annotated with {@link Named}, that
+     * overrides the bean name.
+     *
+     * @param m      The bean method
+     * @param prefix The prefix the method name starts with
+     *
+     * @return The name for the property corresponding to the method
+     */
     private static String getName(Method m, String prefix) {
         Named n = m.getAnnotation(Named.class);
         if (n != null) {
@@ -299,6 +383,14 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
     }
 
+    /**
+     * Look up the Property class created by the factory class by inspecting its
+     * <code>create()</code> method.
+     *
+     * @param factory The property factory to inspect
+     *
+     * @return The Property type the factory creates
+     */
     private static Class<? extends Property> getCreatedType(
             Class<? extends PropertyFactory<?>> factory) {
         try {
@@ -309,12 +401,91 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
     }
 
-    private static void validateFactory(Method getter, boolean isShared,
+    /**
+     * Determine and instantiate a PropertyFactory that is capable of handling the data
+     * type of the getter method. The getter method is accessor bean method of one of the
+     * high-level properties defined in the component type.
+     * <p/>
+     * If the getter is annotated with {@link Factory}, that factory is used. Otherwise
+     * the return type is used with {@link TypePropertyMapping} to find the appropriate
+     * Property class. The {@link Factory} annotation on that Property is then used for
+     * the factory type.
+     * <p/>
+     * Validation is performed to ensure the factory creates properties of the expected
+     * type, and the property exposes the methods expected by the proxy code generation.
+     *
+     * @param getter The getter of the property
+     *
+     * @return The constructed property factory
+     *
+     * @throws IllegalComponentDefinitionException
+     *          if the property factory or getter has an invalid configuration
+     */
+    private static PropertyFactory<?> createFactory(Method getter) {
+        Class<?> baseType = getter.getReturnType();
+        Class<? extends Component> cType = (Class<? extends Component>) getter
+                .getDeclaringClass();
+
+        Class<? extends PropertyFactory<?>> factoryType;
+        if (getter.getAnnotation(Factory.class) != null) {
+            // prefer getter specification to allow default overriding
+            factoryType = getter.getAnnotation(Factory.class).value();
+            validateFactory(getter, factoryType, null);
+        } else {
+            // try to find a default property type
+            Class<? extends Property> mappedType = TypePropertyMapping
+                    .getPropertyForType(baseType);
+            if (mappedType.getAnnotation(Factory.class) == null) {
+                throw new IllegalComponentDefinitionException(cType,
+                                                              "Cannot create PropertyFactory for " +
+                                                              mappedType +
+                                                              ", no @Factory annotation on type");
+            } else {
+                factoryType = mappedType.getAnnotation(Factory.class).value();
+                validateFactory(getter, factoryType, mappedType);
+            }
+        }
+
+        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(
+                getter.getAnnotations()));
+        if (factory == null) {
+            factory = invokeConstructor(factoryType);
+        }
+
+        if (factory == null) {
+            // unable to create a PropertyFactory
+            throw new IllegalComponentDefinitionException(cType,
+                                                          "Unable to create PropertyFactory for " +
+                                                          getter.getName());
+        } else {
+            return factory;
+        }
+    }
+
+    /**
+     * Validate the various aspects of the property to make sure they are consistent with
+     * the getter method. The factory's create method is checked to make sure it returns
+     * instances assignable to <var>propertyType</var>. The property type is checked for
+     * the required <code>T get(int)</code> and <code>void set(T, int)</code> methods. If
+     * the property should be shared, then <code>void get(int, T)</code> is checked as
+     * well.
+     *
+     * @param getter       The getter method of the property being analyzed
+     * @param factory      The factory type to use with the getter
+     * @param propertyType The property type to use with the getter
+     *
+     * @throws IllegalComponentDefinitionException
+     *          if the factory or property are invalid given the method and whether or not
+     *          it's shared
+     */
+    private static void validateFactory(Method getter,
                                         Class<? extends PropertyFactory<?>> factory,
-                                        Class<? extends Property> propertyType,
-                                        Class<? extends Component> forType) {
+                                        Class<? extends Property> propertyType) {
+        boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
         Class<?> baseType = getter.getReturnType();
         Class<? extends Property> createdType = getCreatedType(factory);
+        Class<? extends Component> forType = (Class<? extends Component>) getter
+                .getDeclaringClass();
 
         if (propertyType == null) {
             // rely on factory to determine property type
@@ -400,48 +571,18 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
         }
     }
 
-    private static PropertyFactory<?> createFactory(Method getter, String name) {
-        boolean isShared = isShared(getter);
-        Class<?> baseType = getter.getReturnType();
-        Class<? extends Component> cType = (Class<? extends Component>) getter
-                .getDeclaringClass();
-
-        Class<? extends PropertyFactory<?>> factoryType;
-        if (getter.getAnnotation(Factory.class) != null) {
-            // prefer getter specification to allow default overriding
-            factoryType = getter.getAnnotation(Factory.class).value();
-            validateFactory(getter, isShared, factoryType, null, cType);
-        } else {
-            // try to find a default property type
-            Class<? extends Property> mappedType = TypePropertyMapping
-                    .getPropertyForType(baseType);
-            if (mappedType.getAnnotation(Factory.class) == null) {
-                throw new IllegalComponentDefinitionException(cType,
-                                                              "Cannot create PropertyFactory for " +
-                                                              mappedType +
-                                                              ", no @Factory annotation on type");
-            } else {
-                factoryType = mappedType.getAnnotation(Factory.class).value();
-                validateFactory(getter, isShared, factoryType, mappedType, cType);
-            }
-        }
-
-        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(
-                getter.getAnnotations()));
-        if (factory == null) {
-            factory = invokeConstructor(factoryType);
-        }
-
-        if (factory == null) {
-            // unable to create a PropertyFactory
-            throw new IllegalComponentDefinitionException(cType,
-                                                          "Unable to create PropertyFactory for " +
-                                                          name);
-        } else {
-            return factory;
-        }
-    }
-
+    /**
+     * Invoke the constructor defined by <var>type</var> that has arguments identical to
+     * the corresponding classes of <var>args</var>. The constructor will be invoked with
+     * those arguments if it exists, otherwise null is returned.
+     *
+     * @param type The property factory class to construct
+     * @param args The arguments to pass to the matching constructor
+     *
+     * @return The created instance
+     *
+     * @throws RuntimeException if an unexpected exception occurs
+     */
     private static PropertyFactory<?> invokeConstructor(
             Class<? extends PropertyFactory<?>> type, Object... args) {
         Class<?>[] paramTypes = new Class<?>[args.length];

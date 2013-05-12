@@ -123,8 +123,8 @@ abstract class ComponentFactoryProvider {
      * @return The class name that corresponds to the generated proxy implmentation for
      *         the given type
      */
-    protected static String getImplementationClassName(Class<? extends Component> type,
-                                                       boolean includePackage) {
+    public static String getImplementationClassName(Class<? extends Component> type,
+                                                    boolean includePackage) {
         // first get the simple name, concatenating all types in the hierarchy
         // (e.g. if its an inner class the name is Foo$Blah and this converts it to FooBlah)
         String scrubbed = type.getSimpleName().replace("[\\.$]", "");
@@ -177,9 +177,9 @@ abstract class ComponentFactoryProvider {
      *
      * @return Source code of a valid implementation for the component type
      */
-    protected static String generateJavaCode(Class<? extends Component> type,
-                                             List<PropertySpecification> spec,
-                                             boolean useGenerics) {
+    public static String generateJavaCode(Class<? extends Component> type,
+                                          List<PropertySpecification> spec,
+                                          boolean useGenerics) {
         String baseTypeName = safeName(type);
 
         String implName = getImplementationClassName(type, false);
@@ -187,7 +187,7 @@ abstract class ComponentFactoryProvider {
         // the implementation will extend AbstractComponent sans generics because
         // Janino does not support them right now
         StringBuilder sb = new StringBuilder();
-        sb.append("package ").append(type.getPackage().getName()).append(";\n")
+        sb.append("package ").append(type.getPackage().getName()).append(";\n\n")
           .append("public class ").append(implName).append(" extends ")
           .append(ABSTRACT_COMPONENT_NAME);
         if (useGenerics) {

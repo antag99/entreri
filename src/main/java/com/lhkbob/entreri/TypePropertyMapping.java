@@ -58,6 +58,9 @@ final class TypePropertyMapping {
         typeMapping.put(boolean.class, BooleanProperty.class);
     }
 
+    private TypePropertyMapping() {
+    }
+
     /**
      * Attempt to determine a property class that wraps the corresponding Java type. If it
      * is a primitive type, it will use the corresponding primitive wrapper defined in

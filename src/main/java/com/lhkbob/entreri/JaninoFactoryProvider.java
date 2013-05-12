@@ -40,7 +40,6 @@ import java.util.List;
  * @author Michael Ludwig
  */
 class JaninoFactoryProvider extends ComponentFactoryProvider {
-
     @Override
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
         return new JaninoFactory<T>(componentType);
