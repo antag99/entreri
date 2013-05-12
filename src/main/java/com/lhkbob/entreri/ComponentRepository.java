@@ -259,6 +259,12 @@ public final class ComponentRepository<T extends Component> {
         return ownerDelegatesProperty.get(componentIndex);
     }
 
+    /**
+     * @param propertyIndex The index of the property, which is the corresponding index
+     *                      from the property specification of the component type
+     *
+     * @return The declared property used for the given index by this repository
+     */
     public Property getProperty(int propertyIndex) {
         return declaredProperties.get(propertyIndex).getProperty();
     }
@@ -330,10 +336,16 @@ public final class ComponentRepository<T extends Component> {
 
         T instance = addComponent(entityIndex);
         // this is safe across systems because the property spec for a component type
-        // will be the same so the factories will be consistent
+        // will be the same so the factories will be consistent and the order is the
+        // same since they're reported in name order
         for (int i = 0; i < declaredProperties.size(); i++) {
-            DeclaredPropertyStore store = declaredProperties.get(i);
-            store.clone(fromTemplate.getIndex(), store.property, instance.getIndex());
+            DeclaredPropertyStore dstStore = declaredProperties.get(i);
+            DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate)
+                    .owner.declaredProperties.get(i);
+
+            templateStore.creator
+                         .clone(templateStore.getProperty(), fromTemplate.getIndex(),
+                                dstStore.property, instance.getIndex());
         }
 
         return instance;
@@ -433,7 +445,7 @@ public final class ComponentRepository<T extends Component> {
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
-        componentIdProperty.set(0, componentIndex);
+        componentIdProperty.set(0, componentIndex); // clear id
 
         return oldComponent != null;
     }
@@ -651,10 +663,6 @@ public final class ComponentRepository<T extends Component> {
             super(creator);
             this.key = key;
             property = creator.create();
-        }
-
-        void clone(int srcIndex, P dst, int dstIndex) {
-            creator.clone(property, srcIndex, dst, dstIndex);
         }
 
         @Override

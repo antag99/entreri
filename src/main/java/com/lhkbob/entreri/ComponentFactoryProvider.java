@@ -1,5 +1,7 @@
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.property.ObjectProperty;
+
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -80,7 +82,7 @@ abstract class ComponentFactoryProvider {
         sb.append("package ").append(PROXY_PACKAGE_NAME).append(";\n")
           .append("public class ").append(implName).append(" extends ")
           .append(ABSTRACT_COMPONENT_NAME).append(" implements ").append(baseTypeName)
-          .append("{\n");
+          .append(" {\n");
 
         // add property instances with proper cast so we don't have to do that every
         // time a property is accessed, and add any shared instance field declarations
@@ -156,7 +158,14 @@ abstract class ComponentFactoryProvider {
               .append("sharedInstance").append(idx)
               .append(");\n\t\treturn sharedInstance").append(idx).append(";");
         } else {
-            sb.append("return property").append(idx).append(".get(getIndex());");
+            if (forProperty.getPropertyType().equals(ObjectProperty.class)) {
+                // special case where we allow ObjectProperty to have more permissive getters
+                // and setters to support any type under the sun
+                sb.append("return (").append(safeName(forProperty.getType()))
+                  .append(") property").append(idx).append(".get(getIndex());");
+            } else {
+                sb.append("return property").append(idx).append(".get(getIndex());");
+            }
         }
 
         sb.append("\n\t}\n");

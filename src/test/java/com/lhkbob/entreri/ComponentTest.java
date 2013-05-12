@@ -26,7 +26,10 @@
  */
 package com.lhkbob.entreri;
 
+import com.lhkbob.entreri.components.ComplexComponent;
 import com.lhkbob.entreri.components.IntComponent;
+import com.lhkbob.entreri.property.CustomProperty;
+import com.lhkbob.entreri.property.FloatPropertyFactory;
 import junit.framework.Assert;
 import org.junit.Test;
 
@@ -170,6 +173,62 @@ public class ComponentTest {
 
     @Test
     public void testBeanMethodInvocation() {
-        Assert.fail();
+        EntitySystem system = new EntitySystem();
+        Entity e1 = system.addEntity();
+        ComplexComponent c1 = e1.add(ComplexComponent.class);
+
+        CustomProperty.Bletch b = new CustomProperty.Bletch();
+        b.value = 19;
+        c1.setBletch(b);
+        c1.setFactoryFloat(23.2f);
+        c1.setLong(4000L);
+        c1.setNamedParamSetter(true);
+        c1.setParams((short) 4, (short) 5);
+        c1.setFloat(2.0f);
+        c1.setInt(140);
+
+        Assert.assertEquals(19, c1.hasBletch().value);
+        Assert.assertEquals(23.2f, c1.getFactoryFloat(), 0.00001f);
+        Assert.assertEquals(4000L, c1.getLong());
+        Assert.assertTrue(c1.isNamedParamGetter());
+        Assert.assertEquals((short) 4, c1.getParam1());
+        Assert.assertEquals((short) 5, c1.getParam2());
+        Assert.assertEquals(2.0f, c1.getFloat(), 0.00001f);
+        Assert.assertEquals(140, c1.getInt());
+
+        // add a second component and make sure things didn't get goofed up
+        Entity e2 = system.addEntity();
+        ComplexComponent c2 = e2.add(ComplexComponent.class);
+
+        Assert.assertEquals(14, c2.hasBletch().value);
+        Assert.assertEquals(FloatPropertyFactory.DEFAULT, c2.getFactoryFloat(), 0.00001f);
+        Assert.assertEquals(Long.MAX_VALUE, c2.getLong());
+        Assert.assertFalse(c2.isNamedParamGetter());
+        Assert.assertEquals((short) 0, c2.getParam1());
+        Assert.assertEquals((short) 0, c2.getParam2());
+        Assert.assertEquals(0f, c2.getFloat(), 0.00001f);
+        Assert.assertEquals(0, c2.getInt());
+    }
+
+    @Test
+    public void testFlyweightIsAliveAfterRemoval() {
+        EntitySystem system = new EntitySystem();
+
+        IntComponent c1 = system.addEntity().add(IntComponent.class);
+        IntComponent c2 = system.addEntity().add(IntComponent.class);
+
+        ComponentIterator it = new ComponentIterator(system);
+        IntComponent flyweight = it.addRequired(IntComponent.class);
+
+        int count = 0;
+        while (it.next()) {
+            flyweight.getEntity().remove(IntComponent.class);
+            Assert.assertFalse(flyweight.isAlive());
+            count++;
+        }
+
+        Assert.assertFalse(c1.isAlive());
+        Assert.assertFalse(c2.isAlive());
+        Assert.assertEquals(2, count);
     }
 }

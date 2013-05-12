@@ -84,16 +84,24 @@ public class EntitySystemTest {
 
     @Test
     public void testAddEntityFromTemplateInAnotherSystem() {
-        EntitySystem systemTemplate = new EntitySystem();
-        Entity template = systemTemplate.addEntity();
+        EntitySystem system1 = new EntitySystem();
+        Entity template = system1.addEntity();
 
-        EntitySystem system = new EntitySystem();
-        try {
-            system.addEntity(template);
-            Assert.fail();
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        IntComponent tc1 = template.add(IntComponent.class);
+        tc1.setInt(2);
+        FloatComponent tc2 = template.add(FloatComponent.class);
+        tc2.setFloat(3f);
+
+        EntitySystem system2 = new EntitySystem();
+        Entity fromTemplate = system2.addEntity(template);
+        IntComponent c1 = fromTemplate.get(IntComponent.class);
+        FloatComponent c2 = fromTemplate.get(FloatComponent.class);
+
+        Assert.assertEquals(2, c1.getInt());
+        Assert.assertEquals(3f, c2.getFloat(), .0001f);
+        Assert.assertFalse(c1.equals(tc1));
+        Assert.assertFalse(c2.equals(tc2));
+        Assert.assertNotSame(template, fromTemplate);
     }
 
     @Test
@@ -108,6 +116,47 @@ public class EntitySystemTest {
         Assert.assertEquals(1, e.getId()); // it's id should remain unchanged
 
         Assert.assertFalse(system.iterator().hasNext());
+    }
+
+    @Test
+    public void testIteratorRemoveEntity() {
+        EntitySystem system = new EntitySystem();
+        List<Entity> original = new ArrayList<Entity>();
+
+        List<Entity> removed = new ArrayList<Entity>();
+
+        for (int i = 0; i < 10; i++) {
+            original.add(system.addEntity());
+        }
+
+        Iterator<Entity> it = system.iterator();
+        while (it.hasNext()) {
+            removed.add(it.next());
+            it.remove();
+        }
+
+        Assert.assertEquals(original, removed);
+    }
+
+    @Test
+    public void testIteratorExternalRemoveEntity() {
+        EntitySystem system = new EntitySystem();
+        List<Entity> original = new ArrayList<Entity>();
+
+        List<Entity> removed = new ArrayList<Entity>();
+
+        for (int i = 0; i < 10; i++) {
+            original.add(system.addEntity());
+        }
+
+        Iterator<Entity> it = system.iterator();
+        while (it.hasNext()) {
+            Entity e = it.next();
+            removed.add(e);
+            system.removeEntity(e);
+        }
+
+        Assert.assertEquals(original, removed);
     }
 
     @Test

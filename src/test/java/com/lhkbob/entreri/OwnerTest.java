@@ -231,6 +231,21 @@ public class OwnerTest {
 
     @Test
     public void testFlyweightComponentOwnership() {
-        Assert.fail();
+        EntitySystem system = new EntitySystem();
+        Entity e = system.addEntity();
+        IntComponent c = e.add(IntComponent.class);
+
+        Entity e2 = system.addEntity();
+
+        ComponentIterator it = new ComponentIterator(system);
+        IntComponent flyweight = it.addRequired(IntComponent.class);
+        it.next();
+
+        flyweight.setOwner(e2);
+        Assert.assertSame(e2, flyweight.getOwner());
+        Assert.assertSame(e2, c.getOwner());
+
+        e.setOwner(flyweight);
+        Assert.assertSame(c, e.getOwner());
     }
 }
