@@ -28,8 +28,8 @@ package com.lhkbob.entreri.property;
 
 /**
  * <p/>
- * Property represents a generic field or property of a ComponentData definition. It's
- * interface allows it's values and underlying data store to be packed together with the
+ * Property represents a generic field or property of a Component definition. Its
+ * interface allows its values and underlying data store to be packed together with the
  * corresponding property instances of all the other Components of the same type in an
  * EntitySystem.
  * <p/>
@@ -38,17 +38,23 @@ package com.lhkbob.entreri.property;
  * instances of type A, with properties a and b. The two 'a' properties would share the
  * same data store, and the two 'b' properties would share a separate store.
  * <p/>
+ * All property implementations must expose two methods: <code>T get(int)</code> and
+ * <code>void set(T, int)</code> to get and set values at a particular index. To support
+ * primitives without boxing, they are not part of the interface definition but are
+ * required.
+ * <p/>
  * Property instances are carefully managed by an EntitySystem. There is ever only one
  * property instance per defined property in a component type for a system. Every
  * component of that type uses their index into the property's IndexedDataStore to access
  * their data. This helps keep memory usage low and simplifies system maintenance.
  * <p/>
- * Property instances are created by {@link PropertyFactory PropertyFactories}, which are
- * created by {@link ComponentDataFactory ComponentDataFactories}. ComponentDataFactory
- * implementations define how property factories are declared.
+ * Property instances are created by {@link PropertyFactory PropertyFactories}. Every
+ * concrete Property class must be annotated with {@link Factory} to specify the
+ * PropertyFactory class that constructs it. That PropertyFactory must expose a
+ * no-argument constructor, or a constructor that takes an {@link Attributes} instance as
+ * its only argument.
  *
  * @author Michael Ludwig
- * @see ReflectionComponentDataFactory
  */
 public interface Property {
     /**
@@ -57,10 +63,10 @@ public interface Property {
      * hold other property values if the owning ComponentData is in an EntitySystem with
      * many other components of the same type.
      * <p/>
-     * This should not be used by ComponentData implementations, and manipulating the
-     * IndexedDataStore outside of the EntitySystem code could cause unexpected behavior.
-     * Instead Property implementations should expose other ways to access their data; as
-     * an example see {@link FloatProperty#getIndexedData()}.
+     * This should not be used externally, and manipulating the IndexedDataStore outside
+     * of the EntitySystem code could cause unexpected behavior. Instead Property
+     * implementations should expose other ways to access their data; as an example see
+     * {@link FloatProperty#getIndexedData()}.
      * <p/>
      * The returned data store must always have at least 1 element in it.
      *

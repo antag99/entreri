@@ -32,10 +32,9 @@ package com.lhkbob.entreri.property;
  * Additionally, it is used when decorating a ComponentData type in an EntitySystem to
  * ensure that each decoration event gets a unique property instance.
  * <p/>
- * <p/>
- * When using the {@link ReflectionComponentDataFactory}, PropertyFactory implementations
- * must have a no-argument constructor or a constructor that takes an {@link Attributes}
- * as its only argument. The constructor does not need to be public.
+ * PropertyFactory implementations must have a no-argument constructor or a constructor
+ * that takes an {@link Attributes} as its only argument. The constructor does not need to
+ * be public.
  *
  * @param <T> The Property type created
  *
@@ -63,8 +62,8 @@ public interface PropertyFactory<T extends Property> {
     /**
      * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to
      * <var>dst</var> at <var>dstIndex</var>. This is used when a component is created and
-     * cloned from a template with {@link com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For
-     * many cases a plain copy-by-value or copy-by-reference is sufficient, but some
+     * cloned from a template with {@link com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}.
+     * For many cases a plain copy-by-value or copy-by-reference is sufficient, but some
      * component types might require more complicated cloning rules.
      *
      * @param src      The source property that is being cloned

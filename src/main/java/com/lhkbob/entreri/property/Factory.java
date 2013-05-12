@@ -35,21 +35,19 @@ import java.lang.annotation.Target;
 
 /**
  * <p/>
- * The Factory annotation can be declared on a Property field in a ComponentData
- * definition to specify the type of PropertyFactory to use when creating instances of the
- * Property for the component. The factory type must have a no-argument constructor in
- * order to be instantiated correctly. This annotation should be used if Property does not
- * provide a default factory with sufficient flexibility with annotation attributes (e.g.
- * {@link DefaultInt} for the Properties defined in com.lhkbob.entreri.property).
+ * The Factory annotation can be placed on a Property implementation or the getter method
+ * in a Component definition to specify the type of PropertyFactory to use when creating
+ * instances of the Property for the component. The factory type must have a no-argument
+ * constructor or a constructor that takes a single {@link Attributes} instance in order
+ * to be instantiated correctly. This annotation can be used if Property does not provide
+ * a default factory with sufficient flexibility with annotation attributes (e.g. {@link
+ * DefaultInt} for the Properties defined in com.lhkbob.entreri.property).
  * <p/>
- * <p/>
- * Factory can also be placed at the type level on a Property implementation to declare
- * the default PropertyFactory to use. When using the {@link ReflectionComponentDataFactory},
- * it checks for a constructor taking a single {@link com.lhkbob.entreri.property.Attributes}
- * object, or the default constructor.
+ * Every Property implementation must be annotated with this annotation
  *
  * @author Michael Ludwig
- * @see ReflectionComponentDataFactory
+ * @see PropertyFactory
+ * @see Property
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE })
