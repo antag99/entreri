@@ -56,7 +56,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
      *
      * @param index The new index
      */
-    public void setIndex(int index) {
+    void setIndex(int index) {
         this.index = index;
         this.id = owner.getId(index);
     }
@@ -64,7 +64,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     /**
      * @return The repository that allocated this component
      */
-    public ComponentRepository<T> getRepository() {
+    ComponentRepository<T> getRepository() {
         return owner;
     }
 
