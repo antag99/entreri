@@ -41,9 +41,10 @@ package com.lhkbob.entreri;
  * Logically a component definition is a set of named and typed properties, and a
  * method-based API to get and set the values of each property. Specific types of
  * component are defined by creating a sub-interface of Component. Using the {@link Named}
- * and {@link SharedInstance} annotations and specific conventions the data properties of
- * the component type are specified in the sub-interface. A declaration model similar to
- * the Java Bean model is used and is outlined below:
+ * {@link SharedInstance}, and {@link com.lhkbob.entreri.property.Factory} annotations and
+ * specific conventions the data properties of the component type are specified in the
+ * sub-interface. A declaration model similar to the Java Bean model is used and is
+ * outlined below:
  * <p/>
  * <ol> <li>Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a
  * property. The property type is inspected from the return type of the method. The
@@ -74,7 +75,10 @@ package com.lhkbob.entreri;
  * <p/>
  * Additional attribute annotations can be added to the getter method to influence the
  * behavior of the {@link com.lhkbob.entreri.property.PropertyFactory} used for each
- * property in the component definition.
+ * property in the component definition. Besides using the Factory annotation to specify
+ * the factory type, libraries can specify a mapping file 'entreri-mapping.properties' at
+ * the root of their resource tree that contains key-value maps from a class type to
+ * Property implementation.
  * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and
  * the id of their owning entity. The {@link ComponentIterator} class creates flyweight

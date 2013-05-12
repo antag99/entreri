@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.property;
 
 @Factory(CustomProperty.CustomFactoryWithAttributes.class)
-public class CustomProperty implements ShareableProperty {
+public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> {
     private final ObjectProperty<Bletch> property;
 
     public CustomProperty() {
@@ -44,6 +44,7 @@ public class CustomProperty implements ShareableProperty {
         property.setDataStore(store);
     }
 
+    @Override
     public Bletch createShareableInstance() {
         return new Bletch();
     }
@@ -56,7 +57,7 @@ public class CustomProperty implements ShareableProperty {
         return property.get(index);
     }
 
-    // FIXME might be wrong signature
+    @Override
     public void get(int index, Bletch b) {
         b.value = property.get(index).value;
     }
@@ -78,7 +79,7 @@ public class CustomProperty implements ShareableProperty {
             b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
                                                                               : attributes
                                .getAttribute(IntProperty.DefaultInt.class).value());
-            property.property.set(b, index);
+            property.set(b, index);
         }
     }
 

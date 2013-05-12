@@ -82,7 +82,7 @@ final class TypePropertyMapping {
 
         // otherwise check if we have a properties file to load
         // FIXME this requires the type to be aware of the wrapping property impl
-        InputStream in = type.getResourceAsStream("entreri-mapping.properties");
+        InputStream in = type.getResourceAsStream("/entreri-mapping.properties");
         if (in != null) {
             Properties p = new Properties();
             try {
