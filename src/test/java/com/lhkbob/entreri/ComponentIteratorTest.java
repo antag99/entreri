@@ -63,7 +63,7 @@ public class ComponentIteratorTest {
         entityCombinedObjValues = new ArrayList<ObjectComponent.FooBlah>();
         entityCombinedFloatValues = new ArrayList<Float>();
 
-        system = new EntitySystem();
+        system = EntitySystem.create();
 
         for (int i = 0; i < ENTITY_COUNT; i++) {
             Entity e = system.addEntity();
@@ -177,9 +177,9 @@ public class ComponentIteratorTest {
 
     @Test
     public void testComponentIterator() {
-        ComponentIterator ft = new ComponentIterator(system);
+        ComponentIterator ft = system.fastIterator();
         floatData = ft.addRequired(FloatComponent.class);
-        ComponentIterator it = new ComponentIterator(system);
+        ComponentIterator it = system.fastIterator();
         objData = it.addRequired(ObjectComponent.class);
 
         doTestObjectComponentIterator(it);
@@ -193,7 +193,7 @@ public class ComponentIteratorTest {
 
     @Test
     public void testBulkComponentIterator() {
-        ComponentIterator it = new ComponentIterator(system);
+        ComponentIterator it = system.fastIterator();
         floatData = it.addRequired(FloatComponent.class);
         objData = it.addRequired(ObjectComponent.class);
 
@@ -210,7 +210,7 @@ public class ComponentIteratorTest {
 
     @Test
     public void testFlyweightComponent() {
-        ComponentIterator it = new ComponentIterator(system);
+        ComponentIterator it = system.fastIterator();
         IntComponent c = it.addRequired(IntComponent.class);
 
         Assert.assertTrue(c.isFlyweight());

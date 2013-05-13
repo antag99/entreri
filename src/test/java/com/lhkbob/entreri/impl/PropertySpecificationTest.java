@@ -24,8 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.IllegalComponentDefinitionException;
 import com.lhkbob.entreri.components.*;
 import com.lhkbob.entreri.property.*;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ public class PropertySpecificationTest {
 
     @Test
     public void testInvalidComponentDefinition() {
-        doInvalidComponentDefinitionTest(AbstractComponent.class);
+        doInvalidComponentDefinitionTest(com.lhkbob.entreri.impl.AbstractComponent.class);
         doInvalidComponentDefinitionTest(BadConstructorComponent.class);
         doInvalidComponentDefinitionTest(InvalidFactoryComponent.class);
         doInvalidComponentDefinitionTest(MissingSetterComponent.class);

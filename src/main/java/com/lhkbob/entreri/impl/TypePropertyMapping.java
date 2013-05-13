@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.property.*;
 
@@ -37,11 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * TypePropertyMapping is an internal class used to maintain a thread-safe, shared, and
  * consistent mapping from Java type to an associated Property type that wraps that data.
  * Primitive and plain Object wrapping is built-in and it supports reading a
- * 'entreri-mapping.properties' file in the type's resources to discover new mappings at
- * runtime. Said properties file is a simple key-value map between basic class and
- * Property class.
+ * '/entreri-mapping.properties' file from the type's resource path to discover new
+ * mappings at runtime. Said properties file is a simple key-value map between basic class
+ * and Property class.
  */
-final class TypePropertyMapping {
+public final class TypePropertyMapping {
     private static final ConcurrentHashMap<Class<?>, Class<? extends Property>> typeMapping;
 
     static {

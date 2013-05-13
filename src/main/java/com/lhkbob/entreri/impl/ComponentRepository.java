@@ -24,8 +24,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.Requires;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.ref.WeakReference;
@@ -42,7 +45,7 @@ import java.util.*;
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public final class ComponentRepository<T extends Component> {
-    private final EntitySystem system;
+    private final EntitySystemImpl system;
     private final Class<T> type;
 
     private final ComponentFactoryProvider.Factory<T> factory;
@@ -77,7 +80,7 @@ public final class ComponentRepository<T extends Component> {
      *
      * @throws NullPointerException if system or type are null
      */
-    public ComponentRepository(EntitySystem system, Class<T> type) {
+    public ComponentRepository(EntitySystemImpl system, Class<T> type) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
@@ -140,14 +143,14 @@ public final class ComponentRepository<T extends Component> {
     /**
      * @return The owning EntitySystem
      */
-    public EntitySystem getEntitySystem() {
+    public EntitySystemImpl getEntitySystem() {
         return system;
     }
 
     /**
      * Given the index of a Component (e.g. {@link Component#getIndex()}, return the index
      * of an entity within the owning system. The returned entity index can be safely
-     * passed to {@link EntitySystem#getEntityByIndex(int)}.
+     * passed to {@link EntitySystemImpl#getEntityByIndex(int)}.
      *
      * @param componentIndex The component index whose owning entity is fetched
      *
@@ -159,9 +162,9 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Given the index of an entity (e.g. {@link Entity#index}), return the index of the
-     * attached component of this ComponentRepository's type. The returned component index
-     * can be used in {@link #getComponent(int)} and related methods.
+     * Given the index of an entity (e.g. {@link EntityImpl#index}), return the index of
+     * the attached component of this ComponentRepository's type. The returned component
+     * index can be used in {@link #getComponent(int)} and related methods.
      *
      * @param entityIndex The entity index to look up
      *

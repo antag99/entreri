@@ -24,8 +24,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.components.ComplexComponent;
 import com.lhkbob.entreri.components.FloatPropertyFactory;
 import com.lhkbob.entreri.components.IntComponent;
@@ -42,14 +44,14 @@ import java.util.List;
 public class ComponentRepositoryTest {
     @Test
     public void testFactorySetValue() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         ComplexComponent c = system.addEntity().add(ComplexComponent.class);
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
 
     @Test
     public void testDecorateProperty() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -69,7 +71,7 @@ public class ComponentRepositoryTest {
 
     @Test
     public void testDecoratePropertyAddComponent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -103,7 +105,7 @@ public class ComponentRepositoryTest {
         // This is an ugly ugly test case since it has to verify that the
         // property gets garbage collected. The only way it can get at that
         // is to use reflection to inspect the component repository
-        EntitySystem system = new EntitySystem();
+        EntitySystemImpl system = (EntitySystemImpl) EntitySystem.create();
         ComponentRepository<IntComponent> cr = system.getRepository(IntComponent.class);
         int count = getDecoratedProperties(cr).size();
 

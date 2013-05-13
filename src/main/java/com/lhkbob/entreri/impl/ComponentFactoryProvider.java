@@ -24,8 +24,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
 import com.lhkbob.entreri.property.ObjectProperty;
 
 import java.lang.reflect.Method;
@@ -47,7 +50,7 @@ import java.util.List;
  *
  * @author Michael Ludwig
  */
-abstract class ComponentFactoryProvider {
+public abstract class ComponentFactoryProvider {
     /**
      * Factory is a factory specification for creating proxy implementations of a
      * particular component interface. Additionally, to be compatible with the underlying

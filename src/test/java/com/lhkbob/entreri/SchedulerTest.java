@@ -37,7 +37,7 @@ import org.junit.Test;
 public class SchedulerTest {
     @Test
     public void testResultsReportedToFutureTasksOnly() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
 
         ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
                                                          new ResultA(), new ResultB());
@@ -68,7 +68,7 @@ public class SchedulerTest {
 
     @Test
     public void testPostProcessTasksInvoked() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
 
         BasicTask t1 = new BasicTask(null);
         BasicTask t2 = new BasicTask(t1);
@@ -84,7 +84,7 @@ public class SchedulerTest {
 
     @Test(expected = IllegalStateException.class)
     public void testMultipleSingletonResultsReported() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
 
         ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
                                                          new ResultB(), new ResultB());
@@ -95,7 +95,7 @@ public class SchedulerTest {
 
     @Test
     public void testResultsReported() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
 
         ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
                                                          new ResultA(), new ResultB());
@@ -124,7 +124,7 @@ public class SchedulerTest {
 
     @Test
     public void testResetInvoked() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
 
         BasicTask t1 = new BasicTask(null);
         Job j = system.getScheduler().createJob("test", t1);

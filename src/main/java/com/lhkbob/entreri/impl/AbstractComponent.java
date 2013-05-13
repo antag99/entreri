@@ -24,14 +24,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
+
+import com.lhkbob.entreri.*;
 
 /**
  * AbstractComponent is the base class used for all generated proxy implementations of
  * component subtypes. It provides an implementation for all of the declared methods in
  * Component as well as equals() and hashCode(). It should not be subclassed or extended
  * directly, but is used as the parent class of generated proxies. As specified in {@link
- * Component}, all component type definitions are sub-interfaces of Component.
+ * com.lhkbob.entreri.Component}, all component type definitions are sub-interfaces of
+ * Component.
  *
  * @param <T> The type of component the AbstractComponent is safely cast-able to
  */

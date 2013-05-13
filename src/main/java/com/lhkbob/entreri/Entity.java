@@ -27,7 +27,6 @@
 package com.lhkbob.entreri;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * <p/>
@@ -46,59 +45,22 @@ import java.util.NoSuchElementException;
  *
  * @author Michael Ludwig
  */
-public final class Entity
-        implements Iterable<Component>, Comparable<Entity>, Ownable, Owner {
-    private final EntitySystem system;
-    private final int id;
-
-    final OwnerSupport delegate;
-
-    int index;
-
-    /**
-     * Create an Entity that will be owned by the given system and is placed at the given
-     * index.
-     *
-     * @param system The owning system
-     * @param index  The index into the system
-     * @param id     The unique id of the entity in the system
-     */
-    Entity(EntitySystem system, int index, int id) {
-        if (system == null) {
-            throw new NullPointerException("System cannot be null");
-        }
-        if (index < 0) {
-            throw new IllegalArgumentException("Index must be at least 0, not: " + index);
-        }
-
-        this.system = system;
-        this.index = index;
-        this.id = id;
-
-        delegate = new OwnerSupport(this);
-    }
-
+public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable, Owner {
     /**
      * @return The unique (in the scope of the entity system) id of this entity
      */
-    public int getId() {
-        return id;
-    }
+    public int getId();
 
     /**
      * @return The owning EntitySystem of this entity
      */
-    public EntitySystem getEntitySystem() {
-        return system;
-    }
+    public EntitySystem getEntitySystem();
 
     /**
      * @return True if this Entity is still in its EntitySystem, or false if it has been
      *         removed
      */
-    public boolean isAlive() {
-        return index != 0;
-    }
+    public boolean isAlive();
 
     /**
      * <p/>
@@ -112,10 +74,7 @@ public final class Entity
      *
      * @throws NullPointerException if componentType is null
      */
-    public <T extends Component> T get(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
-        return ci.getComponent(ci.getComponentIndex(index));
-    }
+    public <T extends Component> T get(Class<T> componentType);
 
     /**
      * <p/>
@@ -129,10 +88,7 @@ public final class Entity
      *
      * @throws NullPointerException if componentId is null
      */
-    public <T extends Component> T add(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
-        return ci.addComponent(index);
-    }
+    public <T extends Component> T add(Class<T> componentType);
 
     /**
      * <p/>
@@ -153,14 +109,7 @@ public final class Entity
      * @throws IllegalStateException if toClone is not a live component instance
      */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <T extends Component> T add(T toClone) {
-        if (toClone == null) {
-            throw new NullPointerException(
-                    "ComponentData template, toClone, cannot be null");
-        }
-        ComponentRepository ci = system.getRepository(toClone.getType());
-        return (T) ci.addComponent(index, toClone);
-    }
+    public <T extends Component> T add(T toClone);
 
     /**
      * <p/>
@@ -180,10 +129,7 @@ public final class Entity
      *
      * @throws NullPointerException if componentId is null
      */
-    public <T extends Component> boolean remove(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
-        return ci.removeComponent(index);
-    }
+    public <T extends Component> boolean remove(Class<T> componentType);
 
     /**
      * <p/>
@@ -196,110 +142,5 @@ public final class Entity
      * @return An iterator over the entity's components
      */
     @Override
-    public Iterator<Component> iterator() {
-        return new ComponentIterator(system, index);
-    }
-
-    /*
-     * Iterator implementation that iterates over the components attached to an
-     * entity, based on entity index rather than reference
-     */
-    private static class ComponentIterator implements Iterator<Component> {
-        private final int entityIndex;
-        private final Iterator<ComponentRepository<?>> indices;
-
-        private ComponentRepository<?> currentIndex;
-        private ComponentRepository<?> nextIndex;
-
-        public ComponentIterator(EntitySystem system, int entityIndex) {
-            this.entityIndex = entityIndex;
-            indices = system.indexIterator();
-        }
-
-        @Override
-        public boolean hasNext() {
-            if (nextIndex == null) {
-                advance();
-            }
-            return nextIndex != null;
-        }
-
-        @Override
-        public Component next() {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-
-            currentIndex = nextIndex;
-            nextIndex = null;
-            return currentIndex.getComponent(currentIndex.getComponentIndex(entityIndex));
-        }
-
-        @Override
-        public void remove() {
-            if (currentIndex == null) {
-                throw new IllegalStateException("Must call next first");
-            }
-
-            if (currentIndex.removeComponent(entityIndex)) {
-                currentIndex = null; // so next call to remove() fails
-            } else {
-                throw new IllegalStateException("Already removed");
-            }
-        }
-
-        private void advance() {
-            while (indices.hasNext()) {
-                nextIndex = indices.next();
-
-                int index = nextIndex.getComponentIndex(entityIndex);
-                if (index != 0) {
-                    break;
-                } else {
-                    nextIndex = null; // must set to null if this was last element
-                }
-            }
-        }
-    }
-
-    @Override
-    public int compareTo(Entity o) {
-        return id - o.id;
-    }
-
-    @Override
-    public Owner notifyOwnershipGranted(Ownable obj) {
-        delegate.notifyOwnershipGranted(obj);
-        return this;
-    }
-
-    @Override
-    public void notifyOwnershipRevoked(Ownable obj) {
-        delegate.notifyOwnershipRevoked(obj);
-    }
-
-    @Override
-    public void setOwner(Owner owner) {
-        delegate.setOwner(owner);
-    }
-
-    @Override
-    public Owner getOwner() {
-        return delegate.getOwner();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder("Entity(");
-        sb.append(id);
-
-        Iterator<Component> it = iterator();
-        while (it.hasNext()) {
-            sb.append(", ");
-            sb.append(it.next().getClass().getSimpleName());
-        }
-
-        sb.append(")");
-        return sb.toString();
-    }
+    public Iterator<Component> iterator();
 }

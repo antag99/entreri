@@ -24,7 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
+
+import com.lhkbob.entreri.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +38,7 @@ import java.util.Map;
  *
  * @author Michael Ludwig
  */
-class CachingDelegatingFactoryProvider extends ComponentFactoryProvider {
+public class CachingDelegatingFactoryProvider extends ComponentFactoryProvider {
     private final Map<Class<? extends Component>, Factory<?>> cachedFactories;
 
     private final CompiledFactoryProvider compiledFactoryProvider;

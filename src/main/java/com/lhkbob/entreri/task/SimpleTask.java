@@ -137,6 +137,12 @@ public abstract class SimpleTask implements Task {
         }
     }
 
+    @Override
+    public Task process(EntitySystem system, Job job) {
+        processEntities(system);
+        return null;
+    }
+
     /**
      * Process all entities that fit the component profile mandated by the defined
      * 'processEntity()' method in the subclass.
@@ -146,7 +152,7 @@ public abstract class SimpleTask implements Task {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void processEntities(EntitySystem system) {
         if (iterator == null || lastSystem != system) {
-            iterator = new ComponentIterator(system);
+            iterator = system.fastIterator();
             for (int i = 0; i < optional.length; i++) {
                 if (optional[i]) {
                     componentDatas[i] = iterator
@@ -169,8 +175,7 @@ public abstract class SimpleTask implements Task {
                                                                                  : componentDatas[i]);
                 }
 
-                boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs))
-                        .booleanValue();
+                boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs));
                 if (!iterate) {
                     break;
                 }

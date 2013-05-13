@@ -24,8 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.Annotation;
@@ -42,7 +43,7 @@ import java.util.*;
  * @author Michael Ludwig
  */
 @SuppressWarnings("unchecked")
-final class PropertySpecification implements Comparable<PropertySpecification> {
+public final class PropertySpecification implements Comparable<PropertySpecification> {
     private final String name;
     private final PropertyFactory<?> factory;
 
@@ -135,15 +136,15 @@ final class PropertySpecification implements Comparable<PropertySpecification> {
     /**
      * Analyze the given component class and return the property specification. This will
      * validate the class as well and throw an exception if it violates any of the rules
-     * specified in {@link Component}. Each PropertySpecification instance in the returned
-     * list will have a unique name. The list will be ordered by PropertySpecification's
-     * natural ordering and is immutable.
+     * specified in {@link com.lhkbob.entreri.Component}. Each PropertySpecification
+     * instance in the returned list will have a unique name. The list will be ordered by
+     * PropertySpecification's natural ordering and is immutable.
      *
      * @param componentDefinition The component type to analyze
      *
      * @return The ordered set of properties declared in the component
      *
-     * @throws IllegalComponentDefinitionException
+     * @throws com.lhkbob.entreri.IllegalComponentDefinitionException
      *          if the component class or any referenced PropertyFactories or Properties
      *          are invalid
      */

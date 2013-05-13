@@ -38,7 +38,7 @@ import java.util.Iterator;
 public class EntityTest {
     @Test
     public void testGetEntitySystem() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         Assert.assertEquals(system, e.getEntitySystem());
@@ -46,7 +46,7 @@ public class EntityTest {
 
     @Test
     public void testAddWithRequiredComponents() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         RequiresBComponent rb = e.add(RequiresBComponent.class);
@@ -68,7 +68,7 @@ public class EntityTest {
 
     @Test
     public void testAddWithRequiredComponentsAlreadyPresent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         IntComponent ci = e.add(IntComponent.class);
@@ -88,7 +88,7 @@ public class EntityTest {
 
     @Test
     public void testAddRemoveComponent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -109,7 +109,7 @@ public class EntityTest {
 
     @Test
     public void testReAddComponent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -123,7 +123,7 @@ public class EntityTest {
 
     @Test
     public void testGetComponent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -142,7 +142,7 @@ public class EntityTest {
 
     @Test
     public void testIterateComponents() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
         IntComponent ic = e.add(IntComponent.class);
         FloatComponent fc = e.add(FloatComponent.class);
@@ -167,7 +167,7 @@ public class EntityTest {
 
     @Test
     public void testIterateRemoveComponent() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
         IntComponent ic = e.add(IntComponent.class);
         FloatComponent fc = e.add(FloatComponent.class);

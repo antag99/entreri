@@ -24,8 +24,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.Component;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.SimpleCompiler;
 
@@ -39,7 +40,7 @@ import java.util.List;
  *
  * @author Michael Ludwig
  */
-class JaninoFactoryProvider extends ComponentFactoryProvider {
+public class JaninoFactoryProvider extends ComponentFactoryProvider {
     @Override
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
         return new JaninoFactory<T>(componentType);
@@ -53,13 +54,11 @@ class JaninoFactoryProvider extends ComponentFactoryProvider {
 
         @SuppressWarnings("unchecked")
         public JaninoFactory(Class<T> type) {
-            String implName = ComponentFactoryProvider
-                    .getImplementationClassName(type, true);
+            String implName = getImplementationClassName(type, true);
             specification = PropertySpecification.getSpecification(type);
 
             // make sure to not use generics since that is not supported by janino
-            String source = ComponentFactoryProvider
-                    .generateJavaCode(type, specification, false);
+            String source = generateJavaCode(type, specification, false);
             SimpleCompiler compiler = new SimpleCompiler();
             compiler.setParentClassLoader(getClass().getClassLoader());
 

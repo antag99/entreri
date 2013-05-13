@@ -24,13 +24,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.impl;
+
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Utility for shared implementation of {@link Ownable} and {@link Owner}
+ * Utility for shared implementation of {@link com.lhkbob.entreri.Ownable} and {@link
+ * com.lhkbob.entreri.Owner}
  *
  * @author Michael Ludwig
  */

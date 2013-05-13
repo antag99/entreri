@@ -41,7 +41,7 @@ public class EntitySystemTest {
     public void testAddEntity() {
         // There really isn't much to test with this one, everything else
         // is validated by other tests in this package
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
         int componentCount = 0;
@@ -63,7 +63,7 @@ public class EntitySystemTest {
 
     @Test
     public void testAddEntityFromTemplate() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity template = system.addEntity();
 
         IntComponent tc1 = template.add(IntComponent.class);
@@ -84,7 +84,7 @@ public class EntitySystemTest {
 
     @Test
     public void testAddEntityFromTemplateInAnotherSystem() {
-        EntitySystem system1 = new EntitySystem();
+        EntitySystem system1 = EntitySystem.create();
         Entity template = system1.addEntity();
 
         IntComponent tc1 = template.add(IntComponent.class);
@@ -92,7 +92,7 @@ public class EntitySystemTest {
         FloatComponent tc2 = template.add(FloatComponent.class);
         tc2.setFloat(3f);
 
-        EntitySystem system2 = new EntitySystem();
+        EntitySystem system2 = EntitySystem.create();
         Entity fromTemplate = system2.addEntity(template);
         IntComponent c1 = fromTemplate.get(IntComponent.class);
         FloatComponent c2 = fromTemplate.get(FloatComponent.class);
@@ -106,7 +106,7 @@ public class EntitySystemTest {
 
     @Test
     public void testRemoveEntity() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -120,7 +120,7 @@ public class EntitySystemTest {
 
     @Test
     public void testIteratorRemoveEntity() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         List<Entity> original = new ArrayList<Entity>();
 
         List<Entity> removed = new ArrayList<Entity>();
@@ -140,7 +140,7 @@ public class EntitySystemTest {
 
     @Test
     public void testIteratorExternalRemoveEntity() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         List<Entity> original = new ArrayList<Entity>();
 
         List<Entity> removed = new ArrayList<Entity>();
@@ -161,7 +161,7 @@ public class EntitySystemTest {
 
     @Test
     public void testCompactNoOp() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         for (int i = 0; i < 5; i++) {
             system.addEntity().add(ComplexComponent.class);
         }
@@ -181,7 +181,7 @@ public class EntitySystemTest {
 
     @Test
     public void testCompactRepairRemoves() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         List<Entity> es = new ArrayList<Entity>();
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
@@ -234,7 +234,7 @@ public class EntitySystemTest {
 
     @Test
     public void testCompactAddRemoveRepair() {
-        EntitySystem system = new EntitySystem();
+        EntitySystem system = EntitySystem.create();
         List<Entity> es = new ArrayList<Entity>();
         List<Float> cs = new ArrayList<Float>();
         for (int i = 0; i < 100; i++) {
