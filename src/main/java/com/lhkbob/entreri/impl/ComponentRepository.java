@@ -29,10 +29,16 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.property.*;
+import com.lhkbob.entreri.property.IntProperty;
+import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * ComponentRepository manages storing all the componentDatas of a specific type for an
@@ -187,37 +193,6 @@ public final class ComponentRepository<T extends Component> {
                     .copyOf(entityIndexToComponentRepository,
                             (int) (numEntities * 1.5) + 1);
         }
-    }
-
-    /**
-     * @return Estimated memory usage of this component repository
-     */
-    public long estimateMemory() {
-        long total =
-                estimateMemory(declaredProperties) + estimateMemory(decoratedProperties);
-
-        // also add in an estimate for other structures used by
-        // this repository
-        total += 4 * entityIndexToComponentRepository.length;
-        total += 4 * componentIndexToEntityIndex.length;
-
-        // estimate each Component object as 4 bytes for a pointer,
-        // 4 bytes for its index, 4 bytes for its repository reference
-        total += 12 * components.length;
-
-        return total;
-    }
-
-    private long estimateMemory(List<? extends PropertyStore<?>> properties) {
-        long total = 0L;
-        int ct = properties.size();
-        for (int i = 0; i < ct; i++) {
-            Property p = properties.get(i).getProperty();
-            if (p != null) {
-                total += p.getDataStore().memory();
-            }
-        }
-        return total;
     }
 
     /**
@@ -453,63 +428,41 @@ public final class ComponentRepository<T extends Component> {
         return oldComponent != null;
     }
 
-    /*
-     * Update all component data in the list of properties. If possible the data
-     * store in swap is reused.
-     */
-    private void update(List<? extends PropertyStore<?>> properties) {
-        for (int i = 0; i < properties.size(); i++) {
-            PropertyStore<?> store = properties.get(i);
-            Property p = store.getProperty();
-            if (p != null) {
-                IndexedDataStore origStore = p.getDataStore();
-                p.setDataStore(update(origStore, store.swap));
-                store.swap = origStore;
+    private void sort() {
+        // perform an insertion sort, since most components are likely to be
+        // ordered correctly the performance will be almost linear
+
+        for (int i = 1; i < componentInsert; i++) {
+            int vi = componentIndexToEntityIndex[i];
+            for (int j = i - 1; j >= 1; j--) {
+                int vj = componentIndexToEntityIndex[j];
+
+                // move an index left if it is valid and it's less than
+                // the prior index or if the prior index is invalid
+                if (vi > 0 && (vi < vj || vj == 0)) {
+                    // must swap in place
+                    componentIndexToEntityIndex[j] = vi;
+                    componentIndexToEntityIndex[j + 1] = vj;
+
+                    T t = components[j];
+                    components[j] = components[j + 1];
+                    components[j + 1] = t;
+
+                    // keep property data inline with components
+                    swap(declaredProperties, j + 1, j);
+                    swap(decoratedProperties, j + 1, j);
+                } else {
+                    // reached proper point in sorted sublist
+                    break;
+                }
             }
         }
     }
 
-    /*
-     * Update all component data in src to be in dst by shuffling it to match
-     * current state of components array.
-     */
-    private IndexedDataStore update(IndexedDataStore src, IndexedDataStore dst) {
-        int dstSize = components.length;
-
-        if (dst == null || dst.size() < dstSize) {
-            dst = src.create(dstSize);
+    private void swap(List<? extends PropertyStore<?>> store, int a, int b) {
+        for (int i = 0; i < store.size(); i++) {
+            store.get(i).swap(a, b);
         }
-
-        int i;
-        int lastIndex = -1;
-        int copyIndexNew = -1;
-        int copyIndexOld = -1;
-        for (i = 1; i < componentInsert; i++) {
-            if (components[i] == null) {
-                // we've hit the end of existing componentDatas, so break
-                break;
-            }
-
-            if (components[i].getIndex() != lastIndex + 1) {
-                // we are not in a contiguous section
-                if (copyIndexOld >= 0) {
-                    // we have to copy over the last section
-                    src.copy(copyIndexOld, (i - copyIndexNew), dst, copyIndexNew);
-                }
-
-                // set the copy indices
-                copyIndexNew = i;
-                copyIndexOld = components[i].getIndex();
-            }
-            lastIndex = components[i].getIndex();
-        }
-
-        if (copyIndexOld >= 0) {
-            // final copy
-            src.copy(copyIndexOld, (i - copyIndexNew), dst, copyIndexNew);
-        }
-
-        return dst;
     }
 
     /**
@@ -526,23 +479,6 @@ public final class ComponentRepository<T extends Component> {
      * @param numEntities       The number of entities that are in the system
      */
     public void compact(int[] entityOldToNewMap, int numEntities) {
-        // First sort the canonical components array to order them by their entity
-        Arrays.sort(components, 1, componentInsert, new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                if (o1 != null && o2 != null) {
-                    return componentIndexToEntityIndex[o1.getIndex()] -
-                           componentIndexToEntityIndex[o2.getIndex()];
-                } else if (o1 != null) {
-                    return -1; // push null o2 to end of array
-                } else if (o2 != null) {
-                    return 1; // push null o1 to end of array
-                } else {
-                    return 0; // both null so they are "equal"
-                }
-            }
-        });
-
         // Remove all WeakPropertyStores that no longer have a property
         Iterator<DecoratedPropertyStore<?>> it = decoratedProperties.iterator();
         while (it.hasNext()) {
@@ -551,22 +487,23 @@ public final class ComponentRepository<T extends Component> {
             }
         }
 
-        // Update all of the property stores to match up with the components new positions
-        update(declaredProperties);
-        update(decoratedProperties);
+        // Sort the canonical components array to order them by their entity, which
+        // also keeps the property data valid
+        sort();
 
         // Repair the componentToEntityIndex and the component.index values
         componentInsert = 1;
-        int[] newComponentRepository = new int[components.length];
         for (int i = 1; i < components.length; i++) {
             if (components[i] != null) {
-                newComponentRepository[i] = entityOldToNewMap[componentIndexToEntityIndex[components[i]
-                        .getIndex()]];
+                componentIndexToEntityIndex[i] = entityOldToNewMap[componentIndexToEntityIndex[i]];
                 ((AbstractComponent<T>) components[i]).setIndex(i);
                 componentInsert = i + 1;
+            } else {
+                // we can terminate now since all future components should be null
+                // since we've sorted it that way
+                break;
             }
         }
-        componentIndexToEntityIndex = newComponentRepository;
 
         // Possibly compact the component data
         if (componentInsert < .6 * components.length) {
@@ -607,13 +544,12 @@ public final class ComponentRepository<T extends Component> {
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
         int size = (declaredProperties.isEmpty() ? componentInsert
                                                  : declaredProperties.get(0).property
-                            .getDataStore().size());
+                            .getCapacity());
         P prop = factory.create();
         DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<P>(factory, prop);
 
         // Set values from factory to all component slots
-        IndexedDataStore newStore = prop.getDataStore().create(size);
-        prop.setDataStore(newStore);
+        prop.setCapacity(size);
         for (int i = 1; i < size; i++) {
             pstore.setDefaultValue(i);
         }
@@ -628,11 +564,9 @@ public final class ComponentRepository<T extends Component> {
      */
     private static abstract class PropertyStore<P extends Property> {
         final PropertyFactory<P> creator;
-        IndexedDataStore swap; // may be null;
 
         PropertyStore(PropertyFactory<P> creator) {
             this.creator = creator;
-            swap = null;
         }
 
         void setDefaultValue(int index) {
@@ -645,10 +579,14 @@ public final class ComponentRepository<T extends Component> {
         void resize(int size) {
             P property = getProperty();
             if (property != null) {
-                IndexedDataStore oldStore = property.getDataStore();
-                IndexedDataStore newStore = oldStore.create(size);
-                oldStore.copy(0, Math.min(oldStore.size(), size), newStore, 0);
-                property.setDataStore(newStore);
+                property.setCapacity(size);
+            }
+        }
+
+        void swap(int a, int b) {
+            P property = getProperty();
+            if (property != null) {
+                property.swap(a, b);
             }
         }
 

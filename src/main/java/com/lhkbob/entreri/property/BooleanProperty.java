@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * BooleanProperty is an implementation of Property that stores a single boolean
@@ -37,13 +38,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(BooleanProperty.Factory.class)
 public final class BooleanProperty implements Property {
-    private BooleanDataStore store;
+    private boolean[] data;
 
     /**
      * Create a BooleanProperty.
      */
     public BooleanProperty() {
-        store = new BooleanDataStore(1, new boolean[1]);
+        data = new boolean[1];
     }
 
     /**
@@ -55,7 +56,7 @@ public final class BooleanProperty implements Property {
      *         packed with
      */
     public boolean[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -68,7 +69,7 @@ public final class BooleanProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public boolean get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -80,33 +81,24 @@ public final class BooleanProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(boolean val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        boolean t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof BooleanDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with FloatProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        BooleanDataStore newStore = (BooleanDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with FloatProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -115,22 +107,21 @@ public final class BooleanProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<BooleanProperty> {
+    public static class Factory implements PropertyFactory<BooleanProperty> {
         private final boolean defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultBoolean.class)) {
-                defaultValue = attrs.getAttribute(DefaultBoolean.class).value();
-            } else {
-                defaultValue = false;
-            }
+            defaultValue = attrs.hasAttribute(DefaultBoolean.class) &&
+                           attrs.getAttribute(DefaultBoolean.class).value();
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(boolean defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -141,6 +132,26 @@ public final class BooleanProperty implements Property {
         @Override
         public void setDefaultValue(BooleanProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(BooleanProperty src, int srcIndex, BooleanProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

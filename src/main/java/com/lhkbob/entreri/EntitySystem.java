@@ -70,21 +70,6 @@ public abstract class EntitySystem implements Iterable<Entity> {
         return new EntitySystemImpl();
     }
 
-
-    /**
-     * Estimate the memory usage of the components with the given TypeId in this
-     * EntitySystem. The returned long is measured in bytes. For Component types that
-     * store primitive data, the estimate will be quite accurate. For types that store
-     * references to objects, it will likely be an underestimate.
-     *
-     * @param type The component type whose memory usage is estimated
-     *
-     * @return The memory estimate for the given type
-     *
-     * @throws NullPointerException if id is null
-     */
-    public abstract long estimateMemory(Class<? extends Component> type);
-
     /**
      * Get all Component types within this EntitySystem that have types assignable to the
      * input <var>type</var>.

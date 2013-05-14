@@ -26,7 +26,6 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.property.IndexedDataStore;
 import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.property.Property;
 
@@ -37,22 +36,27 @@ public class NoFactoryProperty implements Property {
         property = new ObjectProperty<Crass>();
     }
 
-    @Override
-    public IndexedDataStore getDataStore() {
-        return property.getDataStore();
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        property.setDataStore(store);
-    }
-
     public void set(Crass b, int index) {
         property.set(b, index);
     }
 
     public Crass get(int index) {
         return property.get(index);
+    }
+
+    @Override
+    public void setCapacity(int size) {
+        property.setCapacity(size);
+    }
+
+    @Override
+    public int getCapacity() {
+        return property.getCapacity();
+    }
+
+    @Override
+    public void swap(int indexA, int indexB) {
+        property.swap(indexA, indexB);
     }
 
     public static class Crass {

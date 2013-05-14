@@ -37,16 +37,6 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return property.getDataStore();
-    }
-
-    @Override
-    public void setDataStore(IndexedDataStore store) {
-        property.setDataStore(store);
-    }
-
-    @Override
     public Bletch createShareableInstance() {
         return new Bletch();
     }
@@ -64,10 +54,27 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         b.value = property.get(index).value;
     }
 
+    @Override
+    public void setCapacity(int size) {
+        property.setCapacity(size);
+    }
+
+    @Override
+    public int getCapacity() {
+        return property.getCapacity();
+    }
+
+    @Override
+    public void swap(int indexA, int indexB) {
+        property.swap(indexA, indexB);
+    }
+
     public static class CustomFactoryWithAttributes
-            extends AbstractPropertyFactory<CustomProperty> {
+            implements PropertyFactory<CustomProperty> {
+        private final Attributes attributes;
+
         public CustomFactoryWithAttributes(Attributes attrs) {
-            super(attrs);
+            attributes = attrs;
         }
 
         @Override
@@ -82,6 +89,14 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
                                                                               : attributes
                                .getAttribute(IntProperty.DefaultInt.class).value());
             property.set(b, index);
+        }
+
+        @Override
+        public void clone(CustomProperty src, int srcIndex, CustomProperty dst,
+                          int dstIndex) {
+            // don't care about clone policy for the tests, but make it consistent
+            // with value behavior for shareable property
+            src.get(srcIndex, dst.get(dstIndex));
         }
     }
 

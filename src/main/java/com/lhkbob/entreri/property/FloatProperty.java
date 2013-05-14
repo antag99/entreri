@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * FloatProperty is an implementation of Property that stores a single float value.
@@ -36,13 +37,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(FloatProperty.Factory.class)
 public final class FloatProperty implements Property {
-    private FloatDataStore store;
+    private float[] data;
 
     /**
      * Create a FloatProperty.
      */
     public FloatProperty() {
-        store = new FloatDataStore(1, new float[1]);
+        data = new float[1];
     }
 
     /**
@@ -54,7 +55,7 @@ public final class FloatProperty implements Property {
      *         with
      */
     public float[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -67,7 +68,7 @@ public final class FloatProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public float get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -79,33 +80,24 @@ public final class FloatProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(float val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        float t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof FloatDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with FloatProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        FloatDataStore newStore = (FloatDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with FloatProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -114,22 +106,21 @@ public final class FloatProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<FloatProperty> {
+    public static class Factory implements PropertyFactory<FloatProperty> {
         private final float defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultFloat.class)) {
-                defaultValue = attrs.getAttribute(DefaultFloat.class).value();
-            } else {
-                defaultValue = 0f;
-            }
+            defaultValue = attrs.hasAttribute(DefaultFloat.class) ? attrs
+                    .getAttribute(DefaultFloat.class).value() : 0f;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(float defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -140,6 +131,26 @@ public final class FloatProperty implements Property {
         @Override
         public void setDefaultValue(FloatProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(FloatProperty src, int srcIndex, FloatProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

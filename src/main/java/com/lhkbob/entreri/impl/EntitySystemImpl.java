@@ -71,17 +71,6 @@ public final class EntitySystemImpl extends EntitySystem {
     }
 
     @Override
-    public long estimateMemory(Class<? extends Component> type) {
-        int index = getTypeIndex(type);
-        if (index < componentRepositories.length) {
-            ComponentRepository<?> repo = componentRepositories[index];
-            return repo.estimateMemory();
-        } else {
-            return 0L;
-        }
-    }
-
-    @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public <T extends Component> Collection<Class<? extends T>> getComponentTypes(
             Class<T> type) {

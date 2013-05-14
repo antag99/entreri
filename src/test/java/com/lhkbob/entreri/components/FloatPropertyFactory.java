@@ -26,15 +26,11 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.property.AbstractPropertyFactory;
 import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.property.PropertyFactory;
 
-public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty> {
+public class FloatPropertyFactory implements PropertyFactory<FloatProperty> {
     public static final float DEFAULT = 5f;
-
-    public FloatPropertyFactory() {
-        super(null);
-    }
 
     @Override
     public FloatProperty create() {
@@ -44,5 +40,10 @@ public class FloatPropertyFactory extends AbstractPropertyFactory<FloatProperty>
     @Override
     public void setDefaultValue(FloatProperty p, int index) {
         p.set(DEFAULT, index);
+    }
+
+    @Override
+    public void clone(FloatProperty src, int srcIndex, FloatProperty dst, int dstIndex) {
+        dst.set(src.get(srcIndex), dstIndex);
     }
 }

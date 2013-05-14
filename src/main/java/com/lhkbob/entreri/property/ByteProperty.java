@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * ByteProperty is an implementation of Property that stores a single byte value.
@@ -36,13 +37,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(ByteProperty.Factory.class)
 public final class ByteProperty implements Property {
-    private ByteDataStore store;
+    private byte[] data;
 
     /**
      * Create an ByteProperty.
      */
     public ByteProperty() {
-        store = new ByteDataStore(1, new byte[1]);
+        data = new byte[1];
     }
 
     /**
@@ -54,7 +55,7 @@ public final class ByteProperty implements Property {
      *         with
      */
     public byte[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -67,7 +68,7 @@ public final class ByteProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public byte get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -79,33 +80,24 @@ public final class ByteProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(byte val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        byte t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof ByteDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with ByteProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        ByteDataStore newStore = (ByteDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with ByteProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -114,22 +106,21 @@ public final class ByteProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<ByteProperty> {
+    public static class Factory implements PropertyFactory<ByteProperty> {
         private final byte defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultByte.class)) {
-                defaultValue = attrs.getAttribute(DefaultByte.class).value();
-            } else {
-                defaultValue = 0;
-            }
+            defaultValue = attrs.hasAttribute(DefaultByte.class) ? attrs
+                    .getAttribute(DefaultByte.class).value() : 0;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(byte defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -140,6 +131,26 @@ public final class ByteProperty implements Property {
         @Override
         public void setDefaultValue(ByteProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(ByteProperty src, int srcIndex, ByteProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

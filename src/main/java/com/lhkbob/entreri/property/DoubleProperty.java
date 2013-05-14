@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * DoubleProperty is an implementation of Property that stores a single double value.
@@ -36,13 +37,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(DoubleProperty.Factory.class)
 public final class DoubleProperty implements Property {
-    private DoubleDataStore store;
+    private double[] data;
 
     /**
      * Create an DoubleProperty.
      */
     public DoubleProperty() {
-        store = new DoubleDataStore(1, new double[1]);
+        data = new double[1];
     }
 
     /**
@@ -54,7 +55,7 @@ public final class DoubleProperty implements Property {
      *         packed with
      */
     public double[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -67,7 +68,7 @@ public final class DoubleProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public double get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -79,33 +80,24 @@ public final class DoubleProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(double val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        double t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof DoubleDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with DoubleProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        DoubleDataStore newStore = (DoubleDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with DoubleProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -114,22 +106,21 @@ public final class DoubleProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<DoubleProperty> {
+    public static class Factory implements PropertyFactory<DoubleProperty> {
         private final double defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultDouble.class)) {
-                defaultValue = attrs.getAttribute(DefaultDouble.class).value();
-            } else {
-                defaultValue = 0;
-            }
+            defaultValue = attrs.hasAttribute(DefaultDouble.class) ? attrs
+                    .getAttribute(DefaultDouble.class).value() : 0.0;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(double defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -140,6 +131,26 @@ public final class DoubleProperty implements Property {
         @Override
         public void setDefaultValue(DoubleProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(DoubleProperty src, int srcIndex, DoubleProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.property;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * ObjectProperty is an implementation of Property that stores the property data as a
@@ -38,13 +39,13 @@ import java.lang.reflect.Method;
  */
 @Factory(ObjectProperty.Factory.class)
 public final class ObjectProperty<T> implements Property {
-    private ObjectDataStore store;
+    private Object[] data;
 
     /**
      * Create an ObjectProperty.
      */
     public ObjectProperty() {
-        store = new ObjectDataStore(1, new Object[1]);
+        data = new Object[1];
     }
 
     /**
@@ -71,7 +72,7 @@ public final class ObjectProperty<T> implements Property {
      *         packed with
      */
     public Object[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -85,7 +86,7 @@ public final class ObjectProperty<T> implements Property {
      */
     @SuppressWarnings("unchecked")
     public T get(int componentIndex) {
-        return (T) store.getArray()[componentIndex];
+        return (T) data[componentIndex];
     }
 
     /**
@@ -97,33 +98,24 @@ public final class ObjectProperty<T> implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(T val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        Object t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof ObjectDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with ObjectProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        ObjectDataStore newStore = (ObjectDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with ObjectProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -132,18 +124,20 @@ public final class ObjectProperty<T> implements Property {
      * @author Michael Ludwig
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static class Factory extends AbstractPropertyFactory<ObjectProperty> {
+    public static class Factory implements PropertyFactory<ObjectProperty> {
         private final Object defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
             defaultValue = null;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(Object defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -159,22 +153,34 @@ public final class ObjectProperty<T> implements Property {
         @Override
         public void clone(ObjectProperty src, int srcIndex, ObjectProperty dst,
                           int dstIndex) {
-            Object orig = src.get(srcIndex);
-
-            if (clonePolicy == Clone.Policy.INVOKE_CLONE && orig instanceof Cloneable) {
-                try {
-                    // if they implemented Cloneable properly, clone() should
-                    // be public and take no arguments
-                    Method cloneMethod = orig.getClass().getMethod("clone");
-                    Object cloned = cloneMethod.invoke(orig);
-                    dst.set(cloned, dstIndex);
-                } catch (Exception e) {
-                    // if they implement Cloneable, this shouldn't fail
-                    // and if it does it's not really our fault
-                    throw new RuntimeException(e);
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                Object orig = src.get(srcIndex);
+                if (orig instanceof Cloneable) {
+                    try {
+                        // if they implemented Cloneable properly, clone() should
+                        // be public and take no arguments
+                        Method cloneMethod = orig.getClass().getMethod("clone");
+                        Object cloned = cloneMethod.invoke(orig);
+                        dst.set(cloned, dstIndex);
+                        break;
+                    } catch (Exception e) {
+                        // if they implement Cloneable, this shouldn't fail
+                        // and if it does it's not really our fault
+                        throw new RuntimeException(e);
+                    }
                 }
-            } else {
-                super.clone(src, srcIndex, dst, dstIndex);
+                // else fall through to java default
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
             }
         }
     }

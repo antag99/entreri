@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * LongProperty is an implementation of Property that stores a single long value.
@@ -36,13 +37,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(LongProperty.Factory.class)
 public final class LongProperty implements Property {
-    private LongDataStore store;
+    private long[] data;
 
     /**
      * Create an LongProperty.
      */
     public LongProperty() {
-        store = new LongDataStore(1, new long[1]);
+        data = new long[1];
     }
 
     /**
@@ -54,7 +55,7 @@ public final class LongProperty implements Property {
      *         with
      */
     public long[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -67,7 +68,7 @@ public final class LongProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public long get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -79,33 +80,24 @@ public final class LongProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(long val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        long t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof LongDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with LongProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        LongDataStore newStore = (LongDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with LongProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -114,22 +106,21 @@ public final class LongProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<LongProperty> {
+    public static class Factory implements PropertyFactory<LongProperty> {
         private final long defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultLong.class)) {
-                defaultValue = attrs.getAttribute(DefaultLong.class).value();
-            } else {
-                defaultValue = 0L;
-            }
+            defaultValue = attrs.hasAttribute(DefaultLong.class) ? attrs
+                    .getAttribute(DefaultLong.class).value() : 0L;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(long defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -140,6 +131,26 @@ public final class LongProperty implements Property {
         @Override
         public void setDefaultValue(LongProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(LongProperty src, int srcIndex, LongProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

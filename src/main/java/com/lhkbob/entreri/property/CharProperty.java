@@ -28,6 +28,7 @@ package com.lhkbob.entreri.property;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * CharProperty is an implementation of Property that stores a single char value.
@@ -36,13 +37,13 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Factory(CharProperty.Factory.class)
 public final class CharProperty implements Property {
-    private CharDataStore store;
+    private char[] data;
 
     /**
      * Create an CharProperty.
      */
     public CharProperty() {
-        store = new CharDataStore(1, new char[1]);
+        data = new char[1];
     }
 
     /**
@@ -54,7 +55,7 @@ public final class CharProperty implements Property {
      *         with
      */
     public char[] getIndexedData() {
-        return store.getArray();
+        return data;
     }
 
     /**
@@ -67,7 +68,7 @@ public final class CharProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public char get(int componentIndex) {
-        return store.getArray()[componentIndex];
+        return data[componentIndex];
     }
 
     /**
@@ -79,33 +80,24 @@ public final class CharProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(char val, int componentIndex) {
-        store.getArray()[componentIndex] = val;
+        data[componentIndex] = val;
     }
 
     @Override
-    public IndexedDataStore getDataStore() {
-        return store;
+    public void swap(int a, int b) {
+        char t = data[a];
+        data[a] = data[b];
+        data[b] = t;
     }
 
     @Override
-    public void setDataStore(IndexedDataStore store) {
-        if (store == null) {
-            throw new NullPointerException("Store cannot be null");
-        }
-        if (!(store instanceof CharDataStore)) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with CharProperty, wrong type: " +
-                    store.getClass());
-        }
+    public int getCapacity() {
+        return data.length;
+    }
 
-        CharDataStore newStore = (CharDataStore) store;
-        if (newStore.elementSize != this.store.elementSize) {
-            throw new IllegalArgumentException(
-                    "Store not compatible with CharProperty, wrong element size: " +
-                    newStore.elementSize);
-        }
-
-        this.store = newStore;
+    @Override
+    public void setCapacity(int size) {
+        data = Arrays.copyOf(data, size);
     }
 
     /**
@@ -114,22 +106,21 @@ public final class CharProperty implements Property {
      *
      * @author Michael Ludwig
      */
-    public static class Factory extends AbstractPropertyFactory<CharProperty> {
+    public static class Factory implements PropertyFactory<CharProperty> {
         private final char defaultValue;
+        private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            super(attrs);
-
-            if (attrs.hasAttribute(DefaultChar.class)) {
-                defaultValue = attrs.getAttribute(DefaultChar.class).value();
-            } else {
-                defaultValue = '\0';
-            }
+            defaultValue = attrs.hasAttribute(DefaultChar.class) ? attrs
+                    .getAttribute(DefaultChar.class).value() : '\0';
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
+                                                            .value()
+                                                     : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(char defaultValue) {
-            super(null);
             this.defaultValue = defaultValue;
+            policy = Clone.Policy.JAVA_DEFAULT;
         }
 
         @Override
@@ -140,6 +131,26 @@ public final class CharProperty implements Property {
         @Override
         public void setDefaultValue(CharProperty property, int index) {
             property.set(defaultValue, index);
+        }
+
+        @Override
+        public void clone(CharProperty src, int srcIndex, CharProperty dst,
+                          int dstIndex) {
+            switch (policy) {
+            case DISABLE:
+                // assign default value
+                setDefaultValue(dst, dstIndex);
+                break;
+            case INVOKE_CLONE:
+                // fall through, since default implementation of INVOKE_CLONE is to
+                // just function like JAVA_DEFAULT
+            case JAVA_DEFAULT:
+                dst.set(src.get(srcIndex), dstIndex);
+                break;
+            default:
+                throw new UnsupportedOperationException(
+                        "Enum value not supported: " + policy);
+            }
         }
     }
 

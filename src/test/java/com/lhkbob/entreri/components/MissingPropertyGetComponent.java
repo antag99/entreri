@@ -1,7 +1,9 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.*;
+import com.lhkbob.entreri.property.Factory;
+import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * Invalid component type because it references a property type that doesn't have the
@@ -21,22 +23,21 @@ public interface MissingPropertyGetComponent extends Component {
         // we don't really have to implement these because the component
         // will fail validation
         @Override
-        public IndexedDataStore getDataStore() {
-            return null;
+        public void setCapacity(int size) {
         }
 
         @Override
-        public void setDataStore(IndexedDataStore store) {
+        public int getCapacity() {
+            return 0;
+        }
+
+        @Override
+        public void swap(int indexA, int indexB) {
         }
     }
 
     public static class MissingGetterFactory
-            extends AbstractPropertyFactory<MissingGetterProperty> {
-
-        public MissingGetterFactory(Attributes attrs) {
-            super(attrs);
-        }
-
+            implements PropertyFactory<MissingGetterProperty> {
         @Override
         public MissingGetterProperty create() {
             return new MissingGetterProperty();
@@ -44,6 +45,11 @@ public interface MissingPropertyGetComponent extends Component {
 
         @Override
         public void setDefaultValue(MissingGetterProperty property, int index) {
+        }
+
+        @Override
+        public void clone(MissingGetterProperty src, int srcIndex,
+                          MissingGetterProperty dst, int dstIndex) {
         }
     }
 }
