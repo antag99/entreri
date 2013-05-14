@@ -76,9 +76,14 @@ package com.lhkbob.entreri;
  * Additional attribute annotations can be added to the getter method to influence the
  * behavior of the {@link com.lhkbob.entreri.property.PropertyFactory} used for each
  * property in the component definition. Besides using the Factory annotation to specify
- * the factory type, libraries can specify a mapping file 'entreri-mapping.properties' at
- * the root of their resource tree that contains key-value maps from a class type to
- * Property implementation.
+ * the factory type, a property implementation can be associated with a type with
+ * canonical name <var>C</var> by adding the file META-INF/entreri/mapping/C to the
+ * classpath, where its contents must be:
+ * <pre>
+ *     mapping=P
+ * </pre>
+ * where P is the binary name of the property suitable for passing into {@link
+ * Class#forName(String)}.
  * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and
  * the id of their owning entity. The {@link ComponentIterator} class creates flyweight
