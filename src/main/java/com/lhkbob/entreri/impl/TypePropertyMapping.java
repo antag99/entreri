@@ -28,11 +28,11 @@ package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.property.*;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -40,14 +40,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * consistent mapping from Java type to an associated Property type that wraps that data.
  * Primitive and plain Object wrapping is built-in. A property can be overridden for a
  * class by placing the file META-INF/entreri/mapping/&lt;CANONICAL CLASS NAME&gt; in the
- * class path, with a single property value of mapping=&lt;BINARY CLASS NAME OF
- * PROPERTY&gt;.
+ * class path, with a single string &lt;BINARY CLASS NAME OF PROPERTY&gt;.
  *
  * @author Michael Ludwig
  */
 public final class TypePropertyMapping {
     public static final String MAPPING_DIR = "META-INF/entreri/mapping/";
-    public static final String KEY = "mapping";
 
     private static final ConcurrentHashMap<Class<?>, Class<? extends Property>> typeMapping;
 
@@ -101,17 +99,25 @@ public final class TypePropertyMapping {
                                                    " present in classpath");
                     }
 
-                    InputStream in = mapping.openStream();
-                    Properties p = new Properties();
-                    p.load(in);
+
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(mapping.openStream()));
+                    String line;
+                    StringBuilder className = new StringBuilder();
+                    // be somewhat permissive of whitespace (any other input most likely
+                    // will fail to load a class)
+                    while ((line = in.readLine()) != null) {
+                        className.append(line);
+                    }
                     in.close();
 
                     // use the type's class loader so that the loaded property is tied to
                     // the same loader
                     try {
                         pType = (Class<? extends Property>) type.getClassLoader()
-                                                                .loadClass(p.getProperty(
-                                                                        KEY));
+                                                                .loadClass(className
+                                                                                   .toString()
+                                                                                   .trim());
 
                         // store the mapping for later as well, this is safe because
                         // a class's loader is part of its identity and the property impl

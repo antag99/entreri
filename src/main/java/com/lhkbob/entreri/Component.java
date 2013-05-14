@@ -80,10 +80,9 @@ package com.lhkbob.entreri;
  * canonical name <var>C</var> by adding the file META-INF/entreri/mapping/C to the
  * classpath, where its contents must be:
  * <pre>
- *     mapping=P
+ *     &lt;BINARY NAME OF PROPERTY&gt;
  * </pre>
- * where P is the binary name of the property suitable for passing into {@link
- * Class#forName(String)}.
+ * where the value is suitable for passing into {@link Class#forName(String)}.
  * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and
  * the id of their owning entity. The {@link ComponentIterator} class creates flyweight
