@@ -36,16 +36,25 @@ package com.lhkbob.entreri;
 public class IllegalComponentDefinitionException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
+    private final String componentTypeName;
+
     /**
      * Create an exception that specifies the leaf-level class in a Component type
      * hierarchy has some problem with its definition
      *
-     * @param type    The leaf, concrete type
-     * @param problem A generic error message to be tacked to the end of the final error
-     *                message
+     * @param componentTypeName The canonical class name of the component type
+     * @param problem           A generic error message to be tacked to the end of the
+     *                          final error message
      */
-    public IllegalComponentDefinitionException(Class<? extends Component> type,
-                                               String problem) {
-        super("Type has illegal definition: " + type + ", error: " + problem);
+    public IllegalComponentDefinitionException(String componentTypeName, String problem) {
+        super(componentTypeName + " is invalid, error: " + problem);
+        this.componentTypeName = componentTypeName;
+    }
+
+    /**
+     * @return The canonical name of the invalid component type
+     */
+    public String getComponentTypeName() {
+        return componentTypeName;
     }
 }

@@ -26,6 +26,7 @@
  */
 package com.lhkbob.entreri.components;
 
+import com.lhkbob.entreri.GenerateAtBuild;
 import com.lhkbob.entreri.Named;
 import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.property.Factory;
@@ -40,6 +41,7 @@ import com.lhkbob.entreri.property.LongProperty.DefaultLong;
  *
  * @author Michael Ludwig
  */
+@GenerateAtBuild
 public interface ComplexComponent extends IntComponent, FloatComponent {
     public void setLong(long i);
 

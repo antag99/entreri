@@ -55,6 +55,7 @@ public class CachingDelegatingFactoryProvider extends ComponentFactoryProvider {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
         // blocking synchronization is easiest to do and it shouldn't be a high contention
         // point because factories are only gotten when the component repository is created

@@ -101,13 +101,11 @@ public final class ComponentRepository<T extends Component> {
             requiredTypes = new Class[0];
         }
 
-        List<PropertySpecification> spec = factory.getSpecification();
-
-        declaredProperties = new ArrayList<DeclaredPropertyStore<?>>();
-        decoratedProperties = new ArrayList<DecoratedPropertyStore<?>>(); // empty for now
-        for (PropertySpecification p : spec) {
-            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getFactory(),
-                                                                    p.getName());
+        declaredProperties = new ArrayList<>();
+        decoratedProperties = new ArrayList<>(); // empty for now
+        for (PropertyDeclaration p : factory.getSpecification().getProperties()) {
+            DeclaredPropertyStore store = new DeclaredPropertyStore(
+                    p.getPropertyFactory(), p.getName());
             declaredProperties.add(store);
         }
 
@@ -546,7 +544,7 @@ public final class ComponentRepository<T extends Component> {
                                                  : declaredProperties.get(0).property
                             .getCapacity());
         P prop = factory.create();
-        DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<P>(factory, prop);
+        DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<>(factory, prop);
 
         // Set values from factory to all component slots
         prop.setCapacity(size);
@@ -618,7 +616,7 @@ public final class ComponentRepository<T extends Component> {
 
         public DecoratedPropertyStore(PropertyFactory<P> creator, P property) {
             super(creator);
-            this.property = new WeakReference<P>(property);
+            this.property = new WeakReference<>(property);
         }
 
         @Override

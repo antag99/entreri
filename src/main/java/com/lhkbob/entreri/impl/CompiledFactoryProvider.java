@@ -32,7 +32,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * CompiledFactoryProvider searches the classpath for existing class definitions of the
@@ -45,7 +44,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
     @Override
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
         try {
-            return new CompiledFactory<T>(componentType);
+            return new CompiledFactory<>(componentType);
         } catch (ClassNotFoundException cfe) {
             // if class is not present we just return null to delegate to Janino
             return null;
@@ -54,17 +53,18 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
 
     private static class CompiledFactory<T extends Component> implements Factory<T> {
         final Class<? extends AbstractComponent<T>> implType;
-        final List<PropertySpecification> specification;
+        final ComponentSpecification specification;
 
         final Constructor<? extends AbstractComponent<T>> ctor;
 
         @SuppressWarnings("unchecked")
         public CompiledFactory(Class<T> type) throws ClassNotFoundException {
+            specification = ComponentSpecification.Factory.fromClass(type);
             String implName = ComponentFactoryProvider
-                    .getImplementationClassName(type, true);
+                    .getImplementationClassName(specification, true);
 
             Class<?> loaded = Class.forName(implName);
-
+            System.out.println("Discovered compiled class: " + loaded);
             // although the compiled classes should have been produced from the same
             // generated source used by Janino, we can't be certain because we're reading
             // them from the classpath, so this factory has to validate certain elements
@@ -89,7 +89,6 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
 
             // at this point it's a safe cast
             implType = (Class<? extends AbstractComponent<T>>) loaded;
-            specification = PropertySpecification.getSpecification(type);
 
             try {
                 ctor = implType.getConstructor(ComponentRepository.class);
@@ -105,20 +104,14 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
         public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository) {
             try {
                 return ctor.newInstance(forRepository);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(
-                        "Exception instantiating compiled component impl", e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(
-                        "Exception instantiating compiled component impl", e);
-            } catch (InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(
                         "Exception instantiating compiled component impl", e);
             }
         }
 
         @Override
-        public List<PropertySpecification> getSpecification() {
+        public ComponentSpecification getSpecification() {
             return specification;
         }
     }

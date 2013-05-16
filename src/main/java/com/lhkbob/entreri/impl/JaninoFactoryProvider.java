@@ -32,7 +32,6 @@ import org.codehaus.janino.SimpleCompiler;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.List;
 
 /**
  * JaninoFactoryProvider is a fallback component provider that uses the Janino runtime
@@ -43,32 +42,28 @@ import java.util.List;
 public class JaninoFactoryProvider extends ComponentFactoryProvider {
     @Override
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
-        return new JaninoFactory<T>(componentType);
+        return new JaninoFactory<>(componentType);
     }
 
     private static class JaninoFactory<T extends Component> implements Factory<T> {
         final Class<? extends AbstractComponent<T>> implType;
-        final List<PropertySpecification> specification;
+        final ComponentSpecification specification;
 
         final Constructor<? extends AbstractComponent<T>> ctor;
 
         @SuppressWarnings("unchecked")
         public JaninoFactory(Class<T> type) {
-            String implName = getImplementationClassName(type, true);
-            specification = PropertySpecification.getSpecification(type);
+            specification = ComponentSpecification.Factory.fromClass(type);
+            String implName = getImplementationClassName(specification, true);
 
             // make sure to not use generics since that is not supported by janino
-            String source = generateJavaCode(type, specification, false);
+            String source = generateJavaCode(specification, false);
             SimpleCompiler compiler = new SimpleCompiler();
             compiler.setParentClassLoader(getClass().getClassLoader());
 
             try {
                 compiler.cook(source);
-            } catch (CompileException e) {
-                throw new RuntimeException(
-                        "Unexpected runtime compilation failure for " + type +
-                        ", source:\n" + source, e);
-            } catch (NoClassDefFoundError e) {
+            } catch (CompileException | NoClassDefFoundError e) {
                 throw new RuntimeException(
                         "Unexpected runtime compilation failure for " + type +
                         ", source:\n" + source, e);
@@ -95,20 +90,14 @@ public class JaninoFactoryProvider extends ComponentFactoryProvider {
         public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository) {
             try {
                 return ctor.newInstance(forRepository);
-            } catch (InstantiationException e) {
-                throw new RuntimeException(
-                        "Exception instantiating generated component impl", e);
-            } catch (IllegalAccessException e) {
-                throw new RuntimeException(
-                        "Exception instantiating generated component impl", e);
-            } catch (InvocationTargetException e) {
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(
                         "Exception instantiating generated component impl", e);
             }
         }
 
         @Override
-        public List<PropertySpecification> getSpecification() {
+        public ComponentSpecification getSpecification() {
             return specification;
         }
     }
