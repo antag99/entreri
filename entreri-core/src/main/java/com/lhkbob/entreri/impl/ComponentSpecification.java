@@ -33,23 +33,76 @@ import javax.lang.model.element.TypeElement;
 import java.util.List;
 
 /**
+ * ComponentSpecification provides an interface to access the information encoded in a
+ * Component sub-interface in order to generate a proxy implementation. The specification
+ * can be extracted at runtime using reflection, or at compile time using the annotation
+ * processor mirror API. The two factory methods, {@link Factory#fromClass(Class)} and
+ * {@link Factory#fromTypeElement(javax.lang.model.element.TypeElement,
+ * javax.annotation.processing.ProcessingEnvironment)} correspond to these two scenarios.
  *
+ * @author Michael Ludwig
  */
 public interface ComponentSpecification {
+    /**
+     * Get the qualified name of the component type, with the package prefix removed.
+     * Thus, the returned string should be valid to insert into source code within the
+     * same package of the component and refer to that exact type.
+     *
+     * @return The component type
+     */
     public String getType();
 
+    /**
+     * @return The package the component type resides in
+     */
     public String getPackage();
 
+    /**
+     * Get all properties that must be implemented for this component type. This will
+     * include all properties defined in a parent component type if the type does not
+     * directly extend Component.
+     * <p/>
+     * The returned list will be immutable and sorted by logical property name.
+     *
+     * @return The list of all properties for the component
+     */
     public List<? extends PropertyDeclaration> getProperties();
 
     public static final class Factory {
         private Factory() {
         }
 
+        /**
+         * Produce a ComponentSpecification for the given Component class type.
+         *
+         * @param type The component type
+         *
+         * @return The extracted ComponentSpecification
+         *
+         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException
+         *          if the class does not follow the specification defined in Component,
+         *          or if referenced Property classes do not meet their requirements
+         */
         public static ComponentSpecification fromClass(Class<? extends Component> type) {
             return new ReflectionComponentSpecification(type);
         }
 
+        /**
+         * Produce a ComponentSpecification for the given Component type element, within
+         * the context of the ProcessingEnvironment used by the active annotation
+         * processor. The returned specification maintains no dependencies to the
+         * processing environment but no guarantee is made on its validity after the
+         * processing round completes.
+         *
+         * @param type The component type
+         * @param env  The ProcessingEnvironment for the current round
+         *
+         * @return The extracted ComponentSpecification
+         *
+         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException
+         *          if the class does not follow the specification defined in Component,
+         *          or if referenced Property classes do not meet ther requirements
+         */
         public static ComponentSpecification fromTypeElement(TypeElement type,
                                                              ProcessingEnvironment env) {
             return new MirrorComponentSpecification(type, env.getTypeUtils(),

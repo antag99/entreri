@@ -30,6 +30,7 @@ import com.lhkbob.entreri.Component;
 import org.codehaus.commons.compiler.CompileException;
 import org.codehaus.janino.SimpleCompiler;
 
+import javax.lang.model.SourceVersion;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -57,7 +58,7 @@ public class JaninoFactoryProvider extends ComponentFactoryProvider {
             String implName = getImplementationClassName(specification, true);
 
             // make sure to not use generics since that is not supported by janino
-            String source = generateJavaCode(specification, false);
+            String source = generateJavaCode(specification, SourceVersion.RELEASE_4);
             SimpleCompiler compiler = new SimpleCompiler();
             compiler.setParentClassLoader(getClass().getClassLoader());
 

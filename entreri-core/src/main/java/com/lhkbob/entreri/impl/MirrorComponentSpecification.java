@@ -43,9 +43,13 @@ import java.io.IOException;
 import java.util.*;
 
 /**
+ * MirrorComponentSpecification is an implementation that extracts a component
+ * specification from the mirror API defined in javax.lang.model.  This should only be
+ * used in the context of an annotation processor with a valid processing environment.
  *
+ * @author Michael Ludwig
  */
-public class MirrorComponentSpecification implements ComponentSpecification {
+class MirrorComponentSpecification implements ComponentSpecification {
     private final String typeName;
     private final String packageName;
     private final List<MirrorPropertyDeclaration> properties;
@@ -234,7 +238,8 @@ public class MirrorComponentSpecification implements ComponentSpecification {
 
         @Override
         public PropertyFactory<?> getPropertyFactory() {
-            throw new UnsupportedOperationException();
+            throw new UnsupportedOperationException(
+                    "Cannot create PropertyFactory with mirror API");
         }
 
         @Override

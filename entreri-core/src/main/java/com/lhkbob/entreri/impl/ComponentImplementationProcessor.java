@@ -26,6 +26,7 @@
  */
 package com.lhkbob.entreri.impl;
 
+import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -44,11 +45,16 @@ import java.io.Writer;
 import java.util.Set;
 
 /**
+ * ComponentImplementationProcessor is an annotation processor to use with Java 6
+ * compilers or APT to generate component proxy implementations for all component
+ * sub-interfaces encountered in the build class path. These will then be dynamically
+ * loaded at runtime instead of using Janino to generate classes from scratch.
  *
+ * @author Michael Ludwig
  */
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
-public class StaticComponentGenerator extends AbstractProcessor {
+public class ComponentImplementationProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations,
                            RoundEnvironment roundEnv) {
@@ -59,7 +65,7 @@ public class StaticComponentGenerator extends AbstractProcessor {
                 // we have an interface
                 TypeElement t = (TypeElement) e;
                 if (tutil.isAssignable(t.asType(), eutil.getTypeElement(
-                        "com.lhkbob.entreri.Component").asType())) {
+                        Component.class.getCanonicalName()).asType())) {
 
                     try {
                         ComponentSpecification spec = ComponentSpecification.Factory
@@ -69,7 +75,7 @@ public class StaticComponentGenerator extends AbstractProcessor {
                         String name = ComponentFactoryProvider
                                 .getImplementationClassName(spec, true);
                         String code = ComponentFactoryProvider
-                                .generateJavaCode(spec, true);
+                                .generateJavaCode(spec, processingEnv.getSourceVersion());
                         try {
                             Writer w = processingEnv.getFiler().createSourceFile(name, t)
                                                     .openWriter();

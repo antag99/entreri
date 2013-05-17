@@ -29,6 +29,7 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.ObjectProperty;
 
+import javax.lang.model.SourceVersion;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -140,7 +141,7 @@ public abstract class ComponentFactoryProvider {
         }
 
         StringBuilder sb = new StringBuilder();
-        if (includePackage) {
+        if (includePackage && !spec.getPackage().isEmpty()) {
             sb.append(spec.getPackage()).append('.');
         }
         sb.append(scrubbed).append("Impl").append(hash);
@@ -158,32 +159,36 @@ public abstract class ComponentFactoryProvider {
      * corresponds to the component type. The new class will also extend from
      * AbstractComponent and has a single constructor that takes a ComponentRepository.
      * <p/>
-     * If <var>useGenerics</var> is true, the source code will use generics for
-     * AbstractComponent, its ComponentRepository, and any ObjectProperty instances
-     * present. Otherwise, raw types and casts will be placed in the source. Generics are
-     * not supported by Janino's runtime compiler.
-     * <p/>
-     * If not, undefined behavior can occur later on if the specification is inconsistent
-     * with the interface declared by the component
+     * The target source version generates two different outputs based on whether or not
+     * it should take advantage of post 1.5 features.
      *
-     * @param spec        The component specification that must be implemented
-     * @param useGenerics True if the generated source should take advantage of Java
-     *                    generics
+     * @param spec          The component specification that must be implemented
+     * @param targetVersion The Java source version to target
      *
      * @return Source code of a valid implementation for the component type
      */
-    // FIXME use the SourceVersion enum instead of useGenerics
     public static String generateJavaCode(ComponentSpecification spec,
-                                          boolean useGenerics) {
+                                          SourceVersion targetVersion) {
+        boolean use15 = targetVersion.compareTo(SourceVersion.RELEASE_5) >= 0;
         String implName = getImplementationClassName(spec, false);
 
         // the implementation will extend AbstractComponent sans generics because
         // Janino does not support them right now
         StringBuilder sb = new StringBuilder();
-        sb.append("package ").append(spec.getPackage()).append(";\n\n")
-          .append("public class ").append(implName).append(" extends ")
+
+        if (!spec.getPackage().isEmpty()) {
+            sb.append("package ").append(spec.getPackage()).append(";\n\n");
+        }
+
+        if (use15) {
+            // prepend some annotations
+            sb.append("@Generated\n");
+            sb.append("@SuppressWarnings(\"unchecked\")\n");
+        }
+
+        sb.append("public class ").append(implName).append(" extends ")
           .append(ABSTRACT_COMPONENT_NAME);
-        if (useGenerics) {
+        if (use15) {
             sb.append('<').append(spec.getType()).append('>');
         }
         sb.append(" implements ").append(spec.getType()).append(" {\n");
@@ -192,10 +197,9 @@ public abstract class ComponentFactoryProvider {
         // time a property is accessed, and add any shared instance field declarations
         int property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            String fld = (
-                    useGenerics && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
-                    ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
-                    : s.getPropertyImplementation());
+            String fld = (use15 && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
+                          ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
+                          : s.getPropertyImplementation());
 
             sb.append("\tprivate final ").append(fld).append(' ')
               .append(PROPERTY_FIELD_PREFIX).append(property).append(";\n");
@@ -209,7 +213,7 @@ public abstract class ComponentFactoryProvider {
         // define the constructor, must invoke super, assign properties, and allocate
         // shared instances; as with type declaration we cannot use generics
         sb.append("\n\tpublic ").append(implName).append("(").append(COMPONENT_REPO_NAME);
-        if (useGenerics) {
+        if (use15) {
             sb.append('<').append(spec.getType()).append('>');
         }
 
@@ -217,10 +221,9 @@ public abstract class ComponentFactoryProvider {
           .append(REPO_FIELD_NAME).append(");\n");
         property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            String cast = (
-                    useGenerics && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
-                    ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
-                    : s.getPropertyImplementation());
+            String cast = (use15 && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
+                           ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
+                           : s.getPropertyImplementation());
 
             sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(property)
               .append(" = (").append(cast).append(") ").append(REPO_FIELD_NAME)
@@ -239,7 +242,7 @@ public abstract class ComponentFactoryProvider {
         Map<String, List<PropertyDeclaration>> setters = new HashMap<>();
         property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            appendGetter(s, property, sb, useGenerics);
+            appendGetter(s, property, sb, use15);
             List<PropertyDeclaration> setterParams = setters.get(s.getSetterMethod());
             if (setterParams == null) {
                 setterParams = new ArrayList<>();

@@ -35,9 +35,14 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * ReflectionComponentSpecification is an implementation that extracts the component
+ * specification from a {@link Class} object using the reflection APIs defined by Java.
+ * This can only be used after the referenced classes have been compiled and are capable
+ * of being loaded, e.g. the opposite scenario from MirrorComponentSpecification.
  *
+ * @author Michael Ludwig
  */
-public class ReflectionComponentSpecification implements ComponentSpecification {
+class ReflectionComponentSpecification implements ComponentSpecification {
     private final Class<? extends Component> type;
     private final List<ReflectionPropertyDeclaration> properties;
 
