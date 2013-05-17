@@ -221,8 +221,7 @@ public final class EntityImpl implements Entity {
 
         Iterator<Component> it = iterator();
         while (it.hasNext()) {
-            sb.append(", ");
-            sb.append(it.next().getClass().getSimpleName());
+            sb.append(",\n\t").append(it.next());
         }
 
         sb.append(")");

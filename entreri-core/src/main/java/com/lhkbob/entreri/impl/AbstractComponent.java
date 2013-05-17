@@ -27,6 +27,10 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.property.Property;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * AbstractComponent is the base class used for all generated proxy implementations of
@@ -161,14 +165,38 @@ public abstract class AbstractComponent<T extends Component> implements Componen
 
     @Override
     public String toString() {
-        // FIXME improve toString() to include values for properties
         if (index == 0) {
-            return "Component(" + getClass().getSimpleName() + ")";
+            return "dead " + getType().getSimpleName();
         } else {
-            int entityId = owner.getEntitySystem()
-                                .getEntityByIndex(owner.getEntityIndex(index)).getId();
-            return "Component(" + getClass().getSimpleName() + ", entity=" + entityId +
-                   ")";
+            StringBuilder sb = new StringBuilder(getType().getSimpleName());
+            sb.append("(").append(getEntity().getId());
+
+            for (int i = 0; i < owner.getDeclaredPropertyCount(); i++) {
+                sb.append(", ").append(owner.getDeclaredPropertyName(i)).append("=")
+                  .append(inspectProperty(owner.getProperty(i)));
+            }
+
+            sb.append(")");
+            return sb.toString();
+        }
+    }
+
+    private String inspectProperty(Property p) {
+        try {
+            Method get = p.getClass().getMethod("get", int.class);
+            Object v = get.invoke(p, getIndex());
+
+            if (v != null) {
+                // strip out newlines
+                return v.toString().replaceAll("[\n\r]", "");
+            } else {
+                return "null";
+            }
+        } catch (NoSuchMethodException e) {
+            // should never happen
+            return "missing get() method";
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            return "unable to inspect";
         }
     }
 }

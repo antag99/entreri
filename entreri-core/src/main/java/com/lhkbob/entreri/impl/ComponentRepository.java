@@ -245,6 +245,22 @@ public final class ComponentRepository<T extends Component> {
         return declaredProperties.get(propertyIndex).getProperty();
     }
 
+    /**
+     * @param propertyIndex The index of the property
+     *
+     * @return The logical name of the property
+     */
+    public String getDeclaredPropertyName(int propertyIndex) {
+        return declaredProperties.get(propertyIndex).key;
+    }
+
+    /**
+     * @return The number of declared properties
+     */
+    public int getDeclaredPropertyCount() {
+        return declaredProperties.size();
+    }
+
     /*
      * As expandEntityIndex() but expands all related component data and arrays
      * to hold the number of components.
@@ -596,10 +612,10 @@ public final class ComponentRepository<T extends Component> {
             extends PropertyStore<P>
 
     {
-        final Object key;
+        final String key;
         final P property;
 
-        public DeclaredPropertyStore(PropertyFactory<P> creator, Object key) {
+        public DeclaredPropertyStore(PropertyFactory<P> creator, String key) {
             super(creator);
             this.key = key;
             property = creator.create();
