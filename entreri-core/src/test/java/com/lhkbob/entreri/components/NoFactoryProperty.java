@@ -33,11 +33,11 @@ public class NoFactoryProperty implements Property {
     private final ObjectProperty<Crass> property;
 
     public NoFactoryProperty() {
-        property = new ObjectProperty<Crass>();
+        property = new ObjectProperty<>();
     }
 
-    public void set(Crass b, int index) {
-        property.set(b, index);
+    public void set(int index, Crass b) {
+        property.set(index, b);
     }
 
     public Crass get(int index) {

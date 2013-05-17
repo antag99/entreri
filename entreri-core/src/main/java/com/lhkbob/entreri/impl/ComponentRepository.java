@@ -127,7 +127,7 @@ public final class ComponentRepository<T extends Component> {
         idSeq = 1; // start at 1, just like entity id sequences versionSeq = 0;
 
         // initialize version for the 0th index
-        componentVersionProperty.set(-1, 0);
+        componentVersionProperty.set(0, -1);
     }
 
     /**
@@ -222,7 +222,7 @@ public final class ComponentRepository<T extends Component> {
         if (componentIndex != 0) {
             // clamp it to be above 0, instead of going negative
             int newVersion = (0xefffffff & (versionSeq++));
-            componentVersionProperty.set(newVersion, componentIndex);
+            componentVersionProperty.set(componentIndex, newVersion);
         }
     }
 
@@ -364,9 +364,9 @@ public final class ComponentRepository<T extends Component> {
 
         // although there could be a custom PropertyFactory for setting the id,
         // it's easier to assign a new id here
-        componentIdProperty.set(idSeq++, componentIndex);
+        componentIdProperty.set(componentIndex, idSeq++);
         // same goes for assigning a new owner delegate
-        ownerDelegatesProperty.set(new OwnerSupport(instance), componentIndex);
+        ownerDelegatesProperty.set(componentIndex, new OwnerSupport(instance));
 
         // start with a unique version as well
         incrementVersion(componentIndex);
@@ -421,7 +421,8 @@ public final class ComponentRepository<T extends Component> {
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity
-        componentIdProperty.set(0, componentIndex); // clear id
+        componentIdProperty.set(componentIndex, 0); // clear id
+        ownerDelegatesProperty.set(componentIndex, null);
 
         return oldComponent != null;
     }

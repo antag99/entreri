@@ -39,11 +39,11 @@ public class FloatPropertyFactory implements PropertyFactory<FloatProperty> {
 
     @Override
     public void setDefaultValue(FloatProperty p, int index) {
-        p.set(DEFAULT, index);
+        p.set(index, DEFAULT);
     }
 
     @Override
     public void clone(FloatProperty src, int srcIndex, FloatProperty dst, int dstIndex) {
-        dst.set(src.get(srcIndex), dstIndex);
+        dst.set(dstIndex, src.get(srcIndex));
     }
 }

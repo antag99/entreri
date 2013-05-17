@@ -83,7 +83,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p2, 0);
 
         Object val = new Object();
-        p1.set(val, 0);
+        p1.set(0, val);
 
         Assert.assertSame(val, p1.get(0));
         Assert.assertNull(p2.get(0));
@@ -106,7 +106,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p2, 0);
 
         Object val = new Object();
-        p1.set(val, 0);
+        p1.set(0, val);
 
         Assert.assertSame(val, p1.get(0));
         Assert.assertNull(p2.get(0));
@@ -129,7 +129,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p2, 0);
 
         Object val = new Object();
-        p1.set(val, 0);
+        p1.set(0, val);
 
         Assert.assertSame(val, p1.get(0));
         Assert.assertNull(p2.get(0));
@@ -152,7 +152,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p2, 0);
 
         CloneObject val = new CloneObject(5);
-        p1.set(val, 0);
+        p1.set(0, val);
 
         Assert.assertSame(val, p1.get(0));
         Assert.assertNull(p2.get(0));
@@ -176,7 +176,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p1, 0);
         factory.setDefaultValue(p2, 0);
 
-        p1.set(4.0, 0);
+        p1.set(0, 4.0);
 
         Assert.assertEquals(4.0, p1.get(0), 0.0001);
         Assert.assertEquals(1.0, p2.get(0), 0.0001);
@@ -198,7 +198,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p1, 0);
         factory.setDefaultValue(p2, 0);
 
-        p1.set(4.0, 0);
+        p1.set(0, 4.0);
 
         Assert.assertEquals(4.0, p1.get(0), 0.0001);
         Assert.assertEquals(2.0, p2.get(0), 0.0001);
@@ -220,7 +220,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p1, 0);
         factory.setDefaultValue(p2, 0);
 
-        p1.set(4.0, 0);
+        p1.set(0, 4.0);
 
         Assert.assertEquals(4.0, p1.get(0), 0.0001);
         Assert.assertEquals(0.0, p2.get(0), 0.0001);
@@ -242,7 +242,7 @@ public class PropertyFactoryTest {
         factory.setDefaultValue(p1, 0);
         factory.setDefaultValue(p2, 0);
 
-        p1.set(4.0, 0);
+        p1.set(0, 4.0);
 
         Assert.assertEquals(4.0, p1.get(0), 0.0001);
         Assert.assertEquals(0.0, p2.get(0), 0.0001);

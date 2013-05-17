@@ -75,12 +75,12 @@ public final class BooleanProperty implements Property {
     /**
      * Store <var>val</var> in this property for the given component index.
      *
-     * @param val            The value to store
      * @param componentIndex The index of the component being modified
+     * @param val            The value to store
      *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(boolean val, int componentIndex) {
+    public void set(int componentIndex, boolean val) {
         data[componentIndex] = val;
     }
 
@@ -131,7 +131,7 @@ public final class BooleanProperty implements Property {
 
         @Override
         public void setDefaultValue(BooleanProperty property, int index) {
-            property.set(defaultValue, index);
+            property.set(index, defaultValue);
         }
 
         @Override
@@ -146,7 +146,7 @@ public final class BooleanProperty implements Property {
                 // fall through, since default implementation of INVOKE_CLONE is to
                 // just function like JAVA_DEFAULT
             case JAVA_DEFAULT:
-                dst.set(src.get(srcIndex), dstIndex);
+                dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
                 throw new UnsupportedOperationException(

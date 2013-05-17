@@ -92,12 +92,12 @@ public final class ObjectProperty<T> implements Property {
     /**
      * Store <var>val</var> in this property for the given component index.
      *
-     * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified
+     * @param val            The value to store, can be null
      *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(T val, int componentIndex) {
+    public void set(int componentIndex, T val) {
         data[componentIndex] = val;
     }
 
@@ -147,7 +147,7 @@ public final class ObjectProperty<T> implements Property {
 
         @Override
         public void setDefaultValue(ObjectProperty property, int index) {
-            property.set(defaultValue, index);
+            property.set(index, defaultValue);
         }
 
         @Override
@@ -166,7 +166,7 @@ public final class ObjectProperty<T> implements Property {
                         // be public and take no arguments
                         Method cloneMethod = orig.getClass().getMethod("clone");
                         Object cloned = cloneMethod.invoke(orig);
-                        dst.set(cloned, dstIndex);
+                        dst.set(dstIndex, cloned);
                         break;
                     } catch (Exception e) {
                         // if they implement Cloneable, this shouldn't fail
@@ -176,7 +176,7 @@ public final class ObjectProperty<T> implements Property {
                 }
                 // else fall through to java default
             case JAVA_DEFAULT:
-                dst.set(src.get(srcIndex), dstIndex);
+                dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
                 throw new UnsupportedOperationException(

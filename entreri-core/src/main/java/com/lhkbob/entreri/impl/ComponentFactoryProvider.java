@@ -378,8 +378,8 @@ public abstract class ComponentFactoryProvider {
         for (PropertyDeclaration p : params) {
             int idx = properties.indexOf(p);
             sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(idx).append(".set(")
-              .append(SETTER_PARAM_PREFIX).append(idx).append(", ")
-              .append(INDEX_FIELD_NAME).append(");\n");
+              .append(INDEX_FIELD_NAME).append(", ").append(SETTER_PARAM_PREFIX)
+              .append(idx).append(");\n");
         }
 
         sb.append("\t\t").append(REPO_FIELD_NAME).append('.')

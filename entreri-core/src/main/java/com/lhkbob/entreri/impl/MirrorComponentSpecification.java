@@ -489,11 +489,10 @@ class MirrorComponentSpecification implements ComponentSpecification {
                 throw fail(declaringClass,
                            propertyType + " does not implement " + baseType + " get()");
             }
-            // FIXME switch back to int, type method but then we have to update all the property defs
-            if (!findMethod(methods, tu, "set", voidType, baseType, intType)) {
+            if (!findMethod(methods, tu, "set", voidType, intType, baseType)) {
                 throw fail(declaringClass,
-                           propertyType + " does not implement void set(" + baseType +
-                           ", int)");
+                           propertyType + " does not implement void set(int, " +
+                           baseType + ")");
             }
 
             if (isShared) {

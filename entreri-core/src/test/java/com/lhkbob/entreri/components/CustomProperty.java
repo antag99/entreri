@@ -41,8 +41,8 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         return new Bletch();
     }
 
-    public void set(Bletch b, int index) {
-        property.set(b, index);
+    public void set(int index, Bletch b) {
+        property.set(index, b);
     }
 
     public Bletch get(int index) {
@@ -88,7 +88,7 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
             b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
                                                                               : attributes
                                .getAttribute(IntProperty.DefaultInt.class).value());
-            property.set(b, index);
+            property.set(index, b);
         }
 
         @Override

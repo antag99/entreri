@@ -39,7 +39,7 @@ package com.lhkbob.entreri.property;
  * same data store, and the two 'b' properties would share another store.
  * <p/>
  * All property implementations must expose two methods: <code>T get(int)</code> and
- * <code>void set(T, int)</code> to get and set values at a particular index. To support
+ * <code>void set(int, T)</code> to get and set values at a particular index. To support
  * primitives without boxing, they are not part of the interface definition but are
  * required. The exposed get() and set() methods, and potentially a bulk accessor (such as
  * returning the underlying array) are the supported methods for manipulating decorated

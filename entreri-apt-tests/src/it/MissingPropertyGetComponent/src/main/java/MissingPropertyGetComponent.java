@@ -42,7 +42,7 @@ public interface MissingPropertyGetComponent extends Component {
     public void setValue(Object o);
 
     public static class MissingGetterProperty implements Property {
-        public void set(Object o, int index) {
+        public void set(int index, Object o) {
 
         }
 

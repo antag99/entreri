@@ -59,33 +59,32 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         // since this is an interface, we're only dealing with public methods
         // so getMethods() returns everything we're interested in plus the methods
         // declared in Component, which we'll have to exclude
-        Method[] methods = type.getMethods();
         Map<String, Method> getters = new HashMap<>();
         Map<String, Method> setters = new HashMap<>();
         Map<String, Integer> setterParameters = new HashMap<>();
 
-        for (int i = 0; i < methods.length; i++) {
+        for (Method method : type.getMethods()) {
             // exclude methods defined in Component, Owner, Ownable, and Object
-            Class<?> md = methods[i].getDeclaringClass();
+            Class<?> md = method.getDeclaringClass();
             if (md.equals(Component.class) || md.equals(Owner.class) ||
                 md.equals(Ownable.class) || md.equals(Object.class)) {
                 continue;
             }
 
-            if (!Component.class.isAssignableFrom(methods[i].getDeclaringClass())) {
-                throw fail(md, methods[i] + ", method is not declared by a component");
+            if (!Component.class.isAssignableFrom(method.getDeclaringClass())) {
+                throw fail(md, method + ", method is not declared by a component");
             }
 
-            if (methods[i].getName().startsWith("is")) {
-                processGetter(methods[i], "is", getters);
-            } else if (methods[i].getName().startsWith("has")) {
-                processGetter(methods[i], "has", getters);
-            } else if (methods[i].getName().startsWith("get")) {
-                processGetter(methods[i], "get", getters);
-            } else if (methods[i].getName().startsWith("set")) {
-                processSetter(methods[i], setters, setterParameters);
+            if (method.getName().startsWith("is")) {
+                processGetter(method, "is", getters);
+            } else if (method.getName().startsWith("has")) {
+                processGetter(method, "has", getters);
+            } else if (method.getName().startsWith("get")) {
+                processGetter(method, "get", getters);
+            } else if (method.getName().startsWith("set")) {
+                processSetter(method, setters, setterParameters);
             } else {
-                throw fail(md, methods[i] + " is an illegal property method");
+                throw fail(md, method + " is an illegal property method");
             }
         }
 
@@ -295,10 +294,9 @@ class ReflectionComponentSpecification implements ComponentSpecification {
     }
 
     private static String getNameFromParameter(Method m, int p) {
-        Annotation[] annots = m.getParameterAnnotations()[p];
-        for (int i = 0; i < annots.length; i++) {
-            if (annots[i] instanceof Named) {
-                return ((Named) annots[i]).value();
+        for (Annotation annot : m.getParameterAnnotations()[p]) {
+            if (annot instanceof Named) {
+                return ((Named) annot).value();
             }
         }
         return null;
@@ -403,12 +401,11 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                                propertyType + " does not implement " + baseType +
                                " get()");
                 }
-                // FIXME switch back to int, type method but then we have to update all the property defs
-                Method s = propertyType.getMethod("set", baseType, int.class);
+                Method s = propertyType.getMethod("set", int.class, baseType);
                 if (!s.getReturnType().equals(void.class)) {
                     throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement void set(" + baseType +
-                               ", int)");
+                               propertyType + " does not implement void set(int, " +
+                               baseType + ")");
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(),

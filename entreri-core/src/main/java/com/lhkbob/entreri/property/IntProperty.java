@@ -74,12 +74,12 @@ public final class IntProperty implements Property {
     /**
      * Store <var>val</var> in this property for the given component index.
      *
-     * @param val            The value to store, can be null
      * @param componentIndex The index of the component being modified
+     * @param val            The value to store, can be null
      *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(int val, int componentIndex) {
+    public void set(int componentIndex, int val) {
         data[componentIndex] = val;
     }
 
@@ -130,7 +130,7 @@ public final class IntProperty implements Property {
 
         @Override
         public void setDefaultValue(IntProperty property, int index) {
-            property.set(defaultValue, index);
+            property.set(index, defaultValue);
         }
 
         @Override
@@ -144,7 +144,7 @@ public final class IntProperty implements Property {
                 // fall through, since default implementation of INVOKE_CLONE is to
                 // just function like JAVA_DEFAULT
             case JAVA_DEFAULT:
-                dst.set(src.get(srcIndex), dstIndex);
+                dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
                 throw new UnsupportedOperationException(
