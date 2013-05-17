@@ -1,3 +1,29 @@
+/*
+ * Entreri, an entity-component framework in Java
+ *
+ * Copyright (c) 2012, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.*;
@@ -46,20 +72,14 @@ public class MirrorComponentSpecification implements ComponentSpecification {
         // since this is an interface, we're only dealing with public methods
         // so getMethods() returns everything we're interested in plus the methods
         // declared in Component, which we'll have to exclude
-        List<? extends Element> methods = eu.getAllMembers(type);
+        List<? extends ExecutableElement> methods = ElementFilter
+                .methodsIn(eu.getAllMembers(type));
         Map<String, ExecutableElement> getters = new HashMap<>();
         Map<String, ExecutableElement> setters = new HashMap<>();
         Map<String, Integer> setterParameters = new HashMap<>();
 
-        for (int i = 0; i < methods.size(); i++) {
-            if (!methods.get(i).getKind().equals(ElementKind.METHOD)) {
-                // skip anything else, theoretically they can define inner static classes
-                // or enums, which is perfectly valid
-                continue;
-            }
-
+        for (ExecutableElement m : methods) {
             // exclude methods defined in Component, Owner, and Ownable
-            ExecutableElement m = (ExecutableElement) methods.get(i);
             String name = m.getSimpleName().toString();
             TypeMirror declare = m.getEnclosingElement().asType();
 
@@ -356,24 +376,17 @@ public class MirrorComponentSpecification implements ComponentSpecification {
             default:
                 FileObject mapping;
                 try {
-                    //                    System.out.println(
-                    //                            "Searching for file " + TypePropertyMapping.MAPPING_DIR +
-                    //                            baseType.toString());
                     mapping = io.getResource(StandardLocation.CLASS_PATH, "",
                                              TypePropertyMapping.MAPPING_DIR +
                                              baseType.toString());
-                    //                    System.out.println("Search successful: " +
-                    //                                       (mapping == null ? "null" : mapping.getName()));
                 } catch (IOException e) {
                     // if an IO is thrown here, it means it couldn't find the file
-                    //                    System.out.println("IO Exception during search");
                     mapping = null;
                 }
 
                 if (mapping != null) {
                     try {
                         String content = mapping.getCharContent(true).toString().trim();
-                        //                        System.out.println("Content of mapping file: " + content);
                         mappedType = eu.getTypeElement(content);
                     } catch (IOException e) {
                         // if an IO is thrown here, however, it means errors accessing
@@ -381,13 +394,11 @@ public class MirrorComponentSpecification implements ComponentSpecification {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    //                    System.out.println("Falling back to ObjectProperty");
                     mappedType = eu
                             .getTypeElement(ObjectProperty.class.getCanonicalName());
                 }
             }
 
-            //            System.out.println("Mapped type for " + baseType + " is " + mappedType);
             factory = getFactory(mappedType);
             if (factory == null) {
                 throw fail(getter.getEnclosingElement().asType(),
@@ -400,11 +411,13 @@ public class MirrorComponentSpecification implements ComponentSpecification {
 
     private static TypeMirror getFactory(Element e) {
         try {
-            com.lhkbob.entreri.property.Factory factory = e.getAnnotation(com.lhkbob.entreri.property.Factory.class);
-            if (factory != null)
+            com.lhkbob.entreri.property.Factory factory = e
+                    .getAnnotation(com.lhkbob.entreri.property.Factory.class);
+            if (factory != null) {
                 factory.value(); // will throw an exception
+            }
             return null;
-        } catch(MirroredTypeException te) {
+        } catch (MirroredTypeException te) {
             return te.getTypeMirror();
         }
     }
@@ -509,8 +522,6 @@ public class MirrorComponentSpecification implements ComponentSpecification {
     private static boolean findMethod(List<? extends ExecutableElement> methods, Types tu,
                                       String name, TypeMirror returnType,
                                       TypeMirror... params) {
-        //        System.out.print("Searching for method: " + returnType + " " + name +
-        //                         Arrays.toString(params));
         for (ExecutableElement m : methods) {
             if (m.getSimpleName().contentEquals(name) &&
                 tu.isSameType(returnType, m.getReturnType())) {
@@ -526,14 +537,12 @@ public class MirrorComponentSpecification implements ComponentSpecification {
                     }
 
                     if (found) {
-                        //                        System.out.println(" found!");
                         return true;
                     }
                 }
             }
         }
 
-        //        System.out.println(" not found :(");
         return false;
     }
 }

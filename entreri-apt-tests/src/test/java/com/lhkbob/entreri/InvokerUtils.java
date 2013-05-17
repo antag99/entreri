@@ -24,58 +24,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.components;
+package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.Factory;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
- * Invalid component type because it references a property type that doesn't have the
- * expected get method.
+ * Utility function to validate a build log from the maven-invoker-plugin
  */
-public interface MissingPropertyGetComponent extends Component {
-    @Factory(MissingGetterFactory.class)
-    public Object getValue();
-
-    public void setValue(Object o);
-
-    public static class MissingGetterProperty implements Property {
-        public void set(Object o, int index) {
-
-        }
-
-        // we don't really have to implement these because the component
-        // will fail validation
-        @Override
-        public void setCapacity(int size) {
-        }
-
-        @Override
-        public int getCapacity() {
-            return 0;
-        }
-
-        @Override
-        public void swap(int indexA, int indexB) {
-        }
+public final class InvokerUtils {
+    private InvokerUtils() {
     }
 
-    public static class MissingGetterFactory
-            implements PropertyFactory<MissingGetterProperty> {
-        @Override
-        public MissingGetterProperty create() {
-            return new MissingGetterProperty();
-        }
+    public static boolean validateLog(File baseDir) throws IOException {
+        String baseName = baseDir.getCanonicalPath();
+        String componentClass = baseName.substring(baseName.lastIndexOf('/') + 1);
+        File logFile = new File(baseDir, "build.log");
 
-        @Override
-        public void setDefaultValue(MissingGetterProperty property, int index) {
-        }
+        boolean compilationError = false;
+        boolean expectedClassFailure = false;
 
-        @Override
-        public void clone(MissingGetterProperty src, int srcIndex,
-                          MissingGetterProperty dst, int dstIndex) {
+        Pattern expectedPattern = Pattern
+                .compile("\\[ERROR] .*" + componentClass + "\\.java:\\[.*] error: .*");
+
+        BufferedReader reader = new BufferedReader(new FileReader(logFile));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.contains("[ERROR] COMPILATION ERROR :")) {
+                compilationError = true;
+            } else if (expectedPattern.matcher(line).matches()) {
+                expectedClassFailure = true;
+            }
         }
+        reader.close();
+
+        return compilationError && expectedClassFailure;
     }
 }

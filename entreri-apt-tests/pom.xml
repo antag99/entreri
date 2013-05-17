@@ -22,12 +22,12 @@
                 <configuration>
                     <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                     <settingsFile>${project.basedir}/src/it/settings.xml</settingsFile>
-                    <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+                    <localRepositoryPath>${project.build.directory}/local-repo
+                    </localRepositoryPath>
                     <addTestClassPath>true</addTestClassPath>
-
-                    <pomIncludes>
-                        <pomInclude>*/pom.xml</pomInclude>
-                    </pomIncludes>
+                    <postBuildHookScript>verify</postBuildHookScript>
+                    <cloneClean>true</cloneClean>
+                    <addTestClassPath>true</addTestClassPath>
                 </configuration>
 
                 <executions>
