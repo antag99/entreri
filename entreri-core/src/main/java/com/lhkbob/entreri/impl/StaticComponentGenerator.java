@@ -94,16 +94,6 @@ public class StaticComponentGenerator extends AbstractProcessor {
             }
         }
 
-        // TODO okay so this is how I can filter it down to the components that need to be
-        // TODO processed.  Unfortunately, I can't load the classes because they haven't been
-        // TODO defined yet until APT finishes. This means that I need to write a new generator
-        // TODO that can use these classes. They have the same requisite information, and really
-        // TODO I can change the PropertySpecification to be a little more flexible (e.g. take
-        // TODO string names for types, etc.?) then I can use the same generator and just need
-        // TODO new code to extract the spec from a TypeElement instead of a Class
-        // TODO Even this should be simple with a few visitor interfaces internally that wrap
-        // TODO either getting methods, types, etc from reflection or this
-
         return false;
     }
 }
