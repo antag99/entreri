@@ -34,6 +34,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -181,8 +183,17 @@ public abstract class ComponentFactoryProvider {
         }
 
         if (use15) {
-            // prepend some annotations
-            sb.append("@Generated\n");
+            // prepend some annotations (and get UTC formatted date, as required by
+            // the @Generated annotation if we attach a date, which we do because it's useful)
+            TimeZone tz = TimeZone.getTimeZone("UTC");
+            DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+            df.setTimeZone(tz);
+            String nowAsISO = df.format(new Date());
+
+            sb.append("import javax.annotation.Generated;\n\n");
+            sb.append("@Generated(value={\"")
+              .append(ComponentFactoryProvider.class.getCanonicalName())
+              .append("\"}, date=\"").append(nowAsISO).append("\")\n");
             sb.append("@SuppressWarnings(\"unchecked\")\n");
         }
 

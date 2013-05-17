@@ -23,7 +23,6 @@
 
     <modules>
         <module>entreri-core</module>
-        <module>entreri-janino-tests</module>
         <module>entreri-apt-tests</module>
     </modules>
 
