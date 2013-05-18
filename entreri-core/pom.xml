@@ -5,7 +5,12 @@
     <artifactId>entreri-core</artifactId>
     <packaging>jar</packaging>
 
-    <name>Entreri Core Library</name>
+    <name>Entreri Entity-Component Framework</name>
+    <description>Entreri is an entity-component framework for Java that helps manage or
+        remove complex OO hierarchies that often form when developing games. For a useful
+        description of an entity-component framework, see
+        http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
+    </description>
 
     <parent>
         <groupId>com.lhkbob.entreri</groupId>

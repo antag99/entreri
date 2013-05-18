@@ -3,21 +3,19 @@
 Entreri is a data-oriented entity-component framework designed for high 
 performance applications and games. It scales well to tens of thousands of 
 instances, in both memory and performance, and fits data models that require 
-many similar objects of the same type, objects with composable types at runtime
+many similar objects of the same type, objects needing runtime aspects
 , and combinations thereof.
 
-Using annotations and minor limitations to type definitions, component data
-is packed into primitive arrays to improve cache locality. Fly-weight instances
-are then used to access the packed data.
+Using annotation processing over component interfaces, the underlying
+is packed into primitive arrays to improve cache locality. Fly-weight proxy instances
+are then used to access the packed data. Other advanced features include runtime
+decoration of components with new data, and a multi-threading oriented task
+API to process the entity system.
 
 Java's garbage collection can move objects around, hurting locality when using 
 Object arrays or collections. By using primitive arrays or buffers storing
 managed data in blocks, all of your game data will be automatically stored in a
 cache friendly, and iteration friendly manner.
-
-In addition, this requires less memory per instance because the actual
-component data is stored in packed structures, avoiding the Java Object model
-overhead normally associated with complex classes.
 
 In off-the-cuff performance tests, garbage collection in other entity-component
 frameworks could cause performance to slow down by a factor of 2 to 4, while 
@@ -31,13 +29,25 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
     <dependency>
       <groupId>com.lhkbob.entreri</groupId>
       <artifactId>entreri</artifactId>
-      <version>1.6.0</version>
+      <version>1.7.0</version>
     </dependency>
     
 [Maven]: http://maven.apache.org
 [m2e]: http://eclipse.org/m2e
 
 ## Release Notes
+
+### 1.7.0
+* Drastically simplify `Component` definition by using interfaces, APT, and Janino.
+* Remove `IndexedDataStore` to consolidate property package.
+* Make `Component`, `Entity` and `EntitySystem` interfaces and hide their implementations
+  in an impl package.
+* Remove `ComponentData`. Types now extend `Component` directly as sub-interfaces. The
+  onSet() method has also been removed, but the same functionality can be used with the
+  `@SharedInstance` annotation.
+* Component definitions are now either generated at build time using an annotation
+  processor, or at runtime using Janino if an existing class can't be located.
+* Restructure Maven modules to support integration tests.
 
 ### 1.6.1
 * Remove `Entity.getIfModified()` method because its semantics were vague and unhelpful.
