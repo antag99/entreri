@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.SharedInstance;
+import com.lhkbob.entreri.property.SharedInstance;
 
 /**
  * Invalid component definition that double checks that we fail when using a shared

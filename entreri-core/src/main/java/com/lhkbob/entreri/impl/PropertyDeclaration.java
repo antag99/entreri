@@ -39,7 +39,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
 public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     /**
      * Get the logical name of the property, either the name extracted from the getter
-     * bean method, or from the {@link com.lhkbob.entreri.Named} annotation.
+     * bean method, or from the {@link com.lhkbob.entreri.property.Named} annotation.
      *
      * @return The property name
      */
@@ -102,7 +102,7 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
      * Get whether or not this property should use the shared instance API to store and
      * get values of the property.
      *
-     * @return True if the getter was annotated with {@link com.lhkbob.entreri.SharedInstance}
+     * @return True if the getter was annotated with {@link com.lhkbob.entreri.property.SharedInstance}
      */
     public boolean isShared();
 

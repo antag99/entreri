@@ -24,7 +24,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri;
+package com.lhkbob.entreri.property;
 
 import java.lang.annotation.*;
 
@@ -37,7 +37,7 @@ import java.lang.annotation.*;
  * because method parameter names are not always available via reflection at runtime.
  *
  * @author Michael Ludwig
- * @see Component
+ * @see com.lhkbob.entreri.Component
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

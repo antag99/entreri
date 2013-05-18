@@ -26,11 +26,11 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.Named;
-import com.lhkbob.entreri.SharedInstance;
 import com.lhkbob.entreri.property.Factory;
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import com.lhkbob.entreri.property.LongProperty.DefaultLong;
+import com.lhkbob.entreri.property.Named;
+import com.lhkbob.entreri.property.SharedInstance;
 
 /**
  * A Component that tests a variety of things: multiple properties, different types,
