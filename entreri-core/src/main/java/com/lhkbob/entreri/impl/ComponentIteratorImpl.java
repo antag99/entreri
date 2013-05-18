@@ -83,8 +83,8 @@ public class ComponentIteratorImpl implements ComponentIterator {
             // putting one data into the required array
             required = Arrays.copyOf(required, required.length + 1);
 
-            if (data.getRepository().getMaxComponentIndex() <
-                primary.getRepository().getMaxComponentIndex()) {
+            if (data.owner.getMaxComponentIndex() <
+                primary.owner.getMaxComponentIndex()) {
                 // new primary
                 required[required.length - 1] = primary;
                 primary = data;
@@ -122,17 +122,17 @@ public class ComponentIteratorImpl implements ComponentIterator {
         boolean found;
         int entity;
         int component;
-        int count = primary.getRepository().getMaxComponentIndex();
+        int count = primary.owner.getMaxComponentIndex();
         while (index < count - 1) {
             index++; // always increment one
 
             found = true;
-            entity = primary.getRepository().getEntityIndex(index);
+            entity = primary.owner.getEntityIndex(index);
             if (entity != 0) {
                 // we have a possible entity candidate
                 primary.setIndex(index);
                 for (int i = 0; i < required.length; i++) {
-                    component = required[i].getRepository().getComponentIndex(entity);
+                    component = required[i].owner.getComponentIndex(entity);
                     if (component == 0) {
                         found = false;
                         break;
@@ -145,7 +145,7 @@ public class ComponentIteratorImpl implements ComponentIterator {
                     // we have satisfied all required components,
                     // so now set all optional requirements as well
                     for (int i = 0; i < optional.length; i++) {
-                        component = optional[i].getRepository().getComponentIndex(entity);
+                        component = optional[i].owner.getComponentIndex(entity);
                         optional[i].setIndex(component);
                     }
 

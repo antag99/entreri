@@ -34,11 +34,15 @@ import java.util.Arrays;
  * number of packed Object references for each property. Because it is not primitive data,
  * cache locality will suffer compared to the primitive property types, but it will allow
  * you to store arbitrary objects.
+ * <p/>
+ * However, ObjectProperty assumes that all component values can be null, and the default
+ * value is null. If this is not an acceptable contract then a custom property must be
+ * defined with a factory capable of constructing proper default instances.
  *
  * @author Michael Ludwig
  */
 @Factory(ObjectProperty.Factory.class)
-public final class ObjectProperty<T> implements Property {
+public final class ObjectProperty implements Property {
     private Object[] data;
 
     /**
@@ -49,18 +53,13 @@ public final class ObjectProperty<T> implements Property {
     }
 
     /**
-     * Return a PropertyFactory that creates ObjectProperties with the given element size
-     * and default value.
-     *
-     * @param <T>
-     * @param dflt The default value assigned to each component and element
+     * Return a PropertyFactory that creates ObjectProperties using the given cloning
+     * policy.
      *
      * @return A PropertyFactory for ObjectProperty
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static <T> PropertyFactory<ObjectProperty<T>> factory(T dflt) {
-        PropertyFactory superRaw = new Factory(dflt);
-        return superRaw;
+    public static PropertyFactory<ObjectProperty> factory(Clone.Policy policy) {
+        return new Factory(policy);
     }
 
     /**
@@ -85,8 +84,8 @@ public final class ObjectProperty<T> implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     @SuppressWarnings("unchecked")
-    public T get(int componentIndex) {
-        return (T) data[componentIndex];
+    public Object get(int componentIndex) {
+        return data[componentIndex];
     }
 
     /**
@@ -97,7 +96,7 @@ public final class ObjectProperty<T> implements Property {
      *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(int componentIndex, T val) {
+    public void set(int componentIndex, Object val) {
         data[componentIndex] = val;
     }
 
@@ -125,19 +124,16 @@ public final class ObjectProperty<T> implements Property {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static class Factory implements PropertyFactory<ObjectProperty> {
-        private final Object defaultValue;
         private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            defaultValue = null;
             policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
                                                             .value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
-        public Factory(Object defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
+        public Factory(Clone.Policy policy) {
+            this.policy = policy;
         }
 
         @Override
@@ -147,7 +143,7 @@ public final class ObjectProperty<T> implements Property {
 
         @Override
         public void setDefaultValue(ObjectProperty property, int index) {
-            property.set(index, defaultValue);
+            property.set(index, null);
         }
 
         @Override

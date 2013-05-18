@@ -30,10 +30,10 @@ import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.property.Property;
 
 public class NoFactoryProperty implements Property {
-    private final ObjectProperty<Crass> property;
+    private final ObjectProperty property;
 
     public NoFactoryProperty() {
-        property = new ObjectProperty<Crass>();
+        property = new ObjectProperty();
     }
 
     public void set(int index, Crass b) {
@@ -41,7 +41,7 @@ public class NoFactoryProperty implements Property {
     }
 
     public Crass get(int index) {
-        return property.get(index);
+        return (Crass) property.get(index);
     }
 
     @Override

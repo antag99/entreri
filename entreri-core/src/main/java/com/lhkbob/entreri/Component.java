@@ -41,10 +41,11 @@ package com.lhkbob.entreri;
  * Logically a component definition is a set of named and typed properties, and a
  * method-based API to get and set the values of each property. Specific types of
  * component are defined by creating a sub-interface of Component. Using the {@link Named}
- * {@link SharedInstance}, and {@link com.lhkbob.entreri.property.Factory} annotations and
- * specific conventions the data properties of the component type are specified in the
- * sub-interface. A declaration model similar to the Java Bean model is used and is
- * outlined below:
+ * {@link SharedInstance}, {@link com.lhkbob.entreri.property.Factory Factory} and custom
+ * {@link com.lhkbob.entreri.property.Attribute Attribute} annotations defined by {@link
+ * com.lhkbob.entreri.property.Property Property} implementations, the data properties of
+ * the component type are specified in the sub-interface. A declaration model similar to
+ * the Java Bean model is used and is outlined below:
  * <p/>
  * <ol> <li>Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a
  * property. The property type is inspected from the return type of the method. The
@@ -70,19 +71,40 @@ package com.lhkbob.entreri;
  * defined in terms of primitives or types that have specialized Property implementations
  * that can pack and unpack an instance. The {@link SharedInstance} annotation can be
  * added to the getter method of a property to specify that the {@link
- * com.lhkbob.entreri.property.ShareableProperty} API should be leveraged by the generated
- * class.
+ * com.lhkbob.entreri.property.ShareableProperty ShareableProperty} API should be
+ * leveraged by the generated class.
  * <p/>
  * Additional attribute annotations can be added to the getter method to influence the
- * behavior of the {@link com.lhkbob.entreri.property.PropertyFactory} used for each
- * property in the component definition. Besides using the Factory annotation to specify
- * the factory type, a property implementation can be associated with a type with
- * canonical name <var>C</var> by adding the file META-INF/entreri/mapping/C to the
- * classpath, where its contents must be:
+ * behavior of the {@link com.lhkbob.entreri.property.PropertyFactory PropertyFactory}
+ * used for each property in the component definition. Besides using the Factory
+ * annotation to specify the factory type, a property implementation can be associated
+ * with a type with canonical name <var>C</var> by adding the file
+ * META-INF/entreri/mapping/C to the classpath, where its contents must be:
  * <pre>
  *     &lt;BINARY NAME OF PROPERTY&gt;
  * </pre>
  * where the value is suitable for passing into {@link Class#forName(String)}.
+ * <p/>
+ * Attribute annotations provided by the default property implementations are outlined
+ * below: <ul> <li>{@link com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean
+ *
+ * @author Michael Ludwig
+ * @DefaultBoolean} - set value for boolean properties</li> <li>{@link
+ * com.lhkbob.entreri.property.ByteProperty.DefaultByte @DefaultByte} - set value for byte
+ * properties</li> <li>{@link com.lhkbob.entreri.property.ShortProperty.DefaultShort
+ * @DefaultShort} - set value for short properties</li> <li>{@link
+ * com.lhkbob.entreri.property.IntProperty.DefaultInt @DefaultInt} - set value for int
+ * properties</li> <li>{@link com.lhkbob.entreri.property.LongProperty.DefaultLong
+ * @DefaultLong} - set value for long properties</li> <li>{@link
+ * com.lhkbob.entreri.property.FloatProperty.DefaultFloat @DefaultFloat} - set value for
+ * float properties</li> <li>{@link com.lhkbob.entreri.property.DoubleProperty.DefaultDouble
+ * @DefaultDouble} - set value for double properties</li> <li>{@link
+ * com.lhkbob.entreri.property.CharProperty.DefaultChar @DefaultChar} - set value for char
+ * properties</li> <li>{@link com.lhkbob.entreri.property.Clone @Clone} - specify clone
+ * policy used with entity or component templates</li> </ul> Note that there are no
+ * annotations that work with general object types. This is because the scope of that
+ * problem is intractable. The default ObjectProperty implementation assumes null values
+ * are allowed and that the default value is null.
  * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and
  * the id of their owning entity. The {@link ComponentIterator} class creates flyweight
@@ -93,13 +115,10 @@ package com.lhkbob.entreri;
  * component configurations because the JVM does not need to load each unique component
  * instance into the cache.
  * <p/>
- * Component implements both {@link com.lhkbob.entreri.Ownable} and {@link
- * com.lhkbob.entreri.Owner}. This can be used to create hierarchies of both components
- * and entities that share a lifetime. When a component is removed from an entity, all of
- * its owned objects are disowned. If any of them were entities or components, they are
- * also removed from the system.
- *
- * @author Michael Ludwig
+ * Component implements both {@link Ownable} and {@link Owner}. This can be used to create
+ * hierarchies of both components and entities that share a lifetime. When a component is
+ * removed from an entity, all of its owned objects are disowned. If any of them were
+ * entities or components, they are also removed from the system.
  */
 public interface Component extends Owner, Ownable {
     /**

@@ -40,16 +40,16 @@ public class PropertyFactoryTest {
     /*
      * ObjectProperty fields for Attributes creation
      */
-    private ObjectProperty<Object> objectPropertyNoPolicy;
+    private ObjectProperty objectPropertyNoPolicy;
 
     @Clone(Policy.DISABLE)
-    private ObjectProperty<Object> objectPropertyDisabled;
+    private ObjectProperty objectPropertyDisabled;
 
     @Clone(Policy.JAVA_DEFAULT)
-    private ObjectProperty<Object> objectPropertyDefault;
+    private ObjectProperty objectPropertyDefault;
 
     @Clone(Policy.INVOKE_CLONE)
-    private ObjectProperty<Object> objectPropertyInvoke;
+    private ObjectProperty objectPropertyInvoke;
 
     /*
      * DoubleProperty fields for Attributes creation

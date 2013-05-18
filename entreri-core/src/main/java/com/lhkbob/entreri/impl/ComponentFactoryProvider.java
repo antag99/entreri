@@ -208,12 +208,8 @@ public abstract class ComponentFactoryProvider {
         // time a property is accessed, and add any shared instance field declarations
         int property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            String fld = (use15 && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
-                          ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
-                          : s.getPropertyImplementation());
-
-            sb.append("\tprivate final ").append(fld).append(' ')
-              .append(PROPERTY_FIELD_PREFIX).append(property).append(";\n");
+            sb.append("\tprivate final ").append(s.getPropertyImplementation())
+              .append(' ').append(PROPERTY_FIELD_PREFIX).append(property).append(";\n");
             if (s.isShared()) {
                 sb.append("\tprivate final ").append(s.getType()).append(' ')
                   .append(SHARED_FIELD_PREFIX).append(property).append(";\n");
@@ -232,14 +228,10 @@ public abstract class ComponentFactoryProvider {
           .append(REPO_FIELD_NAME).append(");\n");
         property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            String cast = (use15 && s.getPropertyImplementation().equals(OBJECT_PROP_NAME)
-                           ? OBJECT_PROP_NAME + "<" + s.getType() + ">"
-                           : s.getPropertyImplementation());
-
             sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(property)
-              .append(" = (").append(cast).append(") ").append(REPO_FIELD_NAME)
-              .append('.').append(GET_PROPERTY_METHOD).append('(').append(property)
-              .append(");\n");
+              .append(" = (").append(s.getPropertyImplementation()).append(") ")
+              .append(REPO_FIELD_NAME).append('.').append(GET_PROPERTY_METHOD).append('(')
+              .append(property).append(");\n");
             if (s.isShared()) {
                 sb.append("\t\t").append(SHARED_FIELD_PREFIX).append(property)
                   .append(" = ").append(PROPERTY_FIELD_PREFIX).append(property)
@@ -253,6 +245,9 @@ public abstract class ComponentFactoryProvider {
         Map<String, List<PropertyDeclaration>> setters = new HashMap<>();
         property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
+            if (use15) {
+                sb.append("\n\t@Override");
+            }
             appendGetter(s, property, sb, use15);
             List<PropertyDeclaration> setterParams = setters.get(s.getSetterMethod());
             if (setterParams == null) {
@@ -266,6 +261,9 @@ public abstract class ComponentFactoryProvider {
 
         // implement all setters
         for (List<PropertyDeclaration> setter : setters.values()) {
+            if (use15) {
+                sb.append("\n\t@Override");
+            }
             appendSetter(setter, spec, sb);
         }
 
@@ -280,7 +278,7 @@ public abstract class ComponentFactoryProvider {
     private static final String OBJECT_PROP_NAME = ObjectProperty.class.getName();
 
     private static final String REPO_FIELD_NAME = "owner";
-    private static final String INDEX_FIELD_NAME = "getIndex()";
+    private static final String INDEX_FIELD_NAME = "index";
     private static final String GET_PROPERTY_METHOD = "getProperty";
     private static final String CREATE_SHARE_METHOD = "createShareableInstance";
     private static final String UPDATE_VERSION_METHOD = "incrementVersion";
@@ -313,8 +311,7 @@ public abstract class ComponentFactoryProvider {
               .append(index).append(");\n\t\treturn ").append(SHARED_FIELD_PREFIX)
               .append(index).append(";");
         } else {
-            if (forProperty.getPropertyImplementation().equals(OBJECT_PROP_NAME) &&
-                !useGenerics) {
+            if (forProperty.getPropertyImplementation().equals(OBJECT_PROP_NAME)) {
                 // special case where we allow ObjectProperty to have more permissive getters
                 // and setters to support any type under the sun, but that means we have
                 // to cast the object we get back

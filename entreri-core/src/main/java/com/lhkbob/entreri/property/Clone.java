@@ -26,12 +26,11 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.Entity;
+import com.lhkbob.entreri.EntitySystem;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 /**
  * <p/>
@@ -49,13 +48,12 @@ import java.lang.annotation.Target;
  */
 @Attribute
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
 public @interface Clone {
     /**
      * Policy is an enum describing a number of different behaviors performed by a {@link
-     * PropertyFactory} when its {@link PropertyFactory#clone(Property,
-     * int, Property, int)} method is invoked in response to {@link
-     * Entity#add(com.lhkbob.entreri.Component)} or {@link EntitySystem#addEntity(Entity)}.
+     * PropertyFactory} when its {@link PropertyFactory#clone(Property, int, Property,
+     * int)} method is invoked in response to {@link Entity#add(com.lhkbob.entreri.Component)}
+     * or {@link EntitySystem#addEntity(Entity)}.
      */
     public static enum Policy {
         /**

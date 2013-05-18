@@ -43,9 +43,16 @@ import java.lang.reflect.Method;
  * @param <T> The type of component the AbstractComponent is safely cast-able to
  */
 public abstract class AbstractComponent<T extends Component> implements Component {
+    /**
+     * The ComponentRepository managing this component and all of its property data
+     */
     protected final ComponentRepository<T> owner;
 
-    private int index;
+    /**
+     * The current index of the component. Subclasses must not modify directly, but should
+     * call setIndex(). This is provided to avoid the virtual getIndex() call.
+     */
+    protected int index;
     private int id;
 
     /**
@@ -66,13 +73,6 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     void setIndex(int index) {
         this.index = index;
         this.id = owner.getId(index);
-    }
-
-    /**
-     * @return The repository that allocated this component
-     */
-    ComponentRepository<T> getRepository() {
-        return owner;
     }
 
     @Override
@@ -184,7 +184,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     private String inspectProperty(Property p) {
         try {
             Method get = p.getClass().getMethod("get", int.class);
-            Object v = get.invoke(p, getIndex());
+            Object v = get.invoke(p, index);
 
             if (v != null) {
                 // strip out newlines

@@ -30,10 +30,10 @@ import com.lhkbob.entreri.property.*;
 
 @Factory(CustomProperty.CustomFactoryWithAttributes.class)
 public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> {
-    private final ObjectProperty<Bletch> property;
+    private final ObjectProperty property;
 
     public CustomProperty() {
-        property = new ObjectProperty<>();
+        property = new ObjectProperty();
     }
 
     @Override
@@ -42,16 +42,16 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
     }
 
     public void set(int index, Bletch b) {
-        property.set(index, b);
+        get(index).value = b.value;
     }
 
     public Bletch get(int index) {
-        return property.get(index);
+        return (Bletch) property.get(index);
     }
 
     @Override
     public void get(int index, Bletch b) {
-        b.value = property.get(index).value;
+        b.value = get(index).value;
     }
 
     @Override
@@ -88,7 +88,7 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
             b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
                                                                               : attributes
                                .getAttribute(IntProperty.DefaultInt.class).value());
-            property.set(index, b);
+            property.property.set(index, b);
         }
 
         @Override

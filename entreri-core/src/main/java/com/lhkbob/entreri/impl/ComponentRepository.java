@@ -72,7 +72,7 @@ public final class ComponentRepository<T extends Component> {
     private final IntProperty componentIdProperty;
     private final IntProperty componentVersionProperty;
 
-    private final ObjectProperty<OwnerSupport> ownerDelegatesProperty;
+    private final ObjectProperty ownerDelegatesProperty;
 
     private int idSeq;
     private int versionSeq;
@@ -232,7 +232,7 @@ public final class ComponentRepository<T extends Component> {
      * @return The OwnerSupport delegate for the component by the given index
      */
     public OwnerSupport getOwnerDelegate(int componentIndex) {
-        return ownerDelegatesProperty.get(componentIndex);
+        return (OwnerSupport) ownerDelegatesProperty.get(componentIndex);
     }
 
     /**
