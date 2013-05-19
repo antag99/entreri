@@ -3,7 +3,7 @@
     <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
     <packaging>jar</packaging>
-    <version>1.7.0</version>
+    <version>1.7.1-SNAPSHOT</version>
 
     <name>Entreri</name>
     <description>Entity-component framework written in Java for game development
