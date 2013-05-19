@@ -37,7 +37,6 @@ import java.util.Iterator;
  * Once created the Entity object will not change its identity. There are no flyweight
  * entities, unlike components which do use that design pattern.
  * <p/>
- * <p/>
  * Entity implements both {@link Ownable} and {@link Owner}. This can be used to create
  * hierarchies of both components and entities that share a lifetime. When an entity is
  * removed from the system, all of its owned objects are disowned. If any of them were
@@ -108,28 +107,51 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * @throws NullPointerException  if toClone is null
      * @throws IllegalStateException if toClone is not a live component instance
      */
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends Component> T add(T toClone);
 
     /**
+     * Get the canonical component instance of type <var>T</var> on this Entity. Unlike
+     * {@link #get(Class)}, this will add the component if it is not present. Thus, this
+     * is a convenience for getting the component, and adding it if the get returned
+     * null.
+     *
+     * @param type The class interface of the component to add
+     * @param <T>  The parameterized type of component
+     *
+     * @return The component of type T, potentially new if it wasn't already on the
+     *         entity
+     */
+    public <T extends Component> T as(Class<T> type);
+
+    /**
+     * Check whether or not the a component of the given type is attached to this entity.
+     * This is a convenience for getting the component and then checking if it's null.
+     *
+     * @param type The component type to check for
+     *
+     * @return True if the entity currently has the attached type, in which case get()
+     *         will return a non-null alive component
+     */
+    public boolean has(Class<? extends Component> type);
+
+    /**
      * <p/>
-     * Remove any attached Component with the data type, T, from this Entity. True is
-     * returned if a component was removed, and false otherwise. If a component is
-     * removed, the component should no longer be used and it will return false from
-     * {@link Component#isAlive()}.
+     * Remove any attached Component with the data type from this Entity. True is returned
+     * if a component was removed, and false otherwise. If a component is removed, the
+     * component should no longer be used and it will return false from {@link
+     * Component#isAlive()}.
      * <p/>
      * When a Component is removed, it will set its owner to null, and disown all of its
      * owned objects. If any of those owned objects are entities or components, they are
      * removed from the system as well.
      *
-     * @param <T>           The parameterized type of component to remove
      * @param componentType The component type
      *
      * @return True if a component was removed
      *
      * @throws NullPointerException if componentId is null
      */
-    public <T extends Component> boolean remove(Class<T> componentType);
+    public boolean remove(Class<? extends Component> componentType);
 
     /**
      * <p/>

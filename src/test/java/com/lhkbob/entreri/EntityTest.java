@@ -126,6 +126,8 @@ public class EntityTest {
         EntitySystem system = EntitySystem.create();
         Entity e = system.addEntity();
 
+        Assert.assertNull(e.get(IntComponent.class));
+
         IntComponent c = e.add(IntComponent.class);
         c.setInt(2);
 
@@ -138,6 +140,29 @@ public class EntityTest {
         }
 
         Assert.assertEquals(1, count);
+    }
+
+    @Test
+    public void testHasComponent() {
+        EntitySystem system = EntitySystem.create();
+        Entity e = system.addEntity();
+
+        Assert.assertFalse(e.has(IntComponent.class));
+        e.add(IntComponent.class);
+        Assert.assertTrue(e.has(IntComponent.class));
+    }
+
+    @Test
+    public void testAsComponent() {
+        EntitySystem system = EntitySystem.create();
+        Entity e = system.addEntity();
+
+        Assert.assertNull(e.get(IntComponent.class));
+        IntComponent c = e.as(IntComponent.class);
+        Assert.assertNotNull(c);
+
+        IntComponent c2 = e.as(IntComponent.class);
+        Assert.assertSame(c, c2);
     }
 
     @Test

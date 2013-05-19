@@ -95,6 +95,23 @@ public final class EntityImpl implements Entity {
     }
 
     @Override
+    public <T extends Component> T as(Class<T> componentType) {
+        ComponentRepository<T> ci = system.getRepository(componentType);
+        int componentIndex = ci.getComponentIndex(index);
+        if (componentIndex > 0) {
+            return ci.getComponent(componentIndex);
+        } else {
+            return ci.addComponent(index);
+        }
+    }
+
+    @Override
+    public boolean has(Class<? extends Component> componentType) {
+        ComponentRepository<?> ci = system.getRepository(componentType);
+        return ci.getComponentIndex(index) > 0;
+    }
+
+    @Override
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends Component> T add(T toClone) {
         if (toClone == null) {
@@ -106,8 +123,8 @@ public final class EntityImpl implements Entity {
     }
 
     @Override
-    public <T extends Component> boolean remove(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
+    public boolean remove(Class<? extends Component> componentType) {
+        ComponentRepository<?> ci = system.getRepository(componentType);
         return ci.removeComponent(index);
     }
 
