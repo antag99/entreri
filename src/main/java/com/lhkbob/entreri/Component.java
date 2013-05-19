@@ -41,11 +41,9 @@ package com.lhkbob.entreri;
  * Logically a component definition is a set of named and typed properties, and a
  * method-based API to get and set the values of each property. Specific types of
  * component are defined by creating a sub-interface of Component. Using the {@link
- * com.lhkbob.entreri.property.Named @Named} {@link com.lhkbob.entreri.property.SharedInstance
- *
- * @author Michael Ludwig
- * @SharedInstance}, {@link com.lhkbob.entreri.property.Factory @Factory} and custom
- * {@link com.lhkbob.entreri.property.Attribute Attribute} annotations defined by {@link
+ * com.lhkbob.entreri.property.Named Named}, {@link com.lhkbob.entreri.property.SharedInstance
+ * SharedInstance}, {@link com.lhkbob.entreri.property.Factory Factory} and custom {@link
+ * com.lhkbob.entreri.property.Attribute Attribute} annotations defined by {@link
  * com.lhkbob.entreri.property.Property Property} implementations, the data properties of
  * the component type are specified in the sub-interface. A declaration model similar to
  * the Java Bean model is used and is outlined below:
@@ -53,20 +51,20 @@ package com.lhkbob.entreri;
  * <ol> <li>Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a
  * property. The property type is inspected from the return type of the method. The
  * property name is the method name minus the 'get'/'is'/'has' prefix with its first
- * letter made lower-case. The {@link com.lhkbob.entreri.property.Named @Named} annotation
+ * letter made lower-case. The {@link com.lhkbob.entreri.property.Named Named} annotation
  * can be used to override the name.</li> <li>Single-argument methods starting with 'set'
  * are assumed to be a setter corresponding to a property. The single parameter's type
- * must equal the type the getter. The {@link com.lhkbob.entreri.property.Named @Named}
+ * must equal the type the getter. The {@link com.lhkbob.entreri.property.Named Named}
  * annotation can be applied to either the setter or the parameter to specify the property
  * name.</li> <li>Multi-argument methods starting with 'set' are assumed to be a setter
  * that assigns values to multiple property, one for each argument. Each argument must be
- * annotated with {@link com.lhkbob.entreri.property.Named @Named} to specify the
- * property, and the argument type must equal the type of the matching property.</li>
- * <li>Setter methods must return void or return the components type, in which case the
- * proxy will return itself to allow for method chaining.</li> <li>Getters with void
- * return types or more than 0 arguments, setters with an invalid return type or no
- * arguments, and any other method not matching the conventions above will cause the
- * system to throw an {@link IllegalComponentDefinitionException}.</li> </ol>
+ * annotated with {@link com.lhkbob.entreri.property.Named Named} to specify the property,
+ * and the argument type must equal the type of the matching property.</li> <li>Setter
+ * methods must return void or return the components type, in which case the proxy will
+ * return itself to allow for method chaining.</li> <li>Getters with void return types or
+ * more than 0 arguments, setters with an invalid return type or no arguments, and any
+ * other method not matching the conventions above will cause the system to throw an
+ * {@link IllegalComponentDefinitionException}.</li> </ol>
  * <p/>
  * Internally, the entity system will generate proxy implementations of the component
  * interfaces that implement the property getters and setters but store all of the values
@@ -74,7 +72,7 @@ package com.lhkbob.entreri;
  * allows iteration over components to have much better cache locality if the component is
  * defined in terms of primitives or types that have specialized Property implementations
  * that can pack and unpack an instance. The {@link com.lhkbob.entreri.property.SharedInstance
- * @SharedInstance} annotation can be added to the getter method of a property to specify
+ * SharedInstance} annotation can be added to the getter method of a property to specify
  * that the {@link com.lhkbob.entreri.property.ShareableProperty ShareableProperty} API
  * should be leveraged by the generated class.
  * <p/>
@@ -91,18 +89,18 @@ package com.lhkbob.entreri;
  * <p/>
  * Attribute annotations provided by the default property implementations are outlined
  * below: <ul> <li>{@link com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean
- * @DefaultBoolean} - set value for boolean properties</li> <li>{@link
- * com.lhkbob.entreri.property.ByteProperty.DefaultByte @DefaultByte} - set value for byte
+ * DefaultBoolean} - set value for boolean properties</li> <li>{@link
+ * com.lhkbob.entreri.property.ByteProperty.DefaultByte DefaultByte} - set value for byte
  * properties</li> <li>{@link com.lhkbob.entreri.property.ShortProperty.DefaultShort
- * @DefaultShort} - set value for short properties</li> <li>{@link
- * com.lhkbob.entreri.property.IntProperty.DefaultInt @DefaultInt} - set value for int
+ * DefaultShort} - set value for short properties</li> <li>{@link
+ * com.lhkbob.entreri.property.IntProperty.DefaultInt DefaultInt} - set value for int
  * properties</li> <li>{@link com.lhkbob.entreri.property.LongProperty.DefaultLong
- * @DefaultLong} - set value for long properties</li> <li>{@link
- * com.lhkbob.entreri.property.FloatProperty.DefaultFloat @DefaultFloat} - set value for
+ * DefaultLong} - set value for long properties</li> <li>{@link
+ * com.lhkbob.entreri.property.FloatProperty.DefaultFloat DefaultFloat} - set value for
  * float properties</li> <li>{@link com.lhkbob.entreri.property.DoubleProperty.DefaultDouble
- * @DefaultDouble} - set value for double properties</li> <li>{@link
- * com.lhkbob.entreri.property.CharProperty.DefaultChar @DefaultChar} - set value for char
- * properties</li> <li>{@link com.lhkbob.entreri.property.Clone @Clone} - specify clone
+ * DefaultDouble} - set value for double properties</li> <li>{@link
+ * com.lhkbob.entreri.property.CharProperty.DefaultChar DefaultChar} - set value for char
+ * properties</li> <li>{@link com.lhkbob.entreri.property.Clone Clone} - specify clone
  * policy used with entity or component templates</li> </ul> Note that there are no
  * annotations that work with general object types. This is because the scope of that
  * problem is intractable. The default ObjectProperty implementation assumes null values
@@ -121,6 +119,8 @@ package com.lhkbob.entreri;
  * hierarchies of both components and entities that share a lifetime. When a component is
  * removed from an entity, all of its owned objects are disowned. If any of them were
  * entities or components, they are also removed from the system.
+ *
+ * @author Michael Ludwig
  */
 public interface Component extends Owner, Ownable {
     /**
