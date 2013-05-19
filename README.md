@@ -47,6 +47,8 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
   `@SharedInstance` annotation.
 * Component proxy implementations generated at build time using an annotation
   processor.
+* Add `as(Class)` to get components from entities with vivifying behavior, and add
+  `has(Class)->boolean` as a convenience to check for component presence.
 
 ### 1.6.1
 * Remove `Entity.getIfModified()` method because its semantics were vague and unhelpful.
