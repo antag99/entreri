@@ -4,10 +4,16 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.lhkbob.entreri</groupId>
     <artifactId>entreri</artifactId>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <version>1.7.0-SNAPSHOT</version>
 
-    <name>Parent for Entreri and tests</name>
+    <name>Entreri Entity-Component Framework</name>
+    <description>Entreri is an entity-component framework for Java that helps manage or
+        remove complex OO hierarchies that often form when developing games. For a useful
+        description of an entity-component framework, see
+        http://t-machine.org/index.php/2007/09/03/entity-systems-are-the-future-of-mmog-development-part-1/
+    </description>
+
     <url>http://entreri.lhkbob.com</url>
 
     <parent>
@@ -15,11 +21,6 @@
         <artifactId>oss-parent</artifactId>
         <version>7</version>
     </parent>
-
-    <modules>
-        <module>entreri-core</module>
-        <module>entreri-apt-tests</module>
-    </modules>
 
     <developers>
         <developer>
@@ -113,6 +114,15 @@
                         <target>1.7</target>
                         <showWarnings>true</showWarnings>
                     </configuration>
+
+                    <executions>
+                        <execution>
+                            <id>default-compile</id>
+                            <configuration>
+                                <proc>none</proc>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <plugin>
@@ -147,6 +157,33 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-invoker-plugin</artifactId>
+                <version>1.8</version>
+
+                <configuration>
+                    <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+                    <settingsFile>${project.basedir}/src/it/settings.xml</settingsFile>
+                    <localRepositoryPath>${project.build.directory}/local-repo
+                    </localRepositoryPath>
+                    <addTestClassPath>true</addTestClassPath>
+                    <postBuildHookScript>verify</postBuildHookScript>
+                    <cloneClean>true</cloneClean>
+                    <addTestClassPath>true</addTestClassPath>
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>integration-test</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>install</goal>
+                            <goal>run</goal>
                         </goals>
                     </execution>
                 </executions>

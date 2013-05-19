@@ -38,16 +38,15 @@ The Eclipse plugin, [m2e][], can be used for Maven/Eclipse integration.
 ## Release Notes
 
 ### 1.7.0
-* Drastically simplify `Component` definition by using interfaces, APT, and Janino.
+* Drastically simplify `Component` definition by using interfaces and APT.
 * Remove `IndexedDataStore` to consolidate property package.
 * Make `Component`, `Entity` and `EntitySystem` interfaces and hide their implementations
   in an impl package.
 * Remove `ComponentData`. Types now extend `Component` directly as sub-interfaces. The
   onSet() method has also been removed, but the same functionality can be used with the
   `@SharedInstance` annotation.
-* Component definitions are now either generated at build time using an annotation
-  processor, or at runtime using Janino if an existing class can't be located.
-* Restructure Maven modules to support integration tests.
+* Component proxy implementations generated at build time using an annotation
+  processor.
 
 ### 1.6.1
 * Remove `Entity.getIfModified()` method because its semantics were vague and unhelpful.
