@@ -50,7 +50,7 @@ public final class TypePropertyMapping {
     private static final ConcurrentHashMap<Class<?>, Class<? extends Property>> typeMapping;
 
     static {
-        typeMapping = new ConcurrentHashMap<Class<?>, Class<? extends Property>>();
+        typeMapping = new ConcurrentHashMap<>();
 
         // default mapping for primitive types
         typeMapping.put(byte.class, ByteProperty.class);

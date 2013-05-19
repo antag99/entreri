@@ -137,6 +137,17 @@ public abstract class SimpleTask implements Task {
         }
     }
 
+    /**
+     * The default implementation of process() just invokes {@link
+     * #processEntities(com.lhkbob.entreri.EntitySystem)} immediately and returns no
+     * future task.
+     *
+     * @param system The EntitySystem being processed, which will always be the same for a
+     *               given Task instance
+     * @param job    The Job this task belongs to
+     *
+     * @return Will return null unless overridden
+     */
     @Override
     public Task process(EntitySystem system, Job job) {
         processEntities(system);

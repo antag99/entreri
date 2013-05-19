@@ -44,14 +44,14 @@ import java.util.List;
 public class ComponentRepositoryTest {
     @Test
     public void testFactorySetValue() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         ComplexComponent c = system.addEntity().add(ComplexComponent.class);
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
     }
 
     @Test
     public void testDecorateProperty() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -71,7 +71,7 @@ public class ComponentRepositoryTest {
 
     @Test
     public void testDecoratePropertyAddComponent() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -100,12 +100,12 @@ public class ComponentRepositoryTest {
     }
 
     @Test
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "UnusedAssignment" })
     public void testUndecorateValidProperty() throws Exception {
         // This is an ugly ugly test case since it has to verify that the
         // property gets garbage collected. The only way it can get at that
         // is to use reflection to inspect the component repository
-        EntitySystemImpl system = (EntitySystemImpl) EntitySystem.create();
+        EntitySystemImpl system = (EntitySystemImpl) EntitySystem.Factory.create();
         ComponentRepository<IntComponent> cr = system.getRepository(IntComponent.class);
         int count = getDecoratedProperties(cr).size();
 
@@ -131,7 +131,7 @@ public class ComponentRepositoryTest {
         decorated.setAccessible(true);
         List<?> value = (List<?>) decorated.get(cr);
 
-        List<Property> converted = new ArrayList<Property>();
+        List<Property> converted = new ArrayList<>();
         for (Object o : value) {
             Field ref = o.getClass().getDeclaredField("property");
             ref.setAccessible(true);

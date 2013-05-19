@@ -54,20 +54,22 @@ import java.util.Iterator;
  * When Entities are created by an EntitySystem, the created instance is assigned an ID
  * which represents its true identity.
  * <p/>
- * Use {@link #create()} to get a new instance of an EntitySystem.
+ * Use {@link Factory#create()} to get a new instance of an EntitySystem.
  *
  * @author Michael Ludwig
  * @see Entity
  * @see Component
  */
-public abstract class EntitySystem implements Iterable<Entity> {
-    /**
-     * Create a new EntitySystem using the default implementation with entreri
-     *
-     * @return A new, empty EntitySystem
-     */
-    public static EntitySystem create() {
-        return new EntitySystemImpl();
+public interface EntitySystem extends Iterable<Entity> {
+    public static class Factory {
+        /**
+         * Create a new EntitySystem using the default implementation with entreri
+         *
+         * @return A new, empty EntitySystem
+         */
+        public static EntitySystem create() {
+            return new EntitySystemImpl();
+        }
     }
 
     /**
@@ -81,7 +83,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @throws NullPointerException if type is null
      */
-    public abstract <T extends Component> Collection<Class<? extends T>> getComponentTypes(
+    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(
             Class<T> type);
 
     /**
@@ -90,7 +92,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @return All TypeIds at one point used by this system
      */
-    public abstract Collection<Class<? extends Component>> getComponentTypes();
+    public Collection<Class<? extends Component>> getComponentTypes();
 
     /**
      * Return the Scheduler for this EntitySystem that can be used to organize processing
@@ -98,7 +100,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @return The Scheduler for this system
      */
-    public abstract Scheduler getScheduler();
+    public Scheduler getScheduler();
 
     /**
      * Return an iterator over all of the entities within the system. The returned
@@ -108,7 +110,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      * @return An iterator over the entities of the system
      */
     @Override
-    public abstract Iterator<Entity> iterator();
+    public Iterator<Entity> iterator();
 
     /**
      * Return an iterator over all components of with the given type. The returned
@@ -120,7 +122,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @return A fast iterator over components in this system
      */
-    public abstract <T extends Component> Iterator<T> iterator(Class<T> type);
+    public <T extends Component> Iterator<T> iterator(Class<T> type);
 
     /**
      * Return a new ComponentIterator that must be configured with required and optional
@@ -128,7 +130,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @return A new iterator over the components in this system
      */
-    public abstract ComponentIterator fastIterator();
+    public ComponentIterator fastIterator();
 
     /**
      * <p/>
@@ -147,7 +149,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      * frame rate. As an example, on a test system with 20,000 entities compact() took
      * ~2ms on an Intel i5 processor. Of course, mileage may very.
      */
-    public abstract void compact();
+    public void compact();
 
     /**
      * Add a new Entity to this EntitySystem. The created Entity will not have any
@@ -156,7 +158,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @return A new Entity in the system, without any components
      */
-    public abstract Entity addEntity();
+    public Entity addEntity();
 
     /**
      * <p/>
@@ -174,7 +176,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @throws IllegalStateException if the template is not a live entity
      */
-    public abstract Entity addEntity(Entity template);
+    public Entity addEntity(Entity template);
 
     /**
      * <p/>
@@ -193,7 +195,7 @@ public abstract class EntitySystem implements Iterable<Entity> {
      * @throws IllegalArgumentException if the entity was not created by this system, or
      *                                  already removed
      */
-    public abstract void removeEntity(Entity e);
+    public void removeEntity(Entity e);
 
     /**
      * <p/>
@@ -214,6 +216,6 @@ public abstract class EntitySystem implements Iterable<Entity> {
      *
      * @throws NullPointerException if type or factory are null
      */
-    public abstract <T extends Component, P extends Property> P decorate(Class<T> type,
-                                                                         PropertyFactory<P> factory);
+    public <T extends Component, P extends Property> P decorate(Class<T> type,
+                                                                PropertyFactory<P> factory);
 }

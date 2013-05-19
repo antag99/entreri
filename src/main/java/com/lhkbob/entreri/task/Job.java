@@ -77,12 +77,12 @@ public class Job implements Runnable {
         this.tasks = new Task[tasks.length];
         this.name = name;
 
-        singletonResults = new HashSet<Class<? extends Result>>();
-        resultMethods = new HashMap<Class<? extends Result>, List<ResultReporter>>();
+        singletonResults = new HashSet<>();
+        resultMethods = new HashMap<>();
         taskIndex = -1;
 
         boolean exclusive = false;
-        Set<Class<? extends Component>> typeLocks = new HashSet<Class<? extends Component>>();
+        Set<Class<? extends Component>> typeLocks = new HashSet<>();
         for (int i = 0; i < tasks.length; i++) {
             if (tasks[i] == null) {
                 throw new NullPointerException("Task cannot be null");
@@ -114,7 +114,7 @@ public class Job implements Runnable {
 
                         List<ResultReporter> all = resultMethods.get(type);
                         if (all == null) {
-                            all = new ArrayList<ResultReporter>();
+                            all = new ArrayList<>();
                             resultMethods.put(type, all);
                         }
 
@@ -129,7 +129,7 @@ public class Job implements Runnable {
             locks = null;
         } else {
             needsExclusiveLock = false;
-            locks = new ArrayList<Class<? extends Component>>(typeLocks);
+            locks = new ArrayList<>(typeLocks);
             // give locks a consistent ordering
             Collections.sort(locks, new Comparator<Class<? extends Component>>() {
                 @Override
@@ -193,7 +193,7 @@ public class Job implements Runnable {
             }
 
             // process all tasks and collect all returned tasks, in order
-            List<Task> postProcess = new ArrayList<Task>();
+            List<Task> postProcess = new ArrayList<>();
             for (int i = 0; i < tasks.length; i++) {
                 taskIndex = i;
                 Task after = tasks[i].process(scheduler.getEntitySystem(), this);
@@ -292,11 +292,8 @@ public class Job implements Runnable {
                 if (taskIndex > Job.this.taskIndex) {
                     reportMethod.invoke(Job.this.tasks[taskIndex], r);
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | IllegalAccessException e) {
                 // shouldn't happen, since we check the type before invoking
-                throw new RuntimeException(e);
-            } catch (IllegalAccessException e) {
-                // shouldn't happen since we only use public methods
                 throw new RuntimeException(e);
             } catch (InvocationTargetException e) {
                 throw new RuntimeException("Error reporting result", e.getCause());

@@ -33,9 +33,9 @@ import java.util.Map;
 
 /**
  * Attributes represents the collection of attributes that have been provided on a
- * property declaration within a ComponentData definition. To work with {@link
- * ReflectionComponentDataFactory}, {@link PropertyFactory} implementations should have a
- * constructor that takes a single Attributes instance.
+ * property declaration within a ComponentData definition. To use attributes, {@link
+ * PropertyFactory} implementations should have a constructor that takes a single
+ * Attributes instance.
  *
  * @author Michael Ludwig
  * @see PropertyFactory
@@ -47,7 +47,7 @@ public class Attributes {
      * Construct a new set of attributes from the given annotations. Only annotations that
      * have the Attribute annotation are kept.
      *
-     * @param attrs
+     * @param attrs The annotations from the method, or field, etc.
      *
      * @throws NullPointerException if attrs is null or contains null elements
      */
@@ -55,7 +55,7 @@ public class Attributes {
         if (attrs == null) {
             throw new NullPointerException("Attributes cannot be null");
         }
-        this.attrs = new HashMap<Class<? extends Annotation>, Annotation>();
+        this.attrs = new HashMap<>();
 
         for (Annotation a : attrs) {
             if (a.annotationType().getAnnotation(Attribute.class) != null) {

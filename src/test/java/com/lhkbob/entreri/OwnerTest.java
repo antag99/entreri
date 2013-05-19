@@ -35,7 +35,7 @@ public class OwnerTest {
 
     @Test
     public void testEntitySetOwner() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
@@ -56,7 +56,7 @@ public class OwnerTest {
 
     @Test
     public void testComponentSetOwner() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
@@ -79,7 +79,7 @@ public class OwnerTest {
 
     @Test
     public void testOwnedEntityRemoval() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
 
         final boolean[] revoked = new boolean[1];
@@ -102,7 +102,7 @@ public class OwnerTest {
 
     @Test
     public void testOwnedComponentRemoval() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
         IntComponent c1 = e1.add(IntComponent.class);
 
@@ -126,7 +126,7 @@ public class OwnerTest {
 
     @Test
     public void testOwnedComponentAdd() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
 
         IntComponent c1 = e1.add(IntComponent.class);
@@ -152,7 +152,7 @@ public class OwnerTest {
 
     @Test
     public void testEntityRemovalCleanup() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         Entity owner = system.addEntity();
 
@@ -171,7 +171,7 @@ public class OwnerTest {
 
     @Test
     public void testComponentRemovalCleanup() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         Entity e1 = system.addEntity();
 
@@ -189,7 +189,7 @@ public class OwnerTest {
 
     @Test
     public void testComplexOwnershipHierarchyCleanup() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         Entity e1 = system.addEntity();
         IntComponent c1 = e1.add(IntComponent.class);
@@ -218,7 +218,7 @@ public class OwnerTest {
 
     @Test
     public void testComponentOwningParentEntityRemoval() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
@@ -231,7 +231,7 @@ public class OwnerTest {
 
     @Test
     public void testFlyweightComponentOwnership() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 

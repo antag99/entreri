@@ -84,7 +84,7 @@ public class Scheduler {
 
         schedulerGroup = new ThreadGroup("job-scheduler");
         exclusiveLock = new ReentrantReadWriteLock();
-        typeLocks = new ConcurrentHashMap<Class<? extends Component>, ReentrantLock>();
+        typeLocks = new ConcurrentHashMap<>();
     }
 
     /**

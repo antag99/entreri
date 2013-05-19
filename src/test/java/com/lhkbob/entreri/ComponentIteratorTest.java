@@ -57,13 +57,13 @@ public class ComponentIteratorTest {
 
     @Before
     public void setup() {
-        entityIds = new ArrayList<Integer>();
-        entityObjValues = new ArrayList<ObjectComponent.FooBlah>();
-        entityFloatValues = new ArrayList<Float>();
-        entityCombinedObjValues = new ArrayList<ObjectComponent.FooBlah>();
-        entityCombinedFloatValues = new ArrayList<Float>();
+        entityIds = new ArrayList<>();
+        entityObjValues = new ArrayList<>();
+        entityFloatValues = new ArrayList<>();
+        entityCombinedObjValues = new ArrayList<>();
+        entityCombinedFloatValues = new ArrayList<>();
 
-        system = EntitySystem.create();
+        system = EntitySystem.Factory.create();
 
         for (int i = 0; i < ENTITY_COUNT; i++) {
             Entity e = system.addEntity();

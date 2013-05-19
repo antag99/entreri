@@ -56,7 +56,7 @@ class OwnerSupport {
             throw new NullPointerException("Ownable cannot be null");
         }
         this.target = target;
-        ownedObjects = new HashSet<Ownable>();
+        ownedObjects = new HashSet<>();
         currentOwner = null;
     }
 

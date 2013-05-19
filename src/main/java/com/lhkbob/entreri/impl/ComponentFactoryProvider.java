@@ -249,7 +249,7 @@ public abstract class ComponentFactoryProvider {
             if (use15) {
                 sb.append("\n\t@Override");
             }
-            appendGetter(s, property, sb, use15);
+            appendGetter(s, property, sb);
             List<PropertyDeclaration> setterParams = setters.get(s.getSetterMethod());
             if (setterParams == null) {
                 setterParams = new ArrayList<>();
@@ -296,11 +296,9 @@ public abstract class ComponentFactoryProvider {
      * @param forProperty The property whose getter method will be defined
      * @param index       The index of the property in the overall spec
      * @param sb          The buffer to append to
-     * @param useGenerics True if the source can use generics, in which case
-     *                    ObjectProperties are properly parameterized
      */
     private static void appendGetter(PropertyDeclaration forProperty, int index,
-                                     StringBuilder sb, boolean useGenerics) {
+                                     StringBuilder sb) {
         // method signature
         sb.append("\n\tpublic ").append(forProperty.getType()).append(" ")
           .append(forProperty.getGetterMethod()).append("() {\n\t\t");

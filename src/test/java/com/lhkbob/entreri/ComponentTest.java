@@ -36,7 +36,7 @@ import org.junit.Test;
 public class ComponentTest {
     @Test
     public void testIsAliveComponentRemove() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -48,7 +48,7 @@ public class ComponentTest {
 
     @Test
     public void testIsAliveEntityRemove() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -60,7 +60,7 @@ public class ComponentTest {
 
     @Test
     public void testIsAlivePostCompact() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
         Entity e3 = system.addEntity();
@@ -96,7 +96,7 @@ public class ComponentTest {
 
     @Test
     public void testNewlyAddedComponentState() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
 
         IntComponent c = e.add(IntComponent.class);
@@ -110,7 +110,7 @@ public class ComponentTest {
 
     @Test
     public void testIsAlivePostNoopCompact() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
         Entity e2 = system.addEntity();
 
@@ -127,7 +127,7 @@ public class ComponentTest {
 
     @Test
     public void testVersionUpdate() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent cd = e.add(IntComponent.class);
 
@@ -138,7 +138,7 @@ public class ComponentTest {
 
     @Test
     public void testAutomaticVersionUpdate() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent cd = e.add(IntComponent.class);
 
@@ -149,7 +149,7 @@ public class ComponentTest {
 
     @Test
     public void testUniqueVersionUpdate() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         IntComponent cd1 = system.addEntity().add(IntComponent.class);
         IntComponent cd2 = system.addEntity().add(IntComponent.class);
 
@@ -168,7 +168,7 @@ public class ComponentTest {
 
     @Test
     public void testInvalidComponentVersion() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e = system.addEntity();
         IntComponent cd = e.add(IntComponent.class);
         e.remove(IntComponent.class);
@@ -184,7 +184,7 @@ public class ComponentTest {
 
     @Test
     public void testBeanMethodInvocation() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
         Entity e1 = system.addEntity();
         ComplexComponent c1 = e1.add(ComplexComponent.class);
 
@@ -223,7 +223,7 @@ public class ComponentTest {
 
     @Test
     public void testFlyweightIsAliveAfterRemoval() {
-        EntitySystem system = EntitySystem.create();
+        EntitySystem system = EntitySystem.Factory.create();
 
         IntComponent c1 = system.addEntity().add(IntComponent.class);
         IntComponent c2 = system.addEntity().add(IntComponent.class);

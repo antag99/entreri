@@ -41,7 +41,7 @@ import java.util.*;
  *
  * @author Michael Ludwig
  */
-public final class EntitySystemImpl extends EntitySystem {
+public final class EntitySystemImpl implements EntitySystem {
     // converts valid component data types into indices into componentRepositories
     private final Map<Class<? extends Component>, Integer> typeIndexMap;
     private int typeIdSeq;
@@ -59,7 +59,7 @@ public final class EntitySystemImpl extends EntitySystem {
      * Create a new EntitySystem that has no entities added.
      */
     public EntitySystemImpl() {
-        typeIndexMap = new HashMap<Class<? extends Component>, Integer>();
+        typeIndexMap = new HashMap<>();
         typeIdSeq = 0;
 
         manager = new Scheduler(this);
@@ -78,7 +78,7 @@ public final class EntitySystemImpl extends EntitySystem {
             throw new NullPointerException("Type cannot be null");
         }
 
-        List<Class<? extends T>> ids = new ArrayList<Class<? extends T>>();
+        List<Class<? extends T>> ids = new ArrayList<>();
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
                 // check the type
@@ -93,7 +93,7 @@ public final class EntitySystemImpl extends EntitySystem {
 
     @Override
     public Collection<Class<? extends Component>> getComponentTypes() {
-        List<Class<? extends Component>> ids = new ArrayList<Class<? extends Component>>();
+        List<Class<? extends Component>> ids = new ArrayList<>();
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
                 ids.add(componentRepositories[i].getType());
@@ -114,7 +114,7 @@ public final class EntitySystemImpl extends EntitySystem {
 
     @Override
     public <T extends Component> Iterator<T> iterator(Class<T> type) {
-        return new ComponentIteratorWrapper<T>(type);
+        return new ComponentIteratorWrapper<>(type);
     }
 
     @Override
@@ -271,7 +271,7 @@ public final class EntitySystemImpl extends EntitySystem {
         ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
-            i = new ComponentRepository<T>(this, type);
+            i = new ComponentRepository<>(this, type);
             i.expandEntityIndex(entities.length);
             componentRepositories[index] = i;
         }
