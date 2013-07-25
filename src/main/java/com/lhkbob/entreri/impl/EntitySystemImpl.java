@@ -72,12 +72,12 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(Class<T> type) {
+    public Collection<Class<?>> getComponentTypes(Class<?> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
         }
 
-        List<Class<? extends T>> ids = new ArrayList<>();
+        List<Class<?>> ids = new ArrayList<>();
         for (int i = 0; i < componentRepositories.length; i++) {
             if (componentRepositories[i] != null) {
                 // check the type

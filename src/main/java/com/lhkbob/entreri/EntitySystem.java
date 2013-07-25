@@ -86,7 +86,7 @@ public interface EntitySystem extends Iterable<Entity> {
      *
      * @throws NullPointerException if type is null
      */
-    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(Class<T> type);
+    public Collection<Class<?>> getComponentTypes(Class<?> type);
 
     /**
      * Get all Component interfaces currently used by the EntitySystem. If a type has had all of its
