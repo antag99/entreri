@@ -29,8 +29,7 @@ package com.lhkbob.entreri.components;
 import com.lhkbob.entreri.Component;
 
 /**
- * A test component that has a mismatched property definition by missing a getter for the
- * setter.
+ * A test component that has a mismatched property definition by missing a getter for the setter.
  *
  * @author Michael Ludwig
  */

@@ -46,8 +46,8 @@ class OwnerSupport {
     private Owner currentOwner;
 
     /**
-     * Create a new OwnerSupport that functions as both the {@link Owner} and {@link
-     * Ownable} implementation for <var>target</var>
+     * Create a new OwnerSupport that functions as both the {@link Owner} and {@link Ownable} implementation
+     * for <var>target</var>
      *
      * @param target The actual ownable
      */
@@ -104,9 +104,8 @@ class OwnerSupport {
     }
 
     /**
-     * Set the owner of all currently owned children to null. If any of the children are
-     * entities or components, they are removed from their creating system or entity,
-     * respectively.
+     * Set the owner of all currently owned children to null. If any of the children are entities or
+     * components, they are removed from their creating system or entity, respectively.
      */
     public void disownAndRemoveChildren() {
         // Mark all owned objects as not owned

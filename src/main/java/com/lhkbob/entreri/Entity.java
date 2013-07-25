@@ -30,17 +30,16 @@ import java.util.Iterator;
 
 /**
  * <p/>
- * An Entity represents a collection of Components within an EntitySystem. Entities are
- * created by calling {@link com.lhkbob.entreri.EntitySystem#addEntity()} or the similar
- * function that takes another Entity as a template.
+ * An Entity represents a collection of Components within an EntitySystem. Entities are created by calling
+ * {@link com.lhkbob.entreri.EntitySystem#addEntity()} or the similar function that takes another Entity as a
+ * template.
  * <p/>
- * Once created the Entity object will not change its identity. There are no flyweight
- * entities, unlike components which do use that design pattern.
+ * Once created the Entity object will not change its identity. There are no flyweight entities, unlike
+ * components which do use that design pattern.
  * <p/>
- * Entity implements both {@link Ownable} and {@link Owner}. This can be used to create
- * hierarchies of both components and entities that share a lifetime. When an entity is
- * removed from the system, all of its owned objects are disowned. If any of them were
- * entities or components, they are also removed from the system.
+ * Entity implements both {@link Ownable} and {@link Owner}. This can be used to create hierarchies of both
+ * components and entities that share a lifetime. When an entity is removed from the system, all of its owned
+ * objects are disowned. If any of them were entities or components, they are also removed from the system.
  *
  * @author Michael Ludwig
  */
@@ -56,15 +55,14 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
     public EntitySystem getEntitySystem();
 
     /**
-     * @return True if this Entity is still in its EntitySystem, or false if it has been
-     *         removed
+     * @return True if this Entity is still in its EntitySystem, or false if it has been removed
      */
     public boolean isAlive();
 
     /**
      * <p/>
-     * Get the Component instance of the given type that's attached to this Entity. A null
-     * value is returned if the component type has not been attached to the entity.
+     * Get the Component instance of the given type that's attached to this Entity. A null value is returned
+     * if the component type has not been attached to the entity.
      *
      * @param <T>           The parameterized type of ComponentData of the component
      * @param componentType The given type
@@ -77,8 +75,8 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
 
     /**
      * <p/>
-     * Add a new Component with a data type T to this Entity. If there already exists a
-     * component of type T, it is removed first, and a new one is instantiated.
+     * Add a new Component with a data type T to this Entity. If there already exists a component of type T,
+     * it is removed first, and a new one is instantiated.
      *
      * @param <T>           The parameterized type of component being added
      * @param componentType The component type
@@ -91,13 +89,12 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
 
     /**
      * <p/>
-     * Add a new Component with a of type T to this Entity, but the new component's state
-     * will be cloned from the given Component instance. The <var>toClone</var> instance
-     * must still be live. If there already exists a component of type T, it is removed
-     * first, and a new one is instantiated.
+     * Add a new Component with a of type T to this Entity, but the new component's state will be cloned from
+     * the given Component instance. The <var>toClone</var> instance must still be live. If there already
+     * exists a component of type T, it is removed first, and a new one is instantiated.
      * <p/>
-     * The new component is initialized by cloning the property values from
-     * <var>toClone</var> into the values of the new component.
+     * The new component is initialized by cloning the property values from <var>toClone</var> into the values
+     * of the new component.
      *
      * @param <T>     The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
@@ -110,40 +107,36 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
     public <T extends Component> T add(T toClone);
 
     /**
-     * Get the canonical component instance of type <var>T</var> on this Entity. Unlike
-     * {@link #get(Class)}, this will add the component if it is not present. Thus, this
-     * is a convenience for getting the component, and adding it if the get returned
-     * null.
+     * Get the canonical component instance of type <var>T</var> on this Entity. Unlike {@link #get(Class)},
+     * this will add the component if it is not present. Thus, this is a convenience for getting the
+     * component, and adding it if the get returned null.
      *
      * @param type The class interface of the component to add
      * @param <T>  The parameterized type of component
      *
-     * @return The component of type T, potentially new if it wasn't already on the
-     *         entity
+     * @return The component of type T, potentially new if it wasn't already on the entity
      */
     public <T extends Component> T as(Class<T> type);
 
     /**
-     * Check whether or not the a component of the given type is attached to this entity.
-     * This is a convenience for getting the component and then checking if it's null.
+     * Check whether or not the a component of the given type is attached to this entity. This is a
+     * convenience for getting the component and then checking if it's null.
      *
      * @param type The component type to check for
      *
-     * @return True if the entity currently has the attached type, in which case get()
-     *         will return a non-null alive component
+     * @return True if the entity currently has the attached type, in which case get() will return a non-null
+     *         alive component
      */
     public boolean has(Class<? extends Component> type);
 
     /**
      * <p/>
-     * Remove any attached Component with the data type from this Entity. True is returned
-     * if a component was removed, and false otherwise. If a component is removed, the
-     * component should no longer be used and it will return false from {@link
-     * Component#isAlive()}.
+     * Remove any attached Component with the data type from this Entity. True is returned if a component was
+     * removed, and false otherwise. If a component is removed, the component should no longer be used and it
+     * will return false from {@link Component#isAlive()}.
      * <p/>
-     * When a Component is removed, it will set its owner to null, and disown all of its
-     * owned objects. If any of those owned objects are entities or components, they are
-     * removed from the system as well.
+     * When a Component is removed, it will set its owner to null, and disown all of its owned objects. If any
+     * of those owned objects are entities or components, they are removed from the system as well.
      *
      * @param componentType The component type
      *
@@ -155,9 +148,9 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
 
     /**
      * <p/>
-     * Return an iterator over the components currently attached to the Entity. The
-     * iterator supports the remove operation and will detach the component from the
-     * entity just like a call to {@link #remove(Class)}.
+     * Return an iterator over the components currently attached to the Entity. The iterator supports the
+     * remove operation and will detach the component from the entity just like a call to {@link
+     * #remove(Class)}.
      * <p/>
      * Components reported by the iterator are not flyweight.
      *

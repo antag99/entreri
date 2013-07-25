@@ -39,8 +39,7 @@ public class SchedulerTest {
     public void testResultsReportedToFutureTasksOnly() {
         EntitySystem system = EntitySystem.Factory.create();
 
-        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
-                                                         new ResultA(), new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(), new ResultA(), new ResultB());
         ResultAListeningTask t2 = new ResultAListeningTask(null);
         ResultBListeningTask t3 = new ResultBListeningTask(null);
         AllResultListeningTask t4 = new AllResultListeningTask(null);
@@ -86,8 +85,7 @@ public class SchedulerTest {
     public void testMultipleSingletonResultsReported() {
         EntitySystem system = EntitySystem.Factory.create();
 
-        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
-                                                         new ResultB(), new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(), new ResultB(), new ResultB());
 
         Job j = system.getScheduler().createJob("test", t1);
         j.run();
@@ -97,8 +95,7 @@ public class SchedulerTest {
     public void testResultsReported() {
         EntitySystem system = EntitySystem.Factory.create();
 
-        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(),
-                                                         new ResultA(), new ResultB());
+        ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(), new ResultA(), new ResultB());
         ResultAListeningTask t2 = new ResultAListeningTask(null);
         ResultBListeningTask t3 = new ResultBListeningTask(null);
         AllResultListeningTask t4 = new AllResultListeningTask(null);

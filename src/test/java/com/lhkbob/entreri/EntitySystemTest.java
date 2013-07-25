@@ -219,10 +219,8 @@ public class EntitySystemTest {
         while (it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFloat(),
-                                .0001f);
-            Assert.assertEquals(ft.next(),
-                                e.get(ComplexComponent.class).getFactoryFloat(), .0001f);
+            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFloat(), .0001f);
+            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFactoryFloat(), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());
@@ -283,10 +281,8 @@ public class EntitySystemTest {
         while (it.hasNext() && si.hasNext()) {
             Entity e = si.next();
             Assert.assertEquals(it.next(), e);
-            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFloat(),
-                                .0001f);
-            Assert.assertEquals(ft.next(),
-                                e.get(ComplexComponent.class).getFactoryFloat(), .0001f);
+            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFloat(), .0001f);
+            Assert.assertEquals(ft.next(), e.get(ComplexComponent.class).getFactoryFloat(), .0001f);
         }
         Assert.assertFalse(it.hasNext());
         Assert.assertFalse(si.hasNext());

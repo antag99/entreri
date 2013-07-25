@@ -32,9 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * CachingDelegatingFactoryProvider implements the ComponentFactoryProvider interface to
- * delegate to a list of factory providers and caches their created factories in a thread
- * safe manner so that actual implementations can be implemented simpler.
+ * CachingDelegatingFactoryProvider implements the ComponentFactoryProvider interface to delegate to a list of
+ * factory providers and caches their created factories in a thread safe manner so that actual implementations
+ * can be implemented simpler.
  *
  * @author Michael Ludwig
  */
@@ -72,7 +72,6 @@ public class CachingDelegatingFactoryProvider extends ComponentFactoryProvider {
         }
 
         throw new UnsupportedOperationException(
-                "Unable to find or generate a component implementation for " +
-                componentType);
+                "Unable to find or generate a component implementation for " + componentType);
     }
 }

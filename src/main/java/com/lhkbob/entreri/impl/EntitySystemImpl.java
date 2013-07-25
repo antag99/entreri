@@ -72,8 +72,7 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(
-            Class<T> type) {
+    public <T extends Component> Collection<Class<? extends T>> getComponentTypes(Class<T> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
         }
@@ -131,8 +130,7 @@ public final class EntitySystemImpl implements EntitySystem {
                 // found an entity to preserve
                 if (startRemove >= 0) {
                     // we have a gap from [startRemove, i - 1] that can be compacted
-                    System.arraycopy(entities, i, entities, startRemove,
-                                     entityInsert - i);
+                    System.arraycopy(entities, i, entities, startRemove, entityInsert - i);
 
                     // update entityInsert
                     entityInsert = entityInsert - i + startRemove;
@@ -240,8 +238,7 @@ public final class EntitySystemImpl implements EntitySystem {
     }
 
     @Override
-    public <T extends Component, P extends Property> P decorate(Class<T> type,
-                                                                PropertyFactory<P> factory) {
+    public <T extends Component, P extends Property> P decorate(Class<T> type, PropertyFactory<P> factory) {
         ComponentRepository<?> index = getRepository(type);
         return index.decorate(factory);
     }
@@ -252,8 +249,8 @@ public final class EntitySystemImpl implements EntitySystem {
     }
 
     /**
-     * Return the ComponentRepository associated with the given type. Creates a new
-     * component repository if the type hasn't been used or accessed before.
+     * Return the ComponentRepository associated with the given type. Creates a new component repository if
+     * the type hasn't been used or accessed before.
      *
      * @param <T>  The Component type
      * @param type The component type
@@ -298,8 +295,8 @@ public final class EntitySystemImpl implements EntitySystem {
     /**
      * Return the canonical Entity instance associated with the given index.
      *
-     * @param entityIndex The index that the entity is stored at within the entity array
-     *                    and component indicees
+     * @param entityIndex The index that the entity is stored at within the entity array and component
+     *                    indicees
      *
      * @return The canonical Entity instance for the index
      */
@@ -313,8 +310,7 @@ public final class EntitySystemImpl implements EntitySystem {
         index.addComponent(entityIndex, c);
     }
 
-    private class ComponentRepositoryIterator
-            implements Iterator<ComponentRepository<?>> {
+    private class ComponentRepositoryIterator implements Iterator<ComponentRepository<?>> {
         private int index;
         private boolean advanced;
 
@@ -348,8 +344,7 @@ public final class EntitySystemImpl implements EntitySystem {
         private void advance() {
             do {
                 index++;
-            } while (index < componentRepositories.length &&
-                     componentRepositories[index] == null);
+            } while (index < componentRepositories.length && componentRepositories[index] == null);
             advanced = true;
         }
     }

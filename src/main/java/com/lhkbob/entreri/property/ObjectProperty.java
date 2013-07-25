@@ -30,14 +30,13 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
- * ObjectProperty is an implementation of Property that stores the property data as a
- * number of packed Object references for each property. Because it is not primitive data,
- * cache locality will suffer compared to the primitive property types, but it will allow
- * you to store arbitrary objects.
+ * ObjectProperty is an implementation of Property that stores the property data as a number of packed Object
+ * references for each property. Because it is not primitive data, cache locality will suffer compared to the
+ * primitive property types, but it will allow you to store arbitrary objects.
  * <p/>
- * However, ObjectProperty assumes that all component values can be null, and the default
- * value is null. If this is not an acceptable contract then a custom property must be
- * defined with a factory capable of constructing proper default instances.
+ * However, ObjectProperty assumes that all component values can be null, and the default value is null. If
+ * this is not an acceptable contract then a custom property must be defined with a factory capable of
+ * constructing proper default instances.
  *
  * @author Michael Ludwig
  */
@@ -53,8 +52,7 @@ public final class ObjectProperty implements Property {
     }
 
     /**
-     * Return a PropertyFactory that creates ObjectProperties using the given cloning
-     * policy.
+     * Return a PropertyFactory that creates ObjectProperties using the given cloning policy.
      *
      * @return A PropertyFactory for ObjectProperty
      */
@@ -63,12 +61,11 @@ public final class ObjectProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The array may be
-     * longer than necessary for the number of components in the system. Data can be
-     * accessed for a component directly using the component's index.
+     * Return the backing int array of this property's IndexedDataStore. The array may be longer than
+     * necessary for the number of components in the system. Data can be accessed for a component directly
+     * using the component's index.
      *
-     * @return The Object data for all packed properties that this property has been
-     *         packed with
+     * @return The Object data for all packed properties that this property has been packed with
      */
     public Object[] getIndexedData() {
         return data;
@@ -127,8 +124,7 @@ public final class ObjectProperty implements Property {
         private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
-                                                            .value()
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
@@ -147,8 +143,7 @@ public final class ObjectProperty implements Property {
         }
 
         @Override
-        public void clone(ObjectProperty src, int srcIndex, ObjectProperty dst,
-                          int dstIndex) {
+        public void clone(ObjectProperty src, int srcIndex, ObjectProperty dst, int dstIndex) {
             switch (policy) {
             case DISABLE:
                 // assign default value
@@ -175,8 +170,7 @@ public final class ObjectProperty implements Property {
                 dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Enum value not supported: " + policy);
+                throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
     }

@@ -26,7 +26,10 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
 import com.lhkbob.entreri.property.*;
 
 import javax.annotation.processing.Filer;
@@ -43,9 +46,9 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * MirrorComponentSpecification is an implementation that extracts a component
- * specification from the mirror API defined in javax.lang.model.  This should only be
- * used in the context of an annotation processor with a valid processing environment.
+ * MirrorComponentSpecification is an implementation that extracts a component specification from the mirror
+ * API defined in javax.lang.model.  This should only be used in the context of an annotation processor with a
+ * valid processing environment.
  *
  * @author Michael Ludwig
  */
@@ -54,15 +57,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
     private final String packageName;
     private final List<MirrorPropertyDeclaration> properties;
 
-    public MirrorComponentSpecification(TypeElement type, Types tu, Elements eu,
-                                        Filer io) {
-        TypeMirror baseComponentType = eu
-                .getTypeElement(Component.class.getCanonicalName()).asType();
+    public MirrorComponentSpecification(TypeElement type, Types tu, Elements eu, Filer io) {
+        TypeMirror baseComponentType = eu.getTypeElement(Component.class.getCanonicalName()).asType();
         TypeMirror ownerType = eu.getTypeElement(Owner.class.getCanonicalName()).asType();
-        TypeMirror ownableType = eu.getTypeElement(Ownable.class.getCanonicalName())
-                                   .asType();
-        TypeMirror objectType = eu.getTypeElement(Object.class.getCanonicalName())
-                                  .asType();
+        TypeMirror ownableType = eu.getTypeElement(Ownable.class.getCanonicalName()).asType();
+        TypeMirror objectType = eu.getTypeElement(Object.class.getCanonicalName()).asType();
 
         if (!tu.isAssignable(type.asType(), baseComponentType)) {
             throw fail(type.asType(), "Class must extend Component");
@@ -76,8 +75,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
         // since this is an interface, we're only dealing with public methods
         // so getMethods() returns everything we're interested in plus the methods
         // declared in Component, which we'll have to exclude
-        List<? extends ExecutableElement> methods = ElementFilter
-                .methodsIn(eu.getAllMembers(type));
+        List<? extends ExecutableElement> methods = ElementFilter.methodsIn(eu.getAllMembers(type));
         Map<String, ExecutableElement> getters = new HashMap<>();
         Map<String, ExecutableElement> setters = new HashMap<>();
         Map<String, Integer> setterParameters = new HashMap<>();
@@ -118,14 +116,12 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
             if (setter == null) {
                 throw fail(type.asType(), property + " has no matching setter");
-            } else if (!tu.isSameType(getter.getReturnType(),
-                                      setter.getParameters().get(param).asType())) {
+            } else if (!tu.isSameType(getter.getReturnType(), setter.getParameters().get(param).asType())) {
                 throw fail(type.asType(), property + " has inconsistent type");
             }
 
             TypeMirror propertyType = getPropertyType(getter, tu, eu, io);
-            properties.add(new MirrorPropertyDeclaration(property, getter, setter, param,
-                                                         propertyType));
+            properties.add(new MirrorPropertyDeclaration(property, getter, setter, param, propertyType));
         }
 
         if (!setters.isEmpty()) {
@@ -180,9 +176,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
         private final String type;
         private final String propertyType;
 
-        public MirrorPropertyDeclaration(String name, ExecutableElement getter,
-                                         ExecutableElement setter, int parameter,
-                                         TypeMirror propertyType) {
+        public MirrorPropertyDeclaration(String name, ExecutableElement getter, ExecutableElement setter,
+                                         int parameter, TypeMirror propertyType) {
             this.name = name;
             this.getter = getter.getSimpleName().toString();
             this.setter = setter.getSimpleName().toString();
@@ -190,8 +185,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
             setterParameter = parameter;
 
             type = getter.getReturnType().toString();
-            setterReturnsComponent = !setter.getReturnType().getKind()
-                                            .equals(TypeKind.VOID);
+            setterReturnsComponent = !setter.getReturnType().getKind().equals(TypeKind.VOID);
 
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
         }
@@ -238,8 +232,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
         @Override
         public PropertyFactory<?> getPropertyFactory() {
-            throw new UnsupportedOperationException(
-                    "Cannot create PropertyFactory with mirror API");
+            throw new UnsupportedOperationException("Cannot create PropertyFactory with mirror API");
         }
 
         @Override
@@ -248,8 +241,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static void processSetter(ExecutableElement m,
-                                      Map<String, ExecutableElement> setters,
+    private static void processSetter(ExecutableElement m, Map<String, ExecutableElement> setters,
                                       Map<String, Integer> parameters, Types tu) {
         TypeMirror declaringClass = m.getEnclosingElement().asType();
         if (!tu.isSameType(m.getReturnType(), m.getEnclosingElement().asType()) &&
@@ -267,8 +259,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
             if (name != null) {
                 // verify absence of @Named on actual setter
                 if (m.getAnnotation(Named.class) != null) {
-                    throw fail(declaringClass,
-                               m + ", @Named cannot be on both parameter and method");
+                    throw fail(declaringClass, m + ", @Named cannot be on both parameter and method");
                 }
             } else {
                 name = getName(m, "set");
@@ -282,8 +273,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
         } else {
             // verify absence of @Named on actual setter
             if (m.getAnnotation(Named.class) != null) {
-                throw fail(declaringClass, m +
-                                           ", @Named cannot be applied to setter method with multiple parameters");
+                throw fail(declaringClass,
+                           m + ", @Named cannot be applied to setter method with multiple parameters");
             }
 
             int i = 0;
@@ -337,13 +328,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
             return n.value();
         } else {
             String name = m.getSimpleName().toString();
-            return Character.toLowerCase(name.charAt(prefix.length())) +
-                   name.substring(prefix.length() + 1);
+            return Character.toLowerCase(name.charAt(prefix.length())) + name.substring(prefix.length() + 1);
         }
     }
 
-    private static TypeMirror getPropertyType(ExecutableElement getter, Types tu,
-                                              Elements eu, Filer io) {
+    private static TypeMirror getPropertyType(ExecutableElement getter, Types tu, Elements eu, Filer io) {
         TypeMirror baseType = getter.getReturnType();
 
         TypeMirror factory = getFactory(getter);
@@ -382,8 +371,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
                 FileObject mapping;
                 try {
                     mapping = io.getResource(StandardLocation.CLASS_PATH, "",
-                                             TypePropertyMapping.MAPPING_DIR +
-                                             baseType.toString());
+                                             TypePropertyMapping.MAPPING_DIR + baseType.toString());
                 } catch (IOException e) {
                     // if an IO is thrown here, it means it couldn't find the file
                     mapping = null;
@@ -399,15 +387,13 @@ class MirrorComponentSpecification implements ComponentSpecification {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    mappedType = eu
-                            .getTypeElement(ObjectProperty.class.getCanonicalName());
+                    mappedType = eu.getTypeElement(ObjectProperty.class.getCanonicalName());
                 }
             }
 
             factory = getFactory(mappedType);
             if (factory == null) {
-                throw fail(getter.getEnclosingElement().asType(),
-                           mappedType + " has no @Factory annotation");
+                throw fail(getter.getEnclosingElement().asType(), mappedType + " has no @Factory annotation");
             } else {
                 return validateFactory(getter, factory, mappedType, tu, eu);
             }
@@ -428,13 +414,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
     }
 
     private static final EnumSet<TypeKind> PRIMITIVES = EnumSet
-            .of(TypeKind.BOOLEAN, TypeKind.BYTE, TypeKind.CHAR, TypeKind.DOUBLE,
-                TypeKind.FLOAT, TypeKind.INT, TypeKind.LONG, TypeKind.SHORT);
+            .of(TypeKind.BOOLEAN, TypeKind.BYTE, TypeKind.CHAR, TypeKind.DOUBLE, TypeKind.FLOAT, TypeKind.INT,
+                TypeKind.LONG, TypeKind.SHORT);
 
-    private static TypeMirror validateFactory(ExecutableElement getter,
-                                              TypeMirror factory,
-                                              TypeElement propertyType, Types tu,
-                                              Elements eu) {
+    private static TypeMirror validateFactory(ExecutableElement getter, TypeMirror factory,
+                                              TypeElement propertyType, Types tu, Elements eu) {
         TypeMirror declaringClass = getter.getEnclosingElement().asType();
         boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
         TypeMirror baseType = getter.getReturnType();
@@ -466,17 +450,13 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
         // verify contract of property
         TypeMirror asType = propertyType.asType();
-        if (tu.isSameType(asType,
-                          eu.getTypeElement(ObjectProperty.class.getCanonicalName())
-                            .asType())) {
+        if (tu.isSameType(asType, eu.getTypeElement(ObjectProperty.class.getCanonicalName()).asType())) {
             // special case for ObjectProperty to support more permissive assignments
             // (which to record requires a similar special case in the code generation)
             if (isShared) {
-                throw fail(declaringClass,
-                           propertyType + " can't be used with @SharedInstance");
+                throw fail(declaringClass, propertyType + " can't be used with @SharedInstance");
             } else if (PRIMITIVES.contains(asType.getKind())) {
-                throw fail(declaringClass,
-                           "ObjectProperty cannot be used with primitive types");
+                throw fail(declaringClass, "ObjectProperty cannot be used with primitive types");
             }
             // else we know ObjectProperty is defined correctly because its part of the core library
         } else {
@@ -486,36 +466,30 @@ class MirrorComponentSpecification implements ComponentSpecification {
                     .methodsIn(eu.getAllMembers(propertyType));
 
             if (!findMethod(methods, tu, "get", baseType, intType)) {
-                throw fail(declaringClass,
-                           propertyType + " does not implement " + baseType + " get()");
+                throw fail(declaringClass, propertyType + " does not implement " + baseType + " get()");
             }
             if (!findMethod(methods, tu, "set", voidType, intType, baseType)) {
-                throw fail(declaringClass,
-                           propertyType + " does not implement void set(int, " +
-                           baseType + ")");
+                throw fail(declaringClass, propertyType + " does not implement void set(int, " +
+                                           baseType + ")");
             }
 
             if (isShared) {
                 // we could instantiate the declared type, but that crashes if the parameter
                 // type must be a primitive, so the erased type gives us a good enough check
-                TypeMirror share = tu.erasure(
-                        eu.getTypeElement(ShareableProperty.class.getCanonicalName())
-                          .asType());
+                TypeMirror share = tu
+                        .erasure(eu.getTypeElement(ShareableProperty.class.getCanonicalName()).asType());
                 if (!tu.isAssignable(asType, share)) {
-                    throw fail(declaringClass,
-                               propertyType + " can't be used with @SharedInstance");
+                    throw fail(declaringClass, propertyType + " can't be used with @SharedInstance");
                 }
 
                 // verify additional shareable property contract
                 if (!findMethod(methods, tu, "get", voidType, intType, baseType)) {
-                    throw fail(declaringClass,
-                               propertyType + " does not implement void get(int, " +
-                               baseType + ")");
+                    throw fail(declaringClass, propertyType + " does not implement void get(int, " +
+                                               baseType + ")");
                 }
                 if (!findMethod(methods, tu, "createShareableInstance", baseType)) {
-                    throw fail(declaringClass,
-                               propertyType + " does not implement " + baseType +
-                               " createShareableInstance()");
+                    throw fail(declaringClass, propertyType + " does not implement " + baseType +
+                                               " createShareableInstance()");
                 }
             }
         }
@@ -523,12 +497,10 @@ class MirrorComponentSpecification implements ComponentSpecification {
         return tu.erasure(asType);
     }
 
-    private static boolean findMethod(List<? extends ExecutableElement> methods, Types tu,
-                                      String name, TypeMirror returnType,
-                                      TypeMirror... params) {
+    private static boolean findMethod(List<? extends ExecutableElement> methods, Types tu, String name,
+                                      TypeMirror returnType, TypeMirror... params) {
         for (ExecutableElement m : methods) {
-            if (m.getSimpleName().contentEquals(name) &&
-                tu.isSameType(returnType, m.getReturnType())) {
+            if (m.getSimpleName().contentEquals(name) && tu.isSameType(returnType, m.getReturnType())) {
                 // now check parameters
                 List<? extends VariableElement> realParams = m.getParameters();
                 if (params.length == realParams.size()) {

@@ -27,9 +27,8 @@
 package com.lhkbob.entreri;
 
 /**
- * IllegalComponentDefinitionException is an exception thrown if a Component
- * implementation does not follow the class hierarchy or field rules defined in {@link
- * Component}.
+ * IllegalComponentDefinitionException is an exception thrown if a Component implementation does not follow
+ * the class hierarchy or field rules defined in {@link Component}.
  *
  * @author Michael Ludwig
  */
@@ -39,12 +38,11 @@ public class IllegalComponentDefinitionException extends RuntimeException {
     private final String componentTypeName;
 
     /**
-     * Create an exception that specifies the leaf-level class in a Component type
-     * hierarchy has some problem with its definition
+     * Create an exception that specifies the leaf-level class in a Component type hierarchy has some problem
+     * with its definition
      *
      * @param componentTypeName The canonical class name of the component type
-     * @param problem           A generic error message to be tacked to the end of the
-     *                          final error message
+     * @param problem           A generic error message to be tacked to the end of the final error message
      */
     public IllegalComponentDefinitionException(String componentTypeName, String problem) {
         super(componentTypeName + " is invalid, error: " + problem);

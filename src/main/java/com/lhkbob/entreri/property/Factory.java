@@ -35,12 +35,11 @@ import java.lang.annotation.Target;
 
 /**
  * <p/>
- * The Factory annotation can be placed on a Property implementation or the getter method
- * in a Component definition to specify the type of PropertyFactory to use when creating
- * instances of the Property for the component. The factory type must have a no-argument
- * constructor or a constructor that takes a single {@link Attributes} instance in order
- * to be instantiated correctly. This annotation can be used if Property does not provide
- * a default factory with sufficient flexibility with annotation attributes (e.g. {@link
+ * The Factory annotation can be placed on a Property implementation or the getter method in a Component
+ * definition to specify the type of PropertyFactory to use when creating instances of the Property for the
+ * component. The factory type must have a no-argument constructor or a constructor that takes a single {@link
+ * Attributes} instance in order to be instantiated correctly. This annotation can be used if Property does
+ * not provide a default factory with sufficient flexibility with annotation attributes (e.g. {@link
  * DefaultInt} for the Properties defined in com.lhkbob.entreri.property).
  * <p/>
  * Every Property implementation must be annotated with this annotation
@@ -53,8 +52,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface Factory {
     /**
-     * @return Class of the PropertyFactory to instantiate, must have an accessible
-     *         no-argument constructor
+     * @return Class of the PropertyFactory to instantiate, must have an accessible no-argument constructor
      */
     Class<? extends PropertyFactory<?>> value();
 }

@@ -29,17 +29,16 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
- * PropertyDeclaration represents a particular "property" instance declared in a Component
- * sub-interface. A property is represented by a bean getter method and an associated
- * setter. This interface captures the requisite information needed to implement a
- * component type.
+ * PropertyDeclaration represents a particular "property" instance declared in a Component sub-interface. A
+ * property is represented by a bean getter method and an associated setter. This interface captures the
+ * requisite information needed to implement a component type.
  *
  * @author Michael Ludwig
  */
 public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     /**
-     * Get the logical name of the property, either the name extracted from the getter
-     * bean method, or from the {@link com.lhkbob.entreri.property.Named} annotation.
+     * Get the logical name of the property, either the name extracted from the getter bean method, or from
+     * the {@link com.lhkbob.entreri.property.Named} annotation.
      *
      * @return The property name
      */
@@ -53,67 +52,64 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     public String getType();
 
     /**
-     * Get the canonical class name of the {@link com.lhkbob.entreri.property.Property
-     * Property} implementation corresponding to the type of this property.
+     * Get the canonical class name of the {@link com.lhkbob.entreri.property.Property Property}
+     * implementation corresponding to the type of this property.
      *
      * @return The property implementation, suitable for inclusion in source code
      */
     public String getPropertyImplementation();
 
     /**
-     * Get the name of the setter method that will be used to modify this property value.
-     * Multiply properties may use the same setter, and {@link #getSetterParameter()}
-     * determines their order in the signature. All properties in a ComponentSpecification
-     * that share a setter name use the same setter method.
+     * Get the name of the setter method that will be used to modify this property value. Multiply properties
+     * may use the same setter, and {@link #getSetterParameter()} determines their order in the signature. All
+     * properties in a ComponentSpecification that share a setter name use the same setter method.
      *
      * @return The name of the setter method
      */
     public String getSetterMethod();
 
     /**
-     * Get the name of the getter method that is used to access the value of this
-     * property. Its return type is equal to {@link #getType()} and it will not take any
-     * arguments.
+     * Get the name of the getter method that is used to access the value of this property. Its return type is
+     * equal to {@link #getType()} and it will not take any arguments.
      *
      * @return The bean getter method
      */
     public String getGetterMethod();
 
     /**
-     * Get the parameter index used by this property in the signature of its corresponding
-     * setter method. This will be 0 for properties that use the standard bean setter
-     * method, but may be different when properties share the same setter with multiple
-     * parameters.
+     * Get the parameter index used by this property in the signature of its corresponding setter method. This
+     * will be 0 for properties that use the standard bean setter method, but may be different when properties
+     * share the same setter with multiple parameters.
      *
      * @return The method parameter corresponding to this property
      */
     public int getSetterParameter();
 
     /**
-     * Get whether or not the signature of the setter method of this property returns the
-     * owning Component or if it returns void.  When multiple properties have the same
-     * setter method name, this will always agree.
+     * Get whether or not the signature of the setter method of this property returns the owning Component or
+     * if it returns void.  When multiple properties have the same setter method name, this will always
+     * agree.
      *
      * @return True if the method signature returns the component
      */
     public boolean getSetterReturnsComponent();
 
     /**
-     * Get whether or not this property should use the shared instance API to store and
-     * get values of the property.
+     * Get whether or not this property should use the shared instance API to store and get values of the
+     * property.
      *
      * @return True if the getter was annotated with {@link com.lhkbob.entreri.property.SharedInstance}
      */
     public boolean isShared();
 
     /**
-     * Get the PropertyFactory instance that was configured for this property. It must be
-     * used to instantiate the property objects that will be assignable to the type
-     * returned by {@link #getPropertyImplementation()}, and will be configured by all
-     * attribute annotations applied to the getter method.
+     * Get the PropertyFactory instance that was configured for this property. It must be used to instantiate
+     * the property objects that will be assignable to the type returned by {@link
+     * #getPropertyImplementation()}, and will be configured by all attribute annotations applied to the
+     * getter method.
      * <p/>
-     * This is only available during a runtime situation, and should not be called when
-     * ComponentSpecification came from the mirror API.
+     * This is only available during a runtime situation, and should not be called when ComponentSpecification
+     * came from the mirror API.
      *
      * @return The property factory for this property
      */

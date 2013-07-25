@@ -30,8 +30,7 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.Named;
 
 /**
- * A component type that uses mismatched Named annotations to break an otherwise valid
- * definition.
+ * A component type that uses mismatched Named annotations to break an otherwise valid definition.
  */
 public interface MismatchedNameComponent extends Component {
     @Named("right")

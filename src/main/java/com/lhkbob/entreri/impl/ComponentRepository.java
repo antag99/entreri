@@ -41,9 +41,9 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * ComponentRepository manages storing all the componentDatas of a specific type for an
- * EntitySystem. It also controls the IndexedDataStore's for the type's set of properties.
- * It is package-private because its details are low-level and complex.
+ * ComponentRepository manages storing all the componentDatas of a specific type for an EntitySystem. It also
+ * controls the IndexedDataStore's for the type's set of properties. It is package-private because its details
+ * are low-level and complex.
  *
  * @param <T> The type of component stored by the index
  *
@@ -78,8 +78,7 @@ public final class ComponentRepository<T extends Component> {
     private int versionSeq;
 
     /**
-     * Create a ComponentRepository for the given system, that will store Components of
-     * the given type.
+     * Create a ComponentRepository for the given system, that will store Components of the given type.
      *
      * @param system The owning system
      * @param type   The type of component
@@ -104,8 +103,7 @@ public final class ComponentRepository<T extends Component> {
         declaredProperties = new ArrayList<>();
         decoratedProperties = new ArrayList<>(); // empty for now
         for (PropertyDeclaration p : factory.getSpecification().getProperties()) {
-            DeclaredPropertyStore store = new DeclaredPropertyStore(
-                    p.getPropertyFactory(), p.getName());
+            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getPropertyFactory(), p.getName());
             declaredProperties.add(store);
         }
 
@@ -152,44 +150,43 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Given the index of a Component (e.g. {@link Component#getIndex()}, return the index
-     * of an entity within the owning system. The returned entity index can be safely
-     * passed to {@link EntitySystemImpl#getEntityByIndex(int)}.
+     * Given the index of a Component (e.g. {@link Component#getIndex()}, return the index of an entity within
+     * the owning system. The returned entity index can be safely passed to {@link
+     * EntitySystemImpl#getEntityByIndex(int)}.
      *
      * @param componentIndex The component index whose owning entity is fetched
      *
-     * @return The index of the entity that has the given component index, or 0 if the
-     *         component is not attached
+     * @return The index of the entity that has the given component index, or 0 if the component is not
+     *         attached
      */
     public int getEntityIndex(int componentIndex) {
         return componentIndexToEntityIndex[componentIndex];
     }
 
     /**
-     * Given the index of an entity (e.g. {@link EntityImpl#index}), return the index of
-     * the attached component of this ComponentRepository's type. The returned component
-     * index can be used in {@link #getComponent(int)} and related methods.
+     * Given the index of an entity (e.g. {@link EntityImpl#index}), return the index of the attached
+     * component of this ComponentRepository's type. The returned component index can be used in {@link
+     * #getComponent(int)} and related methods.
      *
      * @param entityIndex The entity index to look up
      *
-     * @return The index of the attached component, or 0 if the entity does not have a
-     *         component of this type attached
+     * @return The index of the attached component, or 0 if the entity does not have a component of this type
+     *         attached
      */
     public int getComponentIndex(int entityIndex) {
         return entityIndexToComponentRepository[entityIndex];
     }
 
     /**
-     * Ensure that this ComponentRepository has enough internal space to hold its
-     * entity-to-component mapping for the given number of entities.
+     * Ensure that this ComponentRepository has enough internal space to hold its entity-to-component mapping
+     * for the given number of entities.
      *
      * @param numEntities The new number of entities
      */
     public void expandEntityIndex(int numEntities) {
         if (entityIndexToComponentRepository.length < numEntities) {
             entityIndexToComponentRepository = Arrays
-                    .copyOf(entityIndexToComponentRepository,
-                            (int) (numEntities * 1.5) + 1);
+                    .copyOf(entityIndexToComponentRepository, (int) (numEntities * 1.5) + 1);
         }
     }
 
@@ -212,9 +209,8 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Increment the component's version at the given index. This does nothing if the
-     * index is 0, preserving the guarantee that an invalid component has a negative
-     * version.
+     * Increment the component's version at the given index. This does nothing if the index is 0, preserving
+     * the guarantee that an invalid component has a negative version.
      *
      * @param componentIndex The component to update
      */
@@ -236,8 +232,8 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * @param propertyIndex The index of the property, which is the corresponding index
-     *                      from the property specification of the component type
+     * @param propertyIndex The index of the property, which is the corresponding index from the property
+     *                      specification of the component type
      *
      * @return The declared property used for the given index by this repository
      */
@@ -287,8 +283,7 @@ public final class ComponentRepository<T extends Component> {
      * Convenience to create a new data store for each property with the given
      * size, copy the old data over, and assign it back to the property.
      */
-    private void resizePropertyStores(List<? extends PropertyStore<?>> properties,
-                                      int size) {
+    private void resizePropertyStores(List<? extends PropertyStore<?>> properties, int size) {
         int ct = properties.size();
         for (int i = 0; i < ct; i++) {
             properties.get(i).resize(size);
@@ -305,8 +300,8 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Create a new component and attach to it the entity at the given entity index, the
-     * new component will have its values copied from the existing template.
+     * Create a new component and attach to it the entity at the given entity index, the new component will
+     * have its values copied from the existing template.
      *
      * @param entityIndex  The entity index which the component is attached to
      * @param fromTemplate A template to assign values to the new component
@@ -332,20 +327,20 @@ public final class ComponentRepository<T extends Component> {
         // same since they're reported in name order
         for (int i = 0; i < declaredProperties.size(); i++) {
             DeclaredPropertyStore dstStore = declaredProperties.get(i);
-            DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate)
-                    .owner.declaredProperties.get(i);
+            DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate).owner
+                    .declaredProperties.get(i);
 
             templateStore.creator
-                         .clone(templateStore.getProperty(), fromTemplate.getIndex(),
-                                dstStore.property, instance.getIndex());
+                         .clone(templateStore.getProperty(), fromTemplate.getIndex(), dstStore.property,
+                                instance.getIndex());
         }
 
         return instance;
     }
 
     /**
-     * Create a new component and attach to it the entity at the given entity index. The
-     * component will have the default state as specified by its properties.
+     * Create a new component and attach to it the entity at the given entity index. The component will have
+     * the default state as specified by its properties.
      *
      * @param entityIndex The entity index which the component is attached to
      *
@@ -403,8 +398,7 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Create a new ComponentData of type T that can be used to view components in this
-     * index.
+     * Create a new ComponentData of type T that can be used to view components in this index.
      *
      * @return A new data instance
      */
@@ -415,8 +409,8 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Detach or remove any component of this index's type from the entity with the given
-     * index. True is returned if a component was removed, or false otherwise.
+     * Detach or remove any component of this index's type from the entity with the given index. True is
+     * returned if a component was removed, or false otherwise.
      *
      * @param entityIndex The entity's index whose component is removed
      *
@@ -482,13 +476,12 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * <p/>
-     * Compact the data of this ComponentRepository to account for removals and additions
-     * to the index. This will ensure that all active componentDatas are packed into the
-     * underlying arrays, and that they will be accessed in the same order as iterating
-     * over the entities directly.
+     * Compact the data of this ComponentRepository to account for removals and additions to the index. This
+     * will ensure that all active componentDatas are packed into the underlying arrays, and that they will be
+     * accessed in the same order as iterating over the entities directly.
      * <p/>
-     * The map from old to new entity index must be used to properly update the component
-     * index's data so that the system is kept in sync.
+     * The map from old to new entity index must be used to properly update the component index's data so that
+     * the system is kept in sync.
      *
      * @param entityOldToNewMap A map from old entity index to new index
      * @param numEntities       The number of entities that are in the system
@@ -524,8 +517,7 @@ public final class ComponentRepository<T extends Component> {
         if (componentInsert < .6 * components.length) {
             int newSize = (int) (1.2 * componentInsert) + 1;
             components = Arrays.copyOf(components, newSize);
-            componentIndexToEntityIndex = Arrays
-                    .copyOf(componentIndexToEntityIndex, newSize);
+            componentIndexToEntityIndex = Arrays.copyOf(componentIndexToEntityIndex, newSize);
             resizePropertyStores(declaredProperties, newSize);
             resizePropertyStores(decoratedProperties, newSize);
         }
@@ -544,22 +536,20 @@ public final class ComponentRepository<T extends Component> {
     }
 
     /**
-     * Decorate the type information of this ComponentRepository to add a property created
-     * by the given factory. The returned property will have default data assigned for
-     * each current Component in the index, and will have the default value assigned for
-     * each new Component. Decorators can then access the returned property to manipulate
-     * the decorated component data.
+     * Decorate the type information of this ComponentRepository to add a property created by the given
+     * factory. The returned property will have default data assigned for each current Component in the index,
+     * and will have the default value assigned for each new Component. Decorators can then access the
+     * returned property to manipulate the decorated component data.
      *
      * @param <P>     The type of property created
-     * @param factory The factory that will create a unique Property instance associated
-     *                with the decorated property and this index
+     * @param factory The factory that will create a unique Property instance associated with the decorated
+     *                property and this index
      *
      * @return The property decorated onto the type of the index
      */
     public <P extends Property> P decorate(PropertyFactory<P> factory) {
         int size = (declaredProperties.isEmpty() ? componentInsert
-                                                 : declaredProperties.get(0).property
-                            .getCapacity());
+                                                 : declaredProperties.get(0).property.getCapacity());
         P prop = factory.create();
         DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<>(factory, prop);
 
@@ -608,8 +598,7 @@ public final class ComponentRepository<T extends Component> {
         abstract P getProperty();
     }
 
-    private static class DeclaredPropertyStore<P extends Property>
-            extends PropertyStore<P>
+    private static class DeclaredPropertyStore<P extends Property> extends PropertyStore<P>
 
     {
         final String key;
@@ -627,8 +616,7 @@ public final class ComponentRepository<T extends Component> {
         }
     }
 
-    private static class DecoratedPropertyStore<P extends Property>
-            extends PropertyStore<P> {
+    private static class DecoratedPropertyStore<P extends Property> extends PropertyStore<P> {
         final WeakReference<P> property;
 
         public DecoratedPropertyStore(PropertyFactory<P> creator, P property) {

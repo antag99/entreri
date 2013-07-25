@@ -29,8 +29,7 @@ package com.lhkbob.entreri.components;
 import com.lhkbob.entreri.*;
 
 /**
- * A test component that is a class to test component validation, e.g. this type is
- * invalid.
+ * A test component that is a class to test component validation, e.g. this type is invalid.
  *
  * @author Michael Ludwig
  */
@@ -54,6 +53,11 @@ public class BadConstructorComponent implements Component {
     @Override
     public boolean isFlyweight() {
         return false;
+    }
+
+    @Override
+    public Component getCanonical() {
+        return null;
     }
 
     @Override

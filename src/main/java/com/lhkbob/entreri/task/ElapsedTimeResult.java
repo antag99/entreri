@@ -27,8 +27,8 @@
 package com.lhkbob.entreri.task;
 
 /**
- * ElapsedTimeResult is a utility result that can be used to report and received the
- * amount of elapsed time between executions of a job.
+ * ElapsedTimeResult is a utility result that can be used to report and received the amount of elapsed time
+ * between executions of a job.
  *
  * @author Michael Ludwig
  * @see Timers

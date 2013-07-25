@@ -47,12 +47,11 @@ public final class DoubleProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The array may be
-     * longer than necessary for the number of components in the system. Data can be
-     * accessed for a component directly using the component's index.
+     * Return the backing int array of this property's IndexedDataStore. The array may be longer than
+     * necessary for the number of components in the system. Data can be accessed for a component directly
+     * using the component's index.
      *
-     * @return The double data for all packed properties that this property has been
-     *         packed with
+     * @return The double data for all packed properties that this property has been packed with
      */
     public double[] getIndexedData() {
         return data;
@@ -101,8 +100,8 @@ public final class DoubleProperty implements Property {
     }
 
     /**
-     * Factory to create DoubleProperties. Properties annotated with DefaultDouble will
-     * use that value as the default for all components.
+     * Factory to create DoubleProperties. Properties annotated with DefaultDouble will use that value as the
+     * default for all components.
      *
      * @author Michael Ludwig
      */
@@ -111,10 +110,10 @@ public final class DoubleProperty implements Property {
         private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            defaultValue = attrs.hasAttribute(DefaultDouble.class) ? attrs
-                    .getAttribute(DefaultDouble.class).value() : 0.0;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
-                                                            .value()
+            defaultValue =
+                    attrs.hasAttribute(DefaultDouble.class) ? attrs.getAttribute(DefaultDouble.class).value()
+                                                            : 0.0;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
@@ -134,8 +133,7 @@ public final class DoubleProperty implements Property {
         }
 
         @Override
-        public void clone(DoubleProperty src, int srcIndex, DoubleProperty dst,
-                          int dstIndex) {
+        public void clone(DoubleProperty src, int srcIndex, DoubleProperty dst, int dstIndex) {
             switch (policy) {
             case DISABLE:
                 // assign default value
@@ -148,8 +146,7 @@ public final class DoubleProperty implements Property {
                 dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Enum value not supported: " + policy);
+                throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
     }

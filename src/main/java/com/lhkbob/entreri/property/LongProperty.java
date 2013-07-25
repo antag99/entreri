@@ -47,12 +47,11 @@ public final class LongProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The array may be
-     * longer than necessary for the number of components in the system. Data can be
-     * accessed for a component directly using the component's index.
+     * Return the backing int array of this property's IndexedDataStore. The array may be longer than
+     * necessary for the number of components in the system. Data can be accessed for a component directly
+     * using the component's index.
      *
-     * @return The long data for all packed properties that this property has been packed
-     *         with
+     * @return The long data for all packed properties that this property has been packed with
      */
     public long[] getIndexedData() {
         return data;
@@ -101,8 +100,8 @@ public final class LongProperty implements Property {
     }
 
     /**
-     * Factory to create LongProperties. Properties annotated with DefaultLong will use
-     * that value as the default for all components.
+     * Factory to create LongProperties. Properties annotated with DefaultLong will use that value as the
+     * default for all components.
      *
      * @author Michael Ludwig
      */
@@ -111,10 +110,10 @@ public final class LongProperty implements Property {
         private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            defaultValue = attrs.hasAttribute(DefaultLong.class) ? attrs
-                    .getAttribute(DefaultLong.class).value() : 0L;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
-                                                            .value()
+            defaultValue =
+                    attrs.hasAttribute(DefaultLong.class) ? attrs.getAttribute(DefaultLong.class).value()
+                                                          : 0L;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
@@ -134,8 +133,7 @@ public final class LongProperty implements Property {
         }
 
         @Override
-        public void clone(LongProperty src, int srcIndex, LongProperty dst,
-                          int dstIndex) {
+        public void clone(LongProperty src, int srcIndex, LongProperty dst, int dstIndex) {
             switch (policy) {
             case DISABLE:
                 // assign default value
@@ -148,8 +146,7 @@ public final class LongProperty implements Property {
                 dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Enum value not supported: " + policy);
+                throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
     }

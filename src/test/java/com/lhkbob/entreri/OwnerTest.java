@@ -28,7 +28,7 @@ package com.lhkbob.entreri;
 
 import com.lhkbob.entreri.components.FloatComponent;
 import com.lhkbob.entreri.components.IntComponent;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class OwnerTest {

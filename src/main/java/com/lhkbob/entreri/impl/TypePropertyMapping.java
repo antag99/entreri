@@ -36,11 +36,10 @@ import java.util.Enumeration;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * TypePropertyMapping is an internal class used to maintain a thread-safe, shared, and
- * consistent mapping from Java type to an associated Property type that wraps that data.
- * Primitive and plain Object wrapping is built-in. A property can be overridden for a
- * class by placing the file META-INF/entreri/mapping/&lt;CANONICAL CLASS NAME&gt; in the
- * class path, with a single string &lt;BINARY CLASS NAME OF PROPERTY&gt;.
+ * TypePropertyMapping is an internal class used to maintain a thread-safe, shared, and consistent mapping
+ * from Java type to an associated Property type that wraps that data. Primitive and plain Object wrapping is
+ * built-in. A property can be overridden for a class by placing the file META-INF/entreri/mapping/&lt;CANONICAL
+ * CLASS NAME&gt; in the class path, with a single string &lt;BINARY CLASS NAME OF PROPERTY&gt;.
  *
  * @author Michael Ludwig
  */
@@ -68,9 +67,8 @@ public final class TypePropertyMapping {
     }
 
     /**
-     * Attempt to determine a property class that wraps the corresponding Java type. If it
-     * is a primitive type, it will use the corresponding primitive wrapper defined in
-     * com.lhkbob.entreri.property.
+     * Attempt to determine a property class that wraps the corresponding Java type. If it is a primitive
+     * type, it will use the corresponding primitive wrapper defined in com.lhkbob.entreri.property.
      * <p/>
      * Unless the type has an available mapping file, it will fallback to ObjectProperty.
      *
@@ -90,8 +88,7 @@ public final class TypePropertyMapping {
         if (loader != null) {
             try {
                 // otherwise check if we have a properties file to load
-                Enumeration<URL> urls = loader
-                        .getResources(MAPPING_DIR + type.getCanonicalName());
+                Enumeration<URL> urls = loader.getResources(MAPPING_DIR + type.getCanonicalName());
                 if (urls.hasMoreElements()) {
                     URL mapping = urls.nextElement();
                     if (urls.hasMoreElements()) {
@@ -100,8 +97,7 @@ public final class TypePropertyMapping {
                     }
 
 
-                    BufferedReader in = new BufferedReader(
-                            new InputStreamReader(mapping.openStream()));
+                    BufferedReader in = new BufferedReader(new InputStreamReader(mapping.openStream()));
                     String line;
                     StringBuilder className = new StringBuilder();
                     // be somewhat permissive of whitespace (any other input most likely
@@ -115,9 +111,7 @@ public final class TypePropertyMapping {
                     // the same loader
                     try {
                         pType = (Class<? extends Property>) type.getClassLoader()
-                                                                .loadClass(className
-                                                                                   .toString()
-                                                                                   .trim());
+                                                                .loadClass(className.toString().trim());
 
                         // store the mapping for later as well, this is safe because
                         // a class's loader is part of its identity and the property impl
@@ -125,13 +119,11 @@ public final class TypePropertyMapping {
                         // the same value will be stored
                         typeMapping.put(type, pType);
                     } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(
-                                "Unable to load mapped Property class for " + type, e);
+                        throw new RuntimeException("Unable to load mapped Property class for " + type, e);
                     }
                 }
             } catch (IOException e) {
-                throw new RuntimeException(
-                        "Error reading META-INF mapping for class: " + type, e);
+                throw new RuntimeException("Error reading META-INF mapping for class: " + type, e);
             }
         }
 

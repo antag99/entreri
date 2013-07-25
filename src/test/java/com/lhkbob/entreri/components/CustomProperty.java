@@ -69,8 +69,7 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         property.swap(indexA, indexB);
     }
 
-    public static class CustomFactoryWithAttributes
-            implements PropertyFactory<CustomProperty> {
+    public static class CustomFactoryWithAttributes implements PropertyFactory<CustomProperty> {
         private final Attributes attributes;
 
         public CustomFactoryWithAttributes(Attributes attrs) {
@@ -85,15 +84,13 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         @Override
         public void setDefaultValue(CustomProperty property, int index) {
             Bletch b = new Bletch();
-            b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0
-                                                                              : attributes
-                               .getAttribute(IntProperty.DefaultInt.class).value());
+            b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0 : attributes
+                    .getAttribute(IntProperty.DefaultInt.class).value());
             property.property.set(index, b);
         }
 
         @Override
-        public void clone(CustomProperty src, int srcIndex, CustomProperty dst,
-                          int dstIndex) {
+        public void clone(CustomProperty src, int srcIndex, CustomProperty dst, int dstIndex) {
             // don't care about clone policy for the tests, but make it consistent
             // with value behavior for shareable property
             src.get(srcIndex, dst.get(dstIndex));

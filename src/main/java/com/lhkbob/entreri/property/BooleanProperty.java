@@ -31,8 +31,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 
 /**
- * BooleanProperty is an implementation of Property that stores a single boolean
- * property.
+ * BooleanProperty is an implementation of Property that stores a single boolean property.
  *
  * @author Michael Ludwig
  */
@@ -48,12 +47,11 @@ public final class BooleanProperty implements Property {
     }
 
     /**
-     * Return the backing boolean array of this property's IndexedDataStore. The array may
-     * be longer than necessary for the number of components in the system. Data can be
-     * accessed for a component directly using the component's index.
+     * Return the backing boolean array of this property's IndexedDataStore. The array may be longer than
+     * necessary for the number of components in the system. Data can be accessed for a component directly
+     * using the component's index.
      *
-     * @return The boolean data for all packed properties that this property has been
-     *         packed with
+     * @return The boolean data for all packed properties that this property has been packed with
      */
     public boolean[] getIndexedData() {
         return data;
@@ -102,8 +100,8 @@ public final class BooleanProperty implements Property {
     }
 
     /**
-     * Factory to create BooleanProperties. Properties annotated with DefaultBoolean will
-     * use that value as the default for all components.
+     * Factory to create BooleanProperties. Properties annotated with DefaultBoolean will use that value as
+     * the default for all components.
      *
      * @author Michael Ludwig
      */
@@ -114,8 +112,7 @@ public final class BooleanProperty implements Property {
         public Factory(Attributes attrs) {
             defaultValue = attrs.hasAttribute(DefaultBoolean.class) &&
                            attrs.getAttribute(DefaultBoolean.class).value();
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
-                                                            .value()
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
@@ -135,8 +132,7 @@ public final class BooleanProperty implements Property {
         }
 
         @Override
-        public void clone(BooleanProperty src, int srcIndex, BooleanProperty dst,
-                          int dstIndex) {
+        public void clone(BooleanProperty src, int srcIndex, BooleanProperty dst, int dstIndex) {
             switch (policy) {
             case DISABLE:
                 // assign default value
@@ -149,8 +145,7 @@ public final class BooleanProperty implements Property {
                 dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Enum value not supported: " + policy);
+                throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
     }

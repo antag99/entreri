@@ -145,8 +145,7 @@ public class ComponentIteratorTest {
         int i = 0;
         while (it.next()) {
             Assert.assertEquals(entityCombinedObjValues.get(i), objData.getObject());
-            Assert.assertEquals(entityCombinedFloatValues.get(i), floatData.getFloat(),
-                                .0001f);
+            Assert.assertEquals(entityCombinedFloatValues.get(i), floatData.getFloat(), .0001f);
             i++;
         }
 

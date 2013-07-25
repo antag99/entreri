@@ -29,8 +29,7 @@ package com.lhkbob.entreri.components;
 import com.lhkbob.entreri.Component;
 
 /**
- * Test component that declares a method that doesn't follow the bean conventions and is
- * thus invalid.
+ * Test component that declares a method that doesn't follow the bean conventions and is thus invalid.
  */
 public interface NonBeanComponent extends Component {
     public void thisCantPossiblyBeABeanMethod();

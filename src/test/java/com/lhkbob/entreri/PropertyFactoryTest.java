@@ -32,7 +32,7 @@ import com.lhkbob.entreri.property.Clone.Policy;
 import com.lhkbob.entreri.property.DoubleProperty;
 import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 @SuppressWarnings({ "unused", "rawtypes", "unchecked" })
@@ -142,8 +142,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneInvoke() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(
-                createAttributes("objectPropertyInvoke"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyInvoke"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -233,8 +232,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneInvoke() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(
-                createAttributes("doublePropertyInvoke"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyInvoke"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();

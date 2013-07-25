@@ -45,8 +45,7 @@ public final class EntityImpl implements Entity {
     int index;
 
     /**
-     * Create an Entity that will be owned by the given system and is placed at the given
-     * index.
+     * Create an Entity that will be owned by the given system and is placed at the given index.
      *
      * @param system The owning system
      * @param index  The index into the system
@@ -115,8 +114,7 @@ public final class EntityImpl implements Entity {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends Component> T add(T toClone) {
         if (toClone == null) {
-            throw new NullPointerException(
-                    "ComponentData template, toClone, cannot be null");
+            throw new NullPointerException("ComponentData template, toClone, cannot be null");
         }
         ComponentRepository ci = system.getRepository(toClone.getType());
         return (T) ci.addComponent(index, toClone);

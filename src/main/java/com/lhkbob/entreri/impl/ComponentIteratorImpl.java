@@ -47,9 +47,9 @@ public class ComponentIteratorImpl implements ComponentIterator {
     private AbstractComponent<?> primary;
 
     /**
-     * Create a new ComponentIterator that will iterate over components within the given
-     * EntitySystem. It is initialized with no required or optional components, but at
-     * least one required component must be added before it can be iterated over.
+     * Create a new ComponentIterator that will iterate over components within the given EntitySystem. It is
+     * initialized with no required or optional components, but at least one required component must be added
+     * before it can be iterated over.
      *
      * @param system The EntitySystem of the iterator
      *
@@ -83,8 +83,7 @@ public class ComponentIteratorImpl implements ComponentIterator {
             // putting one data into the required array
             required = Arrays.copyOf(required, required.length + 1);
 
-            if (data.owner.getMaxComponentIndex() <
-                primary.owner.getMaxComponentIndex()) {
+            if (data.owner.getMaxComponentIndex() < primary.owner.getMaxComponentIndex()) {
                 // new primary
                 required[required.length - 1] = primary;
                 primary = data;

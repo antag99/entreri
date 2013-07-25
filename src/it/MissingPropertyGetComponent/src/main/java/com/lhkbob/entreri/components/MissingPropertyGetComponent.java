@@ -32,8 +32,7 @@ import com.lhkbob.entreri.property.Property;
 import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
- * Invalid component type because it references a property type that doesn't have the
- * expected get method.
+ * Invalid component type because it references a property type that doesn't have the expected get method.
  */
 public interface MissingPropertyGetComponent extends Component {
     @Factory(MissingGetterFactory.class)
@@ -62,8 +61,7 @@ public interface MissingPropertyGetComponent extends Component {
         }
     }
 
-    public static class MissingGetterFactory
-            implements PropertyFactory<MissingGetterProperty> {
+    public static class MissingGetterFactory implements PropertyFactory<MissingGetterProperty> {
         @Override
         public MissingGetterProperty create() {
             return new MissingGetterProperty();
@@ -74,8 +72,7 @@ public interface MissingPropertyGetComponent extends Component {
         }
 
         @Override
-        public void clone(MissingGetterProperty src, int srcIndex,
-                          MissingGetterProperty dst, int dstIndex) {
+        public void clone(MissingGetterProperty src, int srcIndex, MissingGetterProperty dst, int dstIndex) {
         }
     }
 }

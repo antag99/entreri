@@ -34,9 +34,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
- * CompiledFactoryProvider searches the classpath for existing class definitions of the
- * component types. This is suitable for generating component implementations as part of a
- * project build in conjunction with the {@link ComponentImplementationProcessor}.
+ * CompiledFactoryProvider searches the classpath for existing class definitions of the component types. This
+ * is suitable for generating component implementations as part of a project build in conjunction with the
+ * {@link ComponentImplementationProcessor}.
  *
  * @author Michael Ludwig
  */
@@ -61,8 +61,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
         @SuppressWarnings("unchecked")
         public CompiledFactory(Class<T> type) throws ClassNotFoundException {
             specification = ComponentSpecification.Factory.fromClass(type);
-            String implName = ComponentFactoryProvider
-                    .getImplementationClassName(specification, true);
+            String implName = ComponentFactoryProvider.getImplementationClassName(specification, true);
 
             Class<?> loaded = Class.forName(implName);
             // although the compiled classes should have been produced from the same
@@ -71,11 +70,9 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             // of the component type
             if (!loaded.getSuperclass().equals(AbstractComponent.class)) {
                 throw new IllegalStateException(
-                        "Discovered impl. class does not extend AbstractComponent for " +
-                        type);
+                        "Discovered impl. class does not extend AbstractComponent for " + type);
             }
-            Type paramType = ((ParameterizedType) loaded.getGenericSuperclass())
-                    .getActualTypeArguments()[0];
+            Type paramType = ((ParameterizedType) loaded.getGenericSuperclass()).getActualTypeArguments()[0];
             if (!paramType.equals(type)) {
                 throw new IllegalStateException(
                         "Discovered impl. uses wrong type parameter for AbstractComponent, was " +
@@ -83,8 +80,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             }
             if (!type.isAssignableFrom(loaded)) {
                 throw new IllegalStateException(
-                        "Discovered impl. does not implement the expected interface: " +
-                        type);
+                        "Discovered impl. does not implement the expected interface: " + type);
             }
 
             // at this point it's a safe cast
@@ -94,8 +90,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
                 ctor = implType.getConstructor(ComponentRepository.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException(
-                        "Discovered impl. does not have mandated constructor for component: " +
-                        type);
+                        "Discovered impl. does not have mandated constructor for component: " + type);
             }
         }
 
@@ -105,8 +100,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             try {
                 return ctor.newInstance(forRepository);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(
-                        "Exception instantiating compiled component impl", e);
+                throw new RuntimeException("Exception instantiating compiled component impl", e);
             }
         }
 

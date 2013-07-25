@@ -34,15 +34,14 @@ import java.util.*;
 
 /**
  * <p/>
- * Job represents a list of {@link Task tasks} that must be executed in a particular order
- * so that they produce a meaningful computation over an entity system. Examples of a job
- * might be to render a frame, which could then be decomposed into tasks for computing the
- * visible objects, occluded objects, the optimal rendering order, and shadow
- * computations, etc.
+ * Job represents a list of {@link Task tasks} that must be executed in a particular order so that they
+ * produce a meaningful computation over an entity system. Examples of a job might be to render a frame, which
+ * could then be decomposed into tasks for computing the visible objects, occluded objects, the optimal
+ * rendering order, and shadow computations, etc.
  * <p/>
- * Jobs are created by first getting the {@link Scheduler} from a particular EntitySystem,
- * and then calling {@link Scheduler#createJob(String, Task...)}. The name of a job is
- * primarily used to for informational purposes and does not affect its behavior.
+ * Jobs are created by first getting the {@link Scheduler} from a particular EntitySystem, and then calling
+ * {@link Scheduler#createJob(String, Task...)}. The name of a job is primarily used to for informational
+ * purposes and does not affect its behavior.
  *
  * @author Michael Ludwig
  */
@@ -66,8 +65,7 @@ public class Job implements Runnable {
      * @param scheduler The owning scheduler
      * @param tasks     The tasks in order of execution
      *
-     * @throws NullPointerException if name is null, tasks is null or contains null
-     *                              elements
+     * @throws NullPointerException if name is null, tasks is null or contains null elements
      */
     Job(String name, Scheduler scheduler, Task... tasks) {
         if (name == null) {
@@ -133,8 +131,7 @@ public class Job implements Runnable {
             // give locks a consistent ordering
             Collections.sort(locks, new Comparator<Class<? extends Component>>() {
                 @Override
-                public int compare(Class<? extends Component> o1,
-                                   Class<? extends Component> o2) {
+                public int compare(Class<? extends Component> o1, Class<? extends Component> o2) {
                     return o1.getName().compareTo(o2.getName());
                 }
             });
@@ -157,12 +154,11 @@ public class Job implements Runnable {
 
     /**
      * <p/>
-     * Invoke all tasks in this job. This method is thread-safe and will use its owning
-     * scheduler to coordinate the locks necessary to safely execute its tasks.
+     * Invoke all tasks in this job. This method is thread-safe and will use its owning scheduler to
+     * coordinate the locks necessary to safely execute its tasks.
      * <p/>
-     * Although {@link Scheduler} has convenience methods to repeatedly invoke a job, this
-     * method can be called directly if a more controlled job execution scheme is
-     * required.
+     * Although {@link Scheduler} has convenience methods to repeatedly invoke a job, this method can be
+     * called directly if a more controlled job execution scheme is required.
      */
     @Override
     public void run() {
@@ -227,32 +223,28 @@ public class Job implements Runnable {
     }
 
     /**
-     * Report the given result instance to all tasks yet to be executed by this job, that
-     * have declared a public method named 'report' that takes a Result sub-type that is
-     * compatible with <var>r</var>'s type.
+     * Report the given result instance to all tasks yet to be executed by this job, that have declared a
+     * public method named 'report' that takes a Result sub-type that is compatible with <var>r</var>'s type.
      *
      * @param r The result to report
      *
      * @throws NullPointerException  if r is null
-     * @throws IllegalStateException if r is a singleton result whose type has already
-     *                               been reported by another task in this job, or if the
-     *                               job is not currently executing tasks
+     * @throws IllegalStateException if r is a singleton result whose type has already been reported by
+     *                               another task in this job, or if the job is not currently executing tasks
      */
     public void report(Result r) {
         if (r == null) {
             throw new NullPointerException("Cannot report null results");
         }
         if (taskIndex < 0) {
-            throw new IllegalStateException(
-                    "Can only be invoked by a task from within run()");
+            throw new IllegalStateException("Can only be invoked by a task from within run()");
         }
 
         if (r.isSingleton()) {
             // make sure this is the first we've seen the result
             if (!singletonResults.add(r.getClass())) {
-                throw new IllegalStateException(
-                        "Singleton result of type: " + r.getClass() +
-                        " has already been reported during " + name + "'s execution");
+                throw new IllegalStateException("Singleton result of type: " + r.getClass() +
+                                                " has already been reported during " + name + "'s execution");
             }
         }
 

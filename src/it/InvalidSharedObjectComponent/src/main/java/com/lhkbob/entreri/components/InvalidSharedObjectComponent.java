@@ -30,8 +30,8 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.SharedInstance;
 
 /**
- * Invalid component definition that double checks that we fail when using a shared
- * instance annotation with a object properties.
+ * Invalid component definition that double checks that we fail when using a shared instance annotation with a
+ * object properties.
  */
 public interface InvalidSharedObjectComponent extends Component {
     @SharedInstance

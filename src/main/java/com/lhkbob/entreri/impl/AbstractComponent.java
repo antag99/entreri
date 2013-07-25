@@ -33,11 +33,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * AbstractComponent is the base class used for all generated proxy implementations of
- * component subtypes. It provides an implementation for all of the declared methods in
- * Component as well as equals() and hashCode(). It should not be subclassed or extended
- * directly, but is used as the parent class of generated proxies. As specified in {@link
- * com.lhkbob.entreri.Component}, all component type definitions are sub-interfaces of
+ * AbstractComponent is the base class used for all generated proxy implementations of component subtypes. It
+ * provides an implementation for all of the declared methods in Component as well as equals() and hashCode().
+ * It should not be subclassed or extended directly, but is used as the parent class of generated proxies. As
+ * specified in {@link com.lhkbob.entreri.Component}, all component type definitions are sub-interfaces of
  * Component.
  *
  * @param <T> The type of component the AbstractComponent is safely cast-able to
@@ -49,8 +48,8 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     protected final ComponentRepository<T> owner;
 
     /**
-     * The current index of the component. Subclasses must not modify directly, but should
-     * call setIndex(). This is provided to avoid the virtual getIndex() call.
+     * The current index of the component. Subclasses must not modify directly, but should call setIndex().
+     * This is provided to avoid the virtual getIndex() call.
      */
     protected int index;
     private int id;
@@ -143,6 +142,11 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     @Override
     public boolean isFlyweight() {
         return !isAlive() || owner.getComponent(index) != this;
+    }
+
+    @Override
+    public T getCanonical() {
+        return owner.getComponent(index);
     }
 
     @Override

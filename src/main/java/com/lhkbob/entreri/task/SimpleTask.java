@@ -35,11 +35,10 @@ import java.lang.reflect.Method;
 
 /**
  * <p/>
- * SimpleTask extends Task adds logic to simplify the creation of tasks that perform the
- * same operations on each entity that matches a specific component configuration.
- * Subclasses of SimpleTask should define a single method named 'processEntity' that takes
- * as its only parameters, any number of Component instances of specific types. An example
- * might be:
+ * SimpleTask extends Task adds logic to simplify the creation of tasks that perform the same operations on
+ * each entity that matches a specific component configuration. Subclasses of SimpleTask should define a
+ * single method named 'processEntity' that takes as its only parameters, any number of Component instances of
+ * specific types. An example might be:
  * <p/>
  * <pre>
  * public class ExampleTask extends SimpleTask {
@@ -63,9 +62,8 @@ import java.lang.reflect.Method;
  * </pre>
  * <p/>
  * In the task's {@link #process(EntitySystem, Job)} method, it can then invoke {@link
- * #processEntities(EntitySystem)} to perform the automated iteration over matching
- * entities within the system. SimpleTask will call the identified 'processEntity' method
- * for each matched entity.
+ * #processEntities(EntitySystem)} to perform the automated iteration over matching entities within the
+ * system. SimpleTask will call the identified 'processEntity' method for each matched entity.
  *
  * @author Michael Ludwig
  */
@@ -92,8 +90,7 @@ public abstract class SimpleTask implements Task {
         while (!SimpleTask.class.equals(cls)) {
             for (Method m : cls.getDeclaredMethods()) {
                 if (m.getName().equals("processEntity")) {
-                    if (m.getParameterTypes().length > 0 &&
-                        m.getReturnType().equals(boolean.class)) {
+                    if (m.getParameterTypes().length > 0 && m.getReturnType().equals(boolean.class)) {
                         boolean paramsValid = true;
                         for (Class<?> p : m.getParameterTypes()) {
                             if (!Component.class.isAssignableFrom(p)) {
@@ -117,8 +114,7 @@ public abstract class SimpleTask implements Task {
         }
 
         if (processMethod == null) {
-            throw new IllegalStateException(
-                    "SimpleTask subclasses must define a processEntity() method");
+            throw new IllegalStateException("SimpleTask subclasses must define a processEntity() method");
         }
 
         processMethod.setAccessible(true);
@@ -138,12 +134,11 @@ public abstract class SimpleTask implements Task {
     }
 
     /**
-     * The default implementation of process() just invokes {@link
-     * #processEntities(com.lhkbob.entreri.EntitySystem)} immediately and returns no
-     * future task.
+     * The default implementation of process() just invokes {@link #processEntities(com.lhkbob.entreri.EntitySystem)}
+     * immediately and returns no future task.
      *
-     * @param system The EntitySystem being processed, which will always be the same for a
-     *               given Task instance
+     * @param system The EntitySystem being processed, which will always be the same for a given Task
+     *               instance
      * @param job    The Job this task belongs to
      *
      * @return Will return null unless overridden
@@ -155,8 +150,8 @@ public abstract class SimpleTask implements Task {
     }
 
     /**
-     * Process all entities that fit the component profile mandated by the defined
-     * 'processEntity()' method in the subclass.
+     * Process all entities that fit the component profile mandated by the defined 'processEntity()' method in
+     * the subclass.
      *
      * @param system The system to process
      */
@@ -166,11 +161,9 @@ public abstract class SimpleTask implements Task {
             iterator = system.fastIterator();
             for (int i = 0; i < optional.length; i++) {
                 if (optional[i]) {
-                    componentDatas[i] = iterator
-                            .addOptional((Class) processMethod.getParameterTypes()[i]);
+                    componentDatas[i] = iterator.addOptional((Class) processMethod.getParameterTypes()[i]);
                 } else {
-                    componentDatas[i] = iterator
-                            .addRequired((Class) processMethod.getParameterTypes()[i]);
+                    componentDatas[i] = iterator.addRequired((Class) processMethod.getParameterTypes()[i]);
                 }
             }
 
@@ -182,8 +175,7 @@ public abstract class SimpleTask implements Task {
             iterator.reset();
             while (iterator.next()) {
                 for (int i = 0; i < optional.length; i++) {
-                    invokeArgs[i] = (optional[i] && !componentDatas[i].isAlive() ? null
-                                                                                 : componentDatas[i]);
+                    invokeArgs[i] = (optional[i] && !componentDatas[i].isAlive() ? null : componentDatas[i]);
                 }
 
                 boolean iterate = ((Boolean) processMethod.invoke(this, invokeArgs));

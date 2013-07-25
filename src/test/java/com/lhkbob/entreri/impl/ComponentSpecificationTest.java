@@ -73,8 +73,7 @@ public class ComponentSpecificationTest {
     @Test
     @SuppressWarnings("unchecked")
     public void testPropertyLookup() throws Exception {
-        ComponentSpecification spec = ComponentSpecification.Factory.fromClass(
-                ComplexComponent.class);
+        ComponentSpecification spec = ComponentSpecification.Factory.fromClass(ComplexComponent.class);
         Assert.assertEquals("com.lhkbob.entreri.components", spec.getPackage());
         Assert.assertEquals("ComplexComponent", spec.getType());
 
@@ -104,8 +103,7 @@ public class ComponentSpecificationTest {
         Assert.assertNotNull(floatSpec);
         Assert.assertFalse(floatSpec.isShared());
         FloatProperty floatProp = (FloatProperty) floatSpec.getPropertyFactory().create();
-        ((FloatProperty.Factory) floatSpec.getPropertyFactory())
-                .setDefaultValue(floatProp, 0);
+        ((FloatProperty.Factory) floatSpec.getPropertyFactory()).setDefaultValue(floatProp, 0);
         Assert.assertEquals(0f, floatProp.get(0), 0.0001f);
         Assert.assertEquals("getFloat", floatSpec.getGetterMethod());
         Assert.assertEquals("setFloat", floatSpec.getSetterMethod());
@@ -116,8 +114,7 @@ public class ComponentSpecificationTest {
         Assert.assertNotNull(longSpec);
         Assert.assertFalse(longSpec.isShared());
         LongProperty longProp = (LongProperty) longSpec.getPropertyFactory().create();
-        ((LongProperty.Factory) longSpec.getPropertyFactory())
-                .setDefaultValue(longProp, 0);
+        ((LongProperty.Factory) longSpec.getPropertyFactory()).setDefaultValue(longProp, 0);
         Assert.assertEquals(Long.MAX_VALUE, longProp.get(0));
         Assert.assertEquals("getLong", longSpec.getGetterMethod());
         Assert.assertEquals("setLong", longSpec.getSetterMethod());
@@ -127,12 +124,9 @@ public class ComponentSpecificationTest {
         PropertyDeclaration facFloatSpec = props.get("factoryFloat");
         Assert.assertNotNull(facFloatSpec);
         Assert.assertFalse(facFloatSpec.isShared());
-        FloatProperty floatFactoryProp = (FloatProperty) facFloatSpec.getPropertyFactory()
-                                                                     .create();
-        ((FloatPropertyFactory) facFloatSpec.getPropertyFactory())
-                .setDefaultValue(floatFactoryProp, 0);
-        Assert.assertEquals(FloatPropertyFactory.DEFAULT, floatFactoryProp.get(0),
-                            0.0001f);
+        FloatProperty floatFactoryProp = (FloatProperty) facFloatSpec.getPropertyFactory().create();
+        ((FloatPropertyFactory) facFloatSpec.getPropertyFactory()).setDefaultValue(floatFactoryProp, 0);
+        Assert.assertEquals(FloatPropertyFactory.DEFAULT, floatFactoryProp.get(0), 0.0001f);
         Assert.assertEquals("getFactoryFloat", facFloatSpec.getGetterMethod());
         Assert.assertEquals("setFactoryFloat", facFloatSpec.getSetterMethod());
         Assert.assertEquals(0, facFloatSpec.getSetterParameter());
@@ -141,10 +135,8 @@ public class ComponentSpecificationTest {
         PropertyDeclaration param1Spec = props.get("param1");
         Assert.assertNotNull(param1Spec);
         Assert.assertFalse(param1Spec.isShared());
-        ShortProperty param1Prop = (ShortProperty) param1Spec.getPropertyFactory()
-                                                             .create();
-        ((ShortProperty.Factory) param1Spec.getPropertyFactory())
-                .setDefaultValue(param1Prop, 0);
+        ShortProperty param1Prop = (ShortProperty) param1Spec.getPropertyFactory().create();
+        ((ShortProperty.Factory) param1Spec.getPropertyFactory()).setDefaultValue(param1Prop, 0);
         Assert.assertEquals((short) 0, param1Prop.get(0));
         Assert.assertEquals("getParam1", param1Spec.getGetterMethod());
         Assert.assertEquals("setParams", param1Spec.getSetterMethod());
@@ -154,10 +146,8 @@ public class ComponentSpecificationTest {
         PropertyDeclaration param2Spec = props.get("param2");
         Assert.assertNotNull(param2Spec);
         Assert.assertFalse(param2Spec.isShared());
-        ShortProperty param2Prop = (ShortProperty) param2Spec.getPropertyFactory()
-                                                             .create();
-        ((ShortProperty.Factory) param2Spec.getPropertyFactory())
-                .setDefaultValue(param2Prop, 0);
+        ShortProperty param2Prop = (ShortProperty) param2Spec.getPropertyFactory().create();
+        ((ShortProperty.Factory) param2Spec.getPropertyFactory()).setDefaultValue(param2Prop, 0);
         Assert.assertEquals((short) 0, param2Prop.get(0));
         Assert.assertEquals("getParam2", param2Spec.getGetterMethod());
         Assert.assertEquals("setParams", param2Spec.getSetterMethod());
@@ -167,10 +157,8 @@ public class ComponentSpecificationTest {
         PropertyDeclaration fooblahSpec = props.get("foo-blah");
         Assert.assertNotNull(fooblahSpec);
         Assert.assertFalse(fooblahSpec.isShared());
-        BooleanProperty fooblahProp = (BooleanProperty) fooblahSpec.getPropertyFactory()
-                                                                   .create();
-        ((BooleanProperty.Factory) fooblahSpec.getPropertyFactory())
-                .setDefaultValue(fooblahProp, 0);
+        BooleanProperty fooblahProp = (BooleanProperty) fooblahSpec.getPropertyFactory().create();
+        ((BooleanProperty.Factory) fooblahSpec.getPropertyFactory()).setDefaultValue(fooblahProp, 0);
         Assert.assertEquals(false, fooblahProp.get(0));
         Assert.assertEquals("isNamedParamGetter", fooblahSpec.getGetterMethod());
         Assert.assertEquals("setNamedParamSetter", fooblahSpec.getSetterMethod());
@@ -180,8 +168,7 @@ public class ComponentSpecificationTest {
         PropertyDeclaration bletchSpec = props.get("bletch");
         Assert.assertNotNull(bletchSpec);
         Assert.assertTrue(bletchSpec.isShared());
-        CustomProperty bletchProp = (CustomProperty) bletchSpec.getPropertyFactory()
-                                                               .create();
+        CustomProperty bletchProp = (CustomProperty) bletchSpec.getPropertyFactory().create();
         ((CustomProperty.CustomFactoryWithAttributes) bletchSpec.getPropertyFactory())
                 .setDefaultValue(bletchProp, 0);
         Assert.assertEquals(14, bletchProp.get(0).value);

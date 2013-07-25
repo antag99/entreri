@@ -33,10 +33,9 @@ import com.lhkbob.entreri.property.Named;
 import com.lhkbob.entreri.property.SharedInstance;
 
 /**
- * A Component that tests a variety of things: multiple properties, different types,
- * customized default values, an overridden property factory, named properties, and
- * multi-parameter methods, extending component types, auto-detected properties, sharable
- * instances.
+ * A Component that tests a variety of things: multiple properties, different types, customized default
+ * values, an overridden property factory, named properties, and multi-parameter methods, extending component
+ * types, auto-detected properties, sharable instances.
  *
  * @author Michael Ludwig
  */
@@ -55,8 +54,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent {
 
     public short getParam2();
 
-    public ComplexComponent setParams(@Named("param1") short p1,
-                                      @Named("param2") short p2);
+    public ComplexComponent setParams(@Named("param1") short p1, @Named("param2") short p2);
 
     @Named("foo-blah")
     public boolean isNamedParamGetter();

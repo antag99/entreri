@@ -29,8 +29,7 @@ package com.lhkbob.entreri.components;
 import com.lhkbob.entreri.Component;
 
 /**
- * A test component that is abstract to test component validation, e.g. this type is
- * invalid.
+ * A test component that is abstract to test component validation, e.g. this type is invalid.
  *
  * @author Michael Ludwig
  */

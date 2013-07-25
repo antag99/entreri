@@ -47,12 +47,11 @@ public final class IntProperty implements Property {
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The array may be
-     * longer than necessary for the number of components in the system. Data can be
-     * accessed for a component directly using the component's index.
+     * Return the backing int array of this property's IndexedDataStore. The array may be longer than
+     * necessary for the number of components in the system. Data can be accessed for a component directly
+     * using the component's index.
      *
-     * @return The int data for all packed properties that this property has been packed
-     *         with
+     * @return The int data for all packed properties that this property has been packed with
      */
     public int[] getIndexedData() {
         return data;
@@ -101,8 +100,8 @@ public final class IntProperty implements Property {
     }
 
     /**
-     * Factory to create IntProperties. Properties annotated with DefaultInt will use that
-     * value as the default for all components.
+     * Factory to create IntProperties. Properties annotated with DefaultInt will use that value as the
+     * default for all components.
      *
      * @author Michael Ludwig
      */
@@ -111,10 +110,9 @@ public final class IntProperty implements Property {
         private final Clone.Policy policy;
 
         public Factory(Attributes attrs) {
-            defaultValue = attrs.hasAttribute(DefaultInt.class) ? attrs
-                    .getAttribute(DefaultInt.class).value() : 0;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class)
-                                                            .value()
+            defaultValue =
+                    attrs.hasAttribute(DefaultInt.class) ? attrs.getAttribute(DefaultInt.class).value() : 0;
+            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
                                                      : Clone.Policy.JAVA_DEFAULT;
         }
 
@@ -147,8 +145,7 @@ public final class IntProperty implements Property {
                 dst.set(dstIndex, src.get(srcIndex));
                 break;
             default:
-                throw new UnsupportedOperationException(
-                        "Enum value not supported: " + policy);
+                throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
     }

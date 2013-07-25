@@ -28,13 +28,12 @@ package com.lhkbob.entreri.property;
 
 /**
  * <p/>
- * A PropertyFactory is a simple factory that can be used to create Property instances.
- * Additionally, it is used when decorating a ComponentData type in an EntitySystem to
- * ensure that each decoration event gets a unique property instance.
+ * A PropertyFactory is a simple factory that can be used to create Property instances. Additionally, it is
+ * used when decorating a ComponentData type in an EntitySystem to ensure that each decoration event gets a
+ * unique property instance.
  * <p/>
- * PropertyFactory implementations must have a no-argument constructor or a constructor
- * that takes an {@link Attributes} as its only argument. The constructor does not need to
- * be public.
+ * PropertyFactory implementations must have a no-argument constructor or a constructor that takes an {@link
+ * Attributes} as its only argument. The constructor does not need to be public.
  *
  * @param <T> The Property type created
  *
@@ -42,17 +41,16 @@ package com.lhkbob.entreri.property;
  */
 public interface PropertyFactory<T extends Property> {
     /**
-     * Return a new Property instance. This must be a new instance that has not been
-     * returned previously or the entity framework will have undefined behavior.
+     * Return a new Property instance. This must be a new instance that has not been returned previously or
+     * the entity framework will have undefined behavior.
      *
      * @return A new Property of type T
      */
     public T create();
 
     /**
-     * Set the default value that the component at the specified <var>index</var> will see
-     * before it's init() method is invoked. In some cases, this could be used in-place of
-     * initializing in init() method.
+     * Set the default value that the component at the specified <var>index</var> will see before it's init()
+     * method is invoked. In some cases, this could be used in-place of initializing in init() method.
      *
      * @param property The property whose value will be updated
      * @param index    The component index to be updated
@@ -60,11 +58,11 @@ public interface PropertyFactory<T extends Property> {
     public void setDefaultValue(T property, int index);
 
     /**
-     * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to
-     * <var>dst</var> at <var>dstIndex</var>. This is used when a component is created and
-     * cloned from a template with {@link com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}.
-     * For many cases a plain copy-by-value or copy-by-reference is sufficient, but some
-     * component types might require more complicated cloning rules.
+     * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to <var>dst</var> at
+     * <var>dstIndex</var>. This is used when a component is created and cloned from a template with {@link
+     * com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For many cases a plain copy-by-value or
+     * copy-by-reference is sufficient, but some component types might require more complicated cloning
+     * rules.
      *
      * @param src      The source property that is being cloned
      * @param srcIndex The index into src of the component being cloned

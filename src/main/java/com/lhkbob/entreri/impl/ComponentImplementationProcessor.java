@@ -45,11 +45,10 @@ import java.io.Writer;
 import java.util.Set;
 
 /**
- * ComponentImplementationProcessor is an annotation processor to use with Java 6
- * compilers or APT to generate component proxy implementations for all component
- * sub-interfaces encountered in the build class path. These will then be dynamically
- * loaded at runtime instead of using something such as Janino to generate classes from
- * scratch.
+ * ComponentImplementationProcessor is an annotation processor to use with Java 6 compilers or APT to generate
+ * component proxy implementations for all component sub-interfaces encountered in the build class path. These
+ * will then be dynamically loaded at runtime instead of using something such as Janino to generate classes
+ * from scratch.
  *
  * @author Michael Ludwig
  */
@@ -57,36 +56,30 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ComponentImplementationProcessor extends AbstractProcessor {
     @Override
-    public boolean process(Set<? extends TypeElement> annotations,
-                           RoundEnvironment roundEnv) {
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Types tutil = processingEnv.getTypeUtils();
         Elements eutil = processingEnv.getElementUtils();
         for (Element e : roundEnv.getRootElements()) {
             if (e.getKind().equals(ElementKind.INTERFACE)) {
                 // we have an interface
                 TypeElement t = (TypeElement) e;
-                if (tutil.isAssignable(t.asType(), eutil.getTypeElement(
-                        Component.class.getCanonicalName()).asType())) {
+                if (tutil.isAssignable(t.asType(),
+                                       eutil.getTypeElement(Component.class.getCanonicalName()).asType())) {
 
                     try {
-                        ComponentSpecification spec = ComponentSpecification.Factory
-                                                                            .fromTypeElement(
-                                                                                    t,
-                                                                                    processingEnv);
-                        String name = ComponentFactoryProvider
-                                .getImplementationClassName(spec, true);
+                        ComponentSpecification spec = ComponentSpecification.Factory.fromTypeElement(t,
+                                                                                                     processingEnv);
+                        String name = ComponentFactoryProvider.getImplementationClassName(spec, true);
                         String code = ComponentFactoryProvider
                                 .generateJavaCode(spec, processingEnv.getSourceVersion());
                         try {
-                            Writer w = processingEnv.getFiler().createSourceFile(name, t)
-                                                    .openWriter();
+                            Writer w = processingEnv.getFiler().createSourceFile(name, t).openWriter();
                             w.write(code);
                             w.flush();
                             w.close();
                         } catch (IOException ioe) {
                             processingEnv.getMessager()
-                                         .printMessage(Diagnostic.Kind.ERROR,
-                                                       ioe.getMessage(), t);
+                                         .printMessage(Diagnostic.Kind.ERROR, ioe.getMessage(), t);
                         }
                     } catch (IllegalComponentDefinitionException ec) {
                         String typePrefix = t.asType().toString();
@@ -94,8 +87,7 @@ public class ComponentImplementationProcessor extends AbstractProcessor {
                         if (msg.startsWith(typePrefix)) {
                             msg = msg.substring(typePrefix.length());
                         }
-                        processingEnv.getMessager()
-                                     .printMessage(Diagnostic.Kind.ERROR, msg, t);
+                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, t);
                     }
                 }
             }

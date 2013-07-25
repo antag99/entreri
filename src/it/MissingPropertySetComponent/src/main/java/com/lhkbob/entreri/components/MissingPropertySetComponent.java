@@ -32,8 +32,7 @@ import com.lhkbob.entreri.property.Property;
 import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
- * Invalid component type because it references a property type that doesn't have the
- * expected set method.
+ * Invalid component type because it references a property type that doesn't have the expected set method.
  */
 public interface MissingPropertySetComponent extends Component {
     @Factory(MissingSetterFactory.class)
@@ -62,8 +61,7 @@ public interface MissingPropertySetComponent extends Component {
         }
     }
 
-    public static class MissingSetterFactory
-            implements PropertyFactory<MissingSetterProperty> {
+    public static class MissingSetterFactory implements PropertyFactory<MissingSetterProperty> {
         @Override
         public MissingSetterProperty create() {
             return new MissingSetterProperty();
@@ -74,8 +72,7 @@ public interface MissingPropertySetComponent extends Component {
         }
 
         @Override
-        public void clone(MissingSetterProperty src, int srcIndex,
-                          MissingSetterProperty dst, int dstIndex) {
+        public void clone(MissingSetterProperty src, int srcIndex, MissingSetterProperty dst, int dstIndex) {
         }
     }
 }

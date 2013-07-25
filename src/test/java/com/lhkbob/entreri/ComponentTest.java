@@ -30,7 +30,7 @@ import com.lhkbob.entreri.components.ComplexComponent;
 import com.lhkbob.entreri.components.CustomProperty;
 import com.lhkbob.entreri.components.FloatPropertyFactory;
 import com.lhkbob.entreri.components.IntComponent;
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ComponentTest {
@@ -180,6 +180,25 @@ public class ComponentTest {
         Assert.assertTrue(oldVersion < 0);
         cd.updateVersion();
         Assert.assertEquals(oldVersion, cd.getVersion());
+    }
+
+    @Test
+    public void testCanonical() {
+        EntitySystem system = EntitySystem.Factory.create();
+        Entity e = system.addEntity();
+        IntComponent cd = e.add(IntComponent.class);
+
+        Assert.assertFalse(cd.isFlyweight());
+        Assert.assertSame(cd, cd.getCanonical());
+
+        ComponentIterator it = system.fastIterator();
+        IntComponent cd2 = it.addRequired(IntComponent.class);
+
+        it.next();
+        Assert.assertEquals(cd, cd2);
+        Assert.assertTrue(cd2.isFlyweight());
+        Assert.assertNotSame(cd2, cd2.getCanonical());
+        Assert.assertSame(cd, cd2.getCanonical());
     }
 
     @Test

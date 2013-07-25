@@ -30,9 +30,9 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.property.SharedInstance;
 
 /**
- * Invalid component type that tries to have a shared instance from a property that
- * doesn't support it. Note that this failure also extends to any other property type that
- * isn't ObjectProperty that doesn't implement ShareableProperty.
+ * Invalid component type that tries to have a shared instance from a property that doesn't support it. Note
+ * that this failure also extends to any other property type that isn't ObjectProperty that doesn't implement
+ * ShareableProperty.
  */
 public interface InvalidSharedPrimitiveComponent extends Component {
     @SharedInstance

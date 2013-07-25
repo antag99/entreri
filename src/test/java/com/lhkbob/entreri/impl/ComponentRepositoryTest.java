@@ -55,8 +55,7 @@ public class ComponentRepositoryTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
-        FloatProperty decorated = system
-                .decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         int count = 0;
@@ -75,8 +74,7 @@ public class ComponentRepositoryTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
-        FloatProperty decorated = system
-                .decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         Entity e2 = system.addEntity();
@@ -89,11 +87,9 @@ public class ComponentRepositoryTest {
             count++;
 
             if (c3.getIndex() == c.getIndex()) {
-                Assert.assertEquals(1f, decorated.getIndexedData()[c3.getIndex()],
-                                    .0001f);
+                Assert.assertEquals(1f, decorated.getIndexedData()[c3.getIndex()], .0001f);
             } else {
-                Assert.assertEquals(2f, decorated.getIndexedData()[c3.getIndex()],
-                                    .0001f);
+                Assert.assertEquals(2f, decorated.getIndexedData()[c3.getIndex()], .0001f);
             }
         }
         Assert.assertEquals(2, count);
@@ -109,8 +105,7 @@ public class ComponentRepositoryTest {
         ComponentRepository<IntComponent> cr = system.getRepository(IntComponent.class);
         int count = getDecoratedProperties(cr).size();
 
-        FloatProperty decorated = system
-                .decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
 
         Assert.assertEquals(count + 1, getDecoratedProperties(cr).size());
 
@@ -124,10 +119,8 @@ public class ComponentRepositoryTest {
     }
 
     @SuppressWarnings("unchecked")
-    private static List<Property> getDecoratedProperties(ComponentRepository<?> cr)
-            throws Exception {
-        Field decorated = ComponentRepository.class
-                .getDeclaredField("decoratedProperties");
+    private static List<Property> getDecoratedProperties(ComponentRepository<?> cr) throws Exception {
+        Field decorated = ComponentRepository.class.getDeclaredField("decoratedProperties");
         decorated.setAccessible(true);
         List<?> value = (List<?>) decorated.get(cr);
 

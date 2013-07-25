@@ -26,7 +26,10 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.*;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.Annotation;
@@ -35,10 +38,10 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * ReflectionComponentSpecification is an implementation that extracts the component
- * specification from a {@link Class} object using the reflection APIs defined by Java.
- * This can only be used after the referenced classes have been compiled and are capable
- * of being loaded, e.g. the opposite scenario from MirrorComponentSpecification.
+ * ReflectionComponentSpecification is an implementation that extracts the component specification from a
+ * {@link Class} object using the reflection APIs defined by Java. This can only be used after the referenced
+ * classes have been compiled and are capable of being loaded, e.g. the opposite scenario from
+ * MirrorComponentSpecification.
  *
  * @author Michael Ludwig
  */
@@ -95,14 +98,12 @@ class ReflectionComponentSpecification implements ComponentSpecification {
 
             if (setter == null) {
                 throw fail(type, property + " has no matching setter");
-            } else if (!setter.getParameterTypes()[param]
-                    .equals(getter.getReturnType())) {
+            } else if (!setter.getParameterTypes()[param].equals(getter.getReturnType())) {
                 throw fail(type, property + " has inconsistent type");
             }
 
-            properties.add(new ReflectionPropertyDeclaration(property,
-                                                             createFactory(getter),
-                                                             getter, setter, param));
+            properties.add(new ReflectionPropertyDeclaration(property, createFactory(getter), getter, setter,
+                                                             param));
         }
 
         if (!setters.isEmpty()) {
@@ -142,8 +143,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
     }
 
     /**
-     * Implementation of PropertyDeclaration using the setter and getter methods available
-     * from reflection.
+     * Implementation of PropertyDeclaration using the setter and getter methods available from reflection.
      */
     private static class ReflectionPropertyDeclaration implements PropertyDeclaration {
         private final String name;
@@ -158,9 +158,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         private final Class<? extends Property> propertyType;
 
         @SuppressWarnings("unchecked")
-        private ReflectionPropertyDeclaration(String name, PropertyFactory<?> factory,
-                                              Method getter, Method setter,
-                                              int setterParameter) {
+        private ReflectionPropertyDeclaration(String name, PropertyFactory<?> factory, Method getter,
+                                              Method setter, int setterParameter) {
             this.name = name;
             this.factory = factory;
             this.getter = getter;
@@ -168,8 +167,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             this.setterParameter = setterParameter;
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
 
-            propertyType = getCreatedType(
-                    (Class<? extends PropertyFactory<?>>) factory.getClass());
+            propertyType = getCreatedType((Class<? extends PropertyFactory<?>>) factory.getClass());
         }
 
         @Override
@@ -225,8 +223,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
 
     private static void processSetter(Method m, Map<String, Method> setters,
                                       Map<String, Integer> parameters) {
-        if (!m.getReturnType().equals(m.getDeclaringClass()) &&
-            !m.getReturnType().equals(void.class)) {
+        if (!m.getReturnType().equals(m.getDeclaringClass()) && !m.getReturnType().equals(void.class)) {
             throw fail(m.getDeclaringClass(), m + " has invalid return type for setter");
         }
         if (m.getParameterTypes().length == 0) {
@@ -238,8 +235,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             if (name != null) {
                 // verify absence of @Named on actual setter
                 if (m.getAnnotation(Named.class) != null) {
-                    throw fail(m.getDeclaringClass(),
-                               m + ", @Named cannot be on both parameter and method");
+                    throw fail(m.getDeclaringClass(), m + ", @Named cannot be on both parameter and method");
                 }
             } else {
                 name = getName(m, "set");
@@ -253,8 +249,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         } else {
             // verify absence of @Named on actual setter
             if (m.getAnnotation(Named.class) != null) {
-                throw fail(m.getDeclaringClass(), m +
-                                                  ", @Named cannot be applied to setter method with multiple parameters");
+                throw fail(m.getDeclaringClass(),
+                           m + ", @Named cannot be applied to setter method with multiple parameters");
             }
 
             int numP = m.getParameterTypes().length;
@@ -266,8 +262,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 }
 
                 if (setters.containsKey(name)) {
-                    throw fail(m.getDeclaringClass(),
-                               name + " already declared on a setter");
+                    throw fail(m.getDeclaringClass(), name + " already declared on a setter");
                 }
 
                 setters.put(name, m);
@@ -276,8 +271,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static void processGetter(Method m, String prefix,
-                                      Map<String, Method> getters) {
+    private static void processGetter(Method m, String prefix, Map<String, Method> getters) {
         String name = getName(m, prefix);
         if (getters.containsKey(name)) {
             throw fail(m.getDeclaringClass(), name + " already declared on a getter");
@@ -286,8 +280,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             throw fail(m.getDeclaringClass(), m + ", getter must not take arguments");
         }
         if (m.getReturnType().equals(void.class)) {
-            throw fail(m.getDeclaringClass(),
-                       m + ", getter must have non-void return type");
+            throw fail(m.getDeclaringClass(), m + ", getter must have non-void return type");
         }
 
         getters.put(name, m);
@@ -313,11 +306,9 @@ class ReflectionComponentSpecification implements ComponentSpecification {
     }
 
     @SuppressWarnings("unchecked")
-    private static Class<? extends Property> getCreatedType(
-            Class<? extends PropertyFactory<?>> factory) {
+    private static Class<? extends Property> getCreatedType(Class<? extends PropertyFactory<?>> factory) {
         try {
-            return (Class<? extends Property>) factory.getMethod("create")
-                                                      .getReturnType();
+            return (Class<? extends Property>) factory.getMethod("create").getReturnType();
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Cannot inspect property factory " + factory, e);
         }
@@ -329,41 +320,33 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         Class<? extends PropertyFactory<?>> factoryType;
         if (getter.getAnnotation(com.lhkbob.entreri.property.Factory.class) != null) {
             // prefer getter specification to allow default overriding
-            factoryType = getter.getAnnotation(com.lhkbob.entreri.property.Factory.class)
-                                .value();
+            factoryType = getter.getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
             validateFactory(getter, factoryType, null);
         } else {
             // try to find a default property type
-            Class<? extends Property> mappedType = TypePropertyMapping
-                    .getPropertyForType(baseType);
-            if (mappedType.getAnnotation(com.lhkbob.entreri.property.Factory.class) ==
-                null) {
-                throw fail(getter.getDeclaringClass(),
-                           mappedType + " has no @Factory annotation");
+            Class<? extends Property> mappedType = TypePropertyMapping.getPropertyForType(baseType);
+            if (mappedType.getAnnotation(com.lhkbob.entreri.property.Factory.class) == null) {
+                throw fail(getter.getDeclaringClass(), mappedType + " has no @Factory annotation");
             } else {
-                factoryType = mappedType
-                        .getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
+                factoryType = mappedType.getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
                 validateFactory(getter, factoryType, mappedType);
             }
         }
 
-        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(
-                getter.getAnnotations()));
+        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(getter.getAnnotations()));
         if (factory == null) {
             factory = invokeConstructor(factoryType);
         }
 
         if (factory == null) {
             // unable to create a PropertyFactory
-            throw fail(getter.getDeclaringClass(),
-                       "Cannot create PropertyFactory for " + getter);
+            throw fail(getter.getDeclaringClass(), "Cannot create PropertyFactory for " + getter);
         } else {
             return factory;
         }
     }
 
-    private static void validateFactory(Method getter,
-                                        Class<? extends PropertyFactory<?>> factory,
+    private static void validateFactory(Method getter, Class<? extends PropertyFactory<?>> factory,
                                         Class<? extends Property> propertyType) {
         boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
         Class<?> baseType = getter.getReturnType();
@@ -386,20 +369,17 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             // special case for ObjectProperty to support more permissive assignments
             // (which to record requires a similar special case in the code generation)
             if (isShared) {
-                throw fail(getter.getDeclaringClass(),
-                           propertyType + " can't be used with @SharedInstance");
+                throw fail(getter.getDeclaringClass(), propertyType + " can't be used with @SharedInstance");
             } else if (baseType.isPrimitive()) {
-                throw fail(getter.getDeclaringClass(),
-                           "ObjectProperty cannot be used with primitive types");
+                throw fail(getter.getDeclaringClass(), "ObjectProperty cannot be used with primitive types");
             }
             // else we know ObjectProperty is defined correctly because its part of the core library
         } else {
             try {
                 Method g = propertyType.getMethod("get", int.class);
                 if (!g.getReturnType().equals(baseType)) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement " + baseType +
-                               " get()");
+                    throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
+                                                           " get()");
                 }
                 Method s = propertyType.getMethod("set", int.class, baseType);
                 if (!s.getReturnType().equals(void.class)) {
@@ -408,9 +388,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                                baseType + ")");
                 }
             } catch (NoSuchMethodException e) {
-                throw fail(getter.getDeclaringClass(),
-                           propertyType + " does not implement " + baseType +
-                           " get() or void set(" + baseType + ", int)");
+                throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
+                                                       " get() or void set(" + baseType + ", int)");
             }
 
             if (isShared) {
@@ -443,8 +422,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static PropertyFactory<?> invokeConstructor(
-            Class<? extends PropertyFactory<?>> type, Object... args) {
+    private static PropertyFactory<?> invokeConstructor(Class<? extends PropertyFactory<?>> type,
+                                                        Object... args) {
         Class<?>[] paramTypes = new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
             paramTypes[i] = args[i].getClass();
