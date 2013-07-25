@@ -98,6 +98,13 @@ package com.lhkbob.entreri;
  * method that defines the property. They are ignored if added to the setter method. The getter method is
  * considered to be the definition of the property and the setter is only specified to complete the API.
  * <p/>
+ * As interfaces, Component definitions can extend from other interfaces. However, any methods defined in the
+ * additional super-interfaces must follow the exact same property specification. The total sum of methods not
+ * defined by Component, Owner, Ownable, or Object must produce a valid property specification. These
+ * super-interfaces do not need to extend Component themselves, indeed it is recommended that they do not
+ * otherwise it would be possible for entities to have the sub-component and super-component expressed at the
+ * same time.
+ * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and the id of their owning
  * entity. The {@link ComponentIterator} class creates flyweight component instances whose identity changes as
  * iteration proceeds; equals() and hashCode() will behave appropriately. This means that flyweight components

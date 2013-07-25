@@ -92,10 +92,6 @@ class MirrorComponentSpecification implements ComponentSpecification {
                 continue;
             }
 
-            if (!tu.isAssignable(declare, baseComponentType)) {
-                throw fail(declare, name + ", method is not declared in Component");
-            }
-
             if (name.startsWith("is")) {
                 processGetter(m, "is", getters);
             } else if (name.startsWith("has")) {

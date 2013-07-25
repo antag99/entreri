@@ -74,10 +74,6 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 continue;
             }
 
-            if (!Component.class.isAssignableFrom(method.getDeclaringClass())) {
-                throw fail(md, method + ", method is not declared by a component");
-            }
-
             if (method.getName().startsWith("is")) {
                 processGetter(method, "is", getters);
             } else if (method.getName().startsWith("has")) {

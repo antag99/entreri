@@ -39,7 +39,16 @@ import com.lhkbob.entreri.property.SharedInstance;
  *
  * @author Michael Ludwig
  */
-public interface ComplexComponent extends IntComponent, FloatComponent {
+public interface ComplexComponent extends IntComponent, FloatComponent, SuperInterface {
+    public static enum TestEnum {
+        V1,
+        V2
+    }
+
+    public TestEnum getEnum();
+
+    public void setEnum(TestEnum e);
+
     public void setLong(long i);
 
     @DefaultLong(Long.MAX_VALUE)
