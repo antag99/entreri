@@ -52,6 +52,14 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     public String getType();
 
     /**
+     * Get whether or not the property is generic and thus needs an explicit cast for the accessor
+     * implementation of the property.
+     *
+     * @return True if a cast must be added to the generic code
+     */
+    public boolean isPropertyGeneric();
+
+    /**
      * Get the canonical class name of the {@link com.lhkbob.entreri.property.Property Property}
      * implementation corresponding to the type of this property.
      *

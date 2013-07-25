@@ -47,9 +47,9 @@ public final class FloatProperty implements Property {
     }
 
     /**
-     * Return the backing float array of this property's IndexedDataStore. The array may be longer than
-     * necessary for the number of components in the system. Data can be accessed for a component directly
-     * using the component's index.
+     * Return the backing float array of this property. The array may be longer than necessary for the number
+     * of components in the system. Data can be accessed for a component directly using the component's
+     * index.
      *
      * @return The float data for all packed properties that this property has been packed with
      */

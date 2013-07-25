@@ -47,9 +47,9 @@ public final class ByteProperty implements Property {
     }
 
     /**
-     * Return the backing byte array of this property's IndexedDataStore. The array may be longer than
-     * necessary for the number of components in the system. Data can be accessed for a component directly
-     * using the component's index.
+     * Return the backing byte array of this property. The array may be longer than necessary for the number
+     * of components in the system. Data can be accessed for a component directly using the component's
+     * index.
      *
      * @return The byte data for all packed properties that this property has been packed with
      */

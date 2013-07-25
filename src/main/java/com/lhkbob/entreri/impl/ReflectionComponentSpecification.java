@@ -154,6 +154,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
 
         private final Method getter;
         private final boolean isSharedInstance;
+        private final boolean isGeneric;
 
         private final Class<? extends Property> propertyType;
 
@@ -168,6 +169,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
 
             propertyType = getCreatedType((Class<? extends PropertyFactory<?>>) factory.getClass());
+            isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
         }
 
         @Override
@@ -178,6 +180,11 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         @Override
         public String getType() {
             return getter.getReturnType().getCanonicalName();
+        }
+
+        @Override
+        public boolean isPropertyGeneric() {
+            return isGeneric;
         }
 
         @Override
@@ -314,6 +321,15 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
     }
 
+    private static Class<?> getGenericSuperClass(Class<?> propertyType) {
+        GenericProperty prop = propertyType.getAnnotation(GenericProperty.class);
+        if (prop != null) {
+            return prop.superClass();
+        } else {
+            return null;
+        }
+    }
+
     private static PropertyFactory<?> createFactory(Method getter) {
         Class<?> baseType = getter.getReturnType();
 
@@ -333,7 +349,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             }
         }
 
-        PropertyFactory<?> factory = invokeConstructor(factoryType, new Attributes(getter.getAnnotations()));
+        PropertyFactory<?> factory = invokeConstructor(factoryType,
+                                                       new Attributes(baseType, getter.getAnnotations()));
         if (factory == null) {
             factory = invokeConstructor(factoryType);
         }
@@ -365,21 +382,44 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
 
         // verify contract of property
-        if (propertyType.equals(ObjectProperty.class)) {
-            // special case for ObjectProperty to support more permissive assignments
-            // (which to record requires a similar special case in the code generation)
+        Class<?> genericSuperClass = getGenericSuperClass(propertyType);
+        if (genericSuperClass != null) {
+            // special case for generic properties to support more permissive assignments
             if (isShared) {
-                throw fail(getter.getDeclaringClass(), propertyType + " can't be used with @SharedInstance");
-            } else if (baseType.isPrimitive()) {
-                throw fail(getter.getDeclaringClass(), "ObjectProperty cannot be used with primitive types");
+                throw fail(getter.getDeclaringClass(),
+                           propertyType + " can't be used with @SharedInstance, it is declared generic");
             }
-            // else we know ObjectProperty is defined correctly because its part of the core library
+
+            try {
+                Method g = propertyType.getMethod("get", int.class);
+                if (!g.getReturnType().equals(genericSuperClass)) {
+                    throw fail(getter.getDeclaringClass(),
+                               propertyType + " does not implement generic " + genericSuperClass +
+                               " get(int)");
+                }
+                Method s = propertyType.getMethod("set", int.class, genericSuperClass);
+                if (!s.getReturnType().equals(void.class)) {
+                    throw fail(getter.getDeclaringClass(),
+                               propertyType + " does not implement generic void set(int, " +
+                               genericSuperClass + ")");
+                }
+            } catch (NoSuchMethodException e) {
+                throw fail(getter.getDeclaringClass(),
+                           propertyType + " does not implement generic " + baseType +
+                           " get(int) or void set(" + baseType + ", int)");
+            }
+
+            if (!genericSuperClass.isAssignableFrom(baseType)) {
+                throw fail(getter.getDeclaringClass(),
+                           propertyType + " cannot be used with " + baseType + ", it must extend " +
+                           genericSuperClass);
+            }
         } else {
             try {
                 Method g = propertyType.getMethod("get", int.class);
                 if (!g.getReturnType().equals(baseType)) {
                     throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
-                                                           " get()");
+                                                           " get(int)");
                 }
                 Method s = propertyType.getMethod("set", int.class, baseType);
                 if (!s.getReturnType().equals(void.class)) {
@@ -389,7 +429,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
-                                                       " get() or void set(" + baseType + ", int)");
+                                                       " get(int) or void set(" + baseType + ", int)");
             }
 
             if (isShared) {

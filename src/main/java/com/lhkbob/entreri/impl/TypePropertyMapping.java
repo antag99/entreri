@@ -128,8 +128,12 @@ public final class TypePropertyMapping {
         }
 
         if (pType == null) {
-            // generic fallback
-            pType = ObjectProperty.class;
+            // generic fallbacks
+            if (Enum.class.isAssignableFrom(type)) {
+                pType = EnumProperty.class;
+            } else {
+                pType = ObjectProperty.class;
+            }
         }
 
         return pType;

@@ -29,10 +29,7 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.property.IntProperty;
-import com.lhkbob.entreri.property.ObjectProperty;
-import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
+import com.lhkbob.entreri.property.*;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -120,7 +117,7 @@ public final class ComponentRepository<T extends Component> {
         // we set a unique id for every component
         componentIdProperty = decorate(new IntProperty.Factory(0));
         componentVersionProperty = decorate(new IntProperty.Factory(0));
-        ownerDelegatesProperty = decorate(ObjectProperty.<OwnerSupport>factory(null));
+        ownerDelegatesProperty = decorate(new ObjectProperty.Factory(Clone.Policy.DISABLE));
 
         idSeq = 1; // start at 1, just like entity id sequences versionSeq = 0;
 

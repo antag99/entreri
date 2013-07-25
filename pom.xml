@@ -78,7 +78,7 @@
                 </configuration>
 
                 <reportSets>
-                    <!-- Exclue test javadoc from reports -->
+                    <!-- Exclude test javadoc from reports -->
                     <reportSet>
                         <id>default</id>
                         <reports>

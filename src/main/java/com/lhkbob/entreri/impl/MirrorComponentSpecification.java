@@ -121,7 +121,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
             }
 
             TypeMirror propertyType = getPropertyType(getter, tu, eu, io);
-            properties.add(new MirrorPropertyDeclaration(property, getter, setter, param, propertyType));
+            properties.add(new MirrorPropertyDeclaration(property, getter, setter, param,
+                                                         (TypeElement) tu.asElement(propertyType)));
         }
 
         if (!setters.isEmpty()) {
@@ -172,12 +173,13 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
         private final String getter;
         private final boolean isSharedInstance;
+        private final boolean isGeneric;
 
         private final String type;
         private final String propertyType;
 
         public MirrorPropertyDeclaration(String name, ExecutableElement getter, ExecutableElement setter,
-                                         int parameter, TypeMirror propertyType) {
+                                         int parameter, TypeElement propertyType) {
             this.name = name;
             this.getter = getter.getSimpleName().toString();
             this.setter = setter.getSimpleName().toString();
@@ -188,6 +190,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
             setterReturnsComponent = !setter.getReturnType().getKind().equals(TypeKind.VOID);
 
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
+            isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
         }
 
         @Override
@@ -228,6 +231,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
         @Override
         public boolean isShared() {
             return isSharedInstance;
+        }
+
+        @Override
+        public boolean isPropertyGeneric() {
+            return isGeneric;
         }
 
         @Override
@@ -387,7 +395,14 @@ class MirrorComponentSpecification implements ComponentSpecification {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    mappedType = eu.getTypeElement(ObjectProperty.class.getCanonicalName());
+                    TypeMirror enumType = tu
+                            .erasure(eu.getTypeElement(Enum.class.getCanonicalName()).asType());
+
+                    if (tu.isAssignable(baseType, enumType)) {
+                        mappedType = eu.getTypeElement(EnumProperty.class.getCanonicalName());
+                    } else {
+                        mappedType = eu.getTypeElement(ObjectProperty.class.getCanonicalName());
+                    }
                 }
             }
 
@@ -413,9 +428,17 @@ class MirrorComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static final EnumSet<TypeKind> PRIMITIVES = EnumSet
-            .of(TypeKind.BOOLEAN, TypeKind.BYTE, TypeKind.CHAR, TypeKind.DOUBLE, TypeKind.FLOAT, TypeKind.INT,
-                TypeKind.LONG, TypeKind.SHORT);
+    private static TypeMirror getGenericPropertySuperclass(Element e) {
+        try {
+            GenericProperty generic = e.getAnnotation(GenericProperty.class);
+            if (generic != null) {
+                generic.superClass(); // will throw an exception
+            }
+            return null;
+        } catch (MirroredTypeException te) {
+            return te.getTypeMirror();
+        }
+    }
 
     private static TypeMirror validateFactory(ExecutableElement getter, TypeMirror factory,
                                               TypeElement propertyType, Types tu, Elements eu) {
@@ -449,24 +472,38 @@ class MirrorComponentSpecification implements ComponentSpecification {
         }
 
         // verify contract of property
-        TypeMirror asType = propertyType.asType();
-        if (tu.isSameType(asType, eu.getTypeElement(ObjectProperty.class.getCanonicalName()).asType())) {
-            // special case for ObjectProperty to support more permissive assignments
-            // (which to record requires a similar special case in the code generation)
-            if (isShared) {
-                throw fail(declaringClass, propertyType + " can't be used with @SharedInstance");
-            } else if (PRIMITIVES.contains(asType.getKind())) {
-                throw fail(declaringClass, "ObjectProperty cannot be used with primitive types");
-            }
-            // else we know ObjectProperty is defined correctly because its part of the core library
-        } else {
-            TypeMirror intType = tu.getPrimitiveType(TypeKind.INT);
-            TypeMirror voidType = tu.getNoType(TypeKind.VOID);
-            List<? extends ExecutableElement> methods = ElementFilter
-                    .methodsIn(eu.getAllMembers(propertyType));
+        TypeMirror intType = tu.getPrimitiveType(TypeKind.INT);
+        TypeMirror voidType = tu.getNoType(TypeKind.VOID);
+        List<? extends ExecutableElement> methods = ElementFilter.methodsIn(eu.getAllMembers(propertyType));
 
+        TypeMirror asType = propertyType.asType();
+        TypeMirror genericType = getGenericPropertySuperclass(propertyType);
+        if (genericType != null) {
+            // special case for properties that claim to support more permissive assignments
+            if (isShared) {
+                throw fail(declaringClass,
+                           propertyType + " can't be used with @SharedInstance, it is declared generic");
+            }
+
+            // ensure that the getter and setter methods exis with the declared super class type
+            // and that the base value type is assignable to the super type
+            if (!findMethod(methods, tu, "get", genericType, intType)) {
+                throw fail(declaringClass,
+                           propertyType + " does not implement generic " + genericType + " get(int)");
+            }
+            if (!findMethod(methods, tu, "set", voidType, intType, genericType)) {
+                throw fail(declaringClass,
+                           propertyType + " does not implement generic void set(int, " + baseType + ")");
+            }
+
+            if (!tu.isAssignable(baseType, genericType)) {
+                throw fail(declaringClass,
+                           propertyType + " cannot be used with " + baseType + ", type must extend from " +
+                           genericType);
+            }
+        } else {
             if (!findMethod(methods, tu, "get", baseType, intType)) {
-                throw fail(declaringClass, propertyType + " does not implement " + baseType + " get()");
+                throw fail(declaringClass, propertyType + " does not implement " + baseType + " get(int)");
             }
             if (!findMethod(methods, tu, "set", voidType, intType, baseType)) {
                 throw fail(declaringClass, propertyType + " does not implement void set(int, " +

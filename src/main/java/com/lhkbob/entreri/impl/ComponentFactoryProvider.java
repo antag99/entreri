@@ -27,7 +27,6 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.ObjectProperty;
 
 import javax.lang.model.SourceVersion;
 import java.nio.ByteBuffer;
@@ -261,7 +260,6 @@ public abstract class ComponentFactoryProvider {
     // magic constants used to produce the component implementation source files
     private static final String ABSTRACT_COMPONENT_NAME = AbstractComponent.class.getName();
     private static final String COMPONENT_REPO_NAME = ComponentRepository.class.getName();
-    private static final String OBJECT_PROP_NAME = ObjectProperty.class.getName();
 
     private static final String REPO_FIELD_NAME = "owner";
     private static final String INDEX_FIELD_NAME = "index";
@@ -293,8 +291,8 @@ public abstract class ComponentFactoryProvider {
               .append(", ").append(SHARED_FIELD_PREFIX).append(index).append(");\n\t\treturn ")
               .append(SHARED_FIELD_PREFIX).append(index).append(";");
         } else {
-            if (forProperty.getPropertyImplementation().equals(OBJECT_PROP_NAME)) {
-                // special case where we allow ObjectProperty to have more permissive getters
+            if (forProperty.isPropertyGeneric()) {
+                // special case where we allow property to have more permissive getters
                 // and setters to support any type under the sun, but that means we have
                 // to cast the object we get back
                 sb.append("return (").append(forProperty.getType()).append(") ").append(PROPERTY_FIELD_PREFIX)

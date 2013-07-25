@@ -40,20 +40,26 @@ import java.util.Map;
  * @see PropertyFactory
  */
 public class Attributes {
+    private final Class<?> propertyType;
     private final Map<Class<? extends Annotation>, Annotation> attrs;
 
     /**
      * Construct a new set of attributes from the given annotations. Only annotations that have the Attribute
      * annotation are kept.
      *
-     * @param attrs The annotations from the method, or field, etc.
+     * @param propertyType The class of the declared property that produced these attributes
+     * @param attrs        The annotations from the method, or field, etc.
      *
      * @throws NullPointerException if attrs is null or contains null elements
      */
-    public Attributes(Annotation... attrs) {
+    public Attributes(Class<?> propertyType, Annotation... attrs) {
+        if (propertyType == null) {
+            throw new NullPointerException("Property type cannot be null");
+        }
         if (attrs == null) {
             throw new NullPointerException("Attributes cannot be null");
         }
+        this.propertyType = propertyType;
         this.attrs = new HashMap<>();
 
         for (Annotation a : attrs) {
@@ -62,6 +68,13 @@ public class Attributes {
                 this.attrs.put(a.annotationType(), a);
             }
         }
+    }
+
+    /**
+     * @return The class of the property this set of attributes belongs to
+     */
+    public Class<?> getPropertyType() {
+        return propertyType;
     }
 
     /**

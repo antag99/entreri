@@ -40,6 +40,7 @@ import java.util.Arrays;
  *
  * @author Michael Ludwig
  */
+@GenericProperty(superClass = Object.class)
 @Factory(ObjectProperty.Factory.class)
 public final class ObjectProperty implements Property {
     private Object[] data;
@@ -49,15 +50,6 @@ public final class ObjectProperty implements Property {
      */
     public ObjectProperty() {
         data = new Object[1];
-    }
-
-    /**
-     * Return a PropertyFactory that creates ObjectProperties using the given cloning policy.
-     *
-     * @return A PropertyFactory for ObjectProperty
-     */
-    public static PropertyFactory<ObjectProperty> factory(Clone.Policy policy) {
-        return new Factory(policy);
     }
 
     /**

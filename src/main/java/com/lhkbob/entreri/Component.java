@@ -94,6 +94,10 @@ package com.lhkbob.entreri;
  * that work with general object types. This is because the scope of that problem is intractable. The default
  * ObjectProperty implementation assumes null values are allowed and that the default value is null.
  * <p/>
+ * The provided Attribute annotations and any custom annotations you write can only be applied to the getter
+ * method that defines the property. They are ignored if added to the setter method. The getter method is
+ * considered to be the definition of the property and the setter is only specified to complete the API.
+ * <p/>
  * The generated proxies will implement equals() and hashCode() based on their type and the id of their owning
  * entity. The {@link ComponentIterator} class creates flyweight component instances whose identity changes as
  * iteration proceeds; equals() and hashCode() will behave appropriately. This means that flyweight components

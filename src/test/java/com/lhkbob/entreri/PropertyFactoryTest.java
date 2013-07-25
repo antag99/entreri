@@ -68,7 +68,7 @@ public class PropertyFactoryTest {
     private DoubleProperty doublePropertyInvoke;
 
     private Attributes createAttributes(String fieldName) throws Exception {
-        return new Attributes(getClass().getDeclaredField(fieldName).getAnnotations());
+        return new Attributes(Object.class, getClass().getDeclaredField(fieldName).getAnnotations());
     }
 
     @Test

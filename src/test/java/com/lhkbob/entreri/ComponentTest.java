@@ -26,12 +26,12 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.components.ComplexComponent;
-import com.lhkbob.entreri.components.CustomProperty;
-import com.lhkbob.entreri.components.FloatPropertyFactory;
-import com.lhkbob.entreri.components.IntComponent;
+import com.lhkbob.entreri.components.*;
+import com.lhkbob.entreri.property.EnumProperty;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
 
 public class ComponentTest {
     @Test
@@ -238,6 +238,22 @@ public class ComponentTest {
         Assert.assertEquals((short) 0, c2.getParam2());
         Assert.assertEquals(0f, c2.getFloat(), 0.00001f);
         Assert.assertEquals(0, c2.getInt());
+    }
+
+    @Test
+    public void testGenericEnumProperty() throws Exception {
+        EntitySystem system = EntitySystem.Factory.create();
+        EnumComponent en = system.addEntity().add(EnumComponent.class);
+
+        // use reflection to verify that it picked an EnumProperty
+        Field prop = en.getClass().getDeclaredField("property0");
+        prop.setAccessible(true);
+        Assert.assertEquals(EnumProperty.class, prop.getType());
+        EnumProperty data = (EnumProperty) prop.get(en);
+
+        Assert.assertEquals(EnumComponent.TestEnum.V1, en.getValue());
+        en.setValue(EnumComponent.TestEnum.V2);
+        Assert.assertEquals(1, data.getIndexedData()[en.getIndex()]);
     }
 
     @Test
