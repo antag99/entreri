@@ -28,6 +28,9 @@ package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.property.PropertyFactory;
 
+import java.lang.annotation.Annotation;
+import java.util.List;
+
 /**
  * PropertyDeclaration represents a particular "property" instance declared in a Component sub-interface. A
  * property is represented by a bean getter method and an associated setter. This interface captures the
@@ -101,6 +104,15 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
      * @return True if the method signature returns the component
      */
     public boolean getSetterReturnsComponent();
+
+    /**
+     * Get all validation annotations applied directly to the setter parameter of this property. Included
+     * annotations will be instances of {@link com.lhkbob.entreri.NotNull} or {@link
+     * com.lhkbob.entreri.Within}.
+     *
+     * @return All annotations present on the given parameter
+     */
+    public List<Annotation> getValidationAnnotations();
 
     /**
      * Get whether or not this property should use the shared instance API to store and get values of the

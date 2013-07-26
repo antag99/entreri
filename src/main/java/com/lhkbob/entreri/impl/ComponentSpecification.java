@@ -30,6 +30,7 @@ import com.lhkbob.entreri.Component;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
+import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
@@ -65,6 +66,17 @@ public interface ComponentSpecification {
      * @return The list of all properties for the component
      */
     public List<? extends PropertyDeclaration> getProperties();
+
+    /**
+     * Get all validation annotations applied directly to the setter with the given method name. Included
+     * annotations will be instances of {@link com.lhkbob.entreri.NotNull}, {@link com.lhkbob.entreri.Within},
+     * and {@link com.lhkbob.entreri.Validate}.
+     *
+     * @param setterName The setter method name to look up
+     *
+     * @return All annotations present on the given method
+     */
+    public List<Annotation> getValidationAnnotations(String setterName);
 
     public static final class Factory {
         private Factory() {

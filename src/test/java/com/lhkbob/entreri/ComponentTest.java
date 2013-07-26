@@ -26,10 +26,7 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.components.ComplexComponent;
-import com.lhkbob.entreri.components.CustomProperty;
-import com.lhkbob.entreri.components.FloatPropertyFactory;
-import com.lhkbob.entreri.components.IntComponent;
+import com.lhkbob.entreri.components.*;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -244,6 +241,46 @@ public class ComponentTest {
         Assert.assertEquals(0, c2.getInt());
         Assert.assertEquals(0, c2.getSuperValue());
         Assert.assertEquals(ComplexComponent.TestEnum.V1, c2.getEnum());
+    }
+
+    @Test
+    public void testValidation() {
+        EntitySystem system = EntitySystem.Factory.create();
+        Entity e = system.addEntity();
+
+        ObjectComponent nullTest = e.add(ObjectComponent.class);
+        FloatComponent withinTest = e.add(FloatComponent.class);
+        ComplexComponent validTest = e.add(ComplexComponent.class);
+
+        try {
+            nullTest.setObject(null);
+            Assert.fail("Expected NullPointerException");
+        } catch (NullPointerException ne) {
+            // expected
+        }
+        nullTest.setObject(new ObjectComponent.FooBlah());
+
+        try {
+            withinTest.setFloat(-56);
+            Assert.fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException ie) {
+            // expected
+        }
+        try {
+            withinTest.setFloat(5000);
+            Assert.fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException ie) {
+            // expected
+        }
+        withinTest.setFloat(0);
+
+        try {
+            validTest.setParams((short) 10, (short) 1);
+            Assert.fail("Expected IllegalArgumentException");
+        } catch (IllegalArgumentException ie) {
+            // expected
+        }
+        validTest.setParams((short) 1, (short) 10);
     }
 
     @Test

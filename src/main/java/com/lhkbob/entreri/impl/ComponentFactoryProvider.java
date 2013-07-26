@@ -27,8 +27,12 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.NotNull;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.Within;
 
 import javax.lang.model.SourceVersion;
+import java.lang.annotation.Annotation;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -348,6 +352,39 @@ public abstract class ComponentFactoryProvider {
         }
         sb.append(") {\n");
 
+        // perform any validation, first from the method annotations
+        for (Annotation validate : spec.getValidationAnnotations(name)) {
+            if (validate instanceof NotNull) {
+                // add not null checks for every parameter
+                for (PropertyDeclaration p : params) {
+                    int idx = properties.indexOf(p);
+                    addNotNullValidationForParameter(idx, p, sb);
+                }
+            } else if (validate instanceof Within) {
+                // when added to the method, this only affects the first property
+                addWithinValidationForParameter(0, params.get(0), (Within) validate, sb);
+            } else {
+                // assume its a Validate annotation
+                Validate v = (Validate) validate;
+                String javaValidation = filterValidationSnippet(spec, params, v.value());
+                sb.append("\t\tif(!(").append(javaValidation)
+                  .append(")) {\n\t\t\tthrow new IllegalArgumentException(\"").append(v.errorMsg())
+                  .append("\");\n\t\t}\n");
+            }
+        }
+        // then parameter validation
+        for (PropertyDeclaration p : params) {
+            int idx = properties.indexOf(p);
+            for (Annotation validate : p.getValidationAnnotations()) {
+                if (validate instanceof NotNull) {
+                    addNotNullValidationForParameter(idx, p, sb);
+                } else {
+                    // assume within since Validate is not allowed on parameters
+                    addWithinValidationForParameter(idx, p, (Within) validate, sb);
+                }
+            }
+        }
+
         // implement the body
         for (PropertyDeclaration p : params) {
             int idx = properties.indexOf(p);
@@ -363,5 +400,48 @@ public abstract class ComponentFactoryProvider {
             sb.append("\t\treturn this;\n");
         }
         sb.append("\t}\n");
+    }
+
+    private static String filterValidationSnippet(ComponentSpecification spec,
+                                                  List<PropertyDeclaration> params, String snippet) {
+        // first filter $n parameter names
+        List<? extends PropertyDeclaration> allProps = spec.getProperties();
+        for (int i = 0; i < params.size(); i++) {
+            int varIndex = allProps.indexOf(params.get(i));
+            snippet = snippet.replace("$" + (i + 1), SETTER_PARAM_PREFIX + varIndex);
+        }
+        // filter property names
+        for (PropertyDeclaration p : allProps) {
+            snippet = snippet.replace("$" + p.getName(), p.getGetterMethod() + "()");
+        }
+        return snippet;
+    }
+
+    private static void addWithinValidationForParameter(int param, PropertyDeclaration p, Within w,
+                                                        StringBuilder sb) {
+
+        if (Double.isInfinite(w.max())) {
+            // less than min check only
+            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
+              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
+              .append(" must be greater than ").append(w.min()).append("\");\n\t\t}\n");
+        } else if (Double.isInfinite(w.min())) {
+            // greater than max check only
+            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" > ").append(w.max())
+              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
+              .append(" must be less than ").append(w.max()).append("\");\n\t\t}\n");
+        } else {
+            // both
+            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
+              .append(" || ").append(SETTER_PARAM_PREFIX).append(param).append(" > ").append(w.max())
+              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
+              .append(" must be in [").append(w.min()).append(", ").append(w.max()).append("]\");\n\t\t}\n");
+        }
+    }
+
+    private static void addNotNullValidationForParameter(int param, PropertyDeclaration p, StringBuilder sb) {
+        sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" == null) {\n")
+          .append("\t\t\tthrow new NullPointerException(\"").append(p.getName())
+          .append(" cannot be null\");\n\t\t}\n");
     }
 }

@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.Within;
 
 /**
  * A test component that tests the float primitive type.
@@ -36,5 +37,5 @@ import com.lhkbob.entreri.Component;
 public interface FloatComponent extends Component {
     public float getFloat();
 
-    public void setFloat(float value);
+    public void setFloat(@Within(min = -12, max = 4500) float value);
 }

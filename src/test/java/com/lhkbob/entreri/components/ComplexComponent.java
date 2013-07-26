@@ -26,6 +26,7 @@
  */
 package com.lhkbob.entreri.components;
 
+import com.lhkbob.entreri.Validate;
 import com.lhkbob.entreri.property.Factory;
 import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import com.lhkbob.entreri.property.LongProperty.DefaultLong;
@@ -63,6 +64,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
 
     public short getParam2();
 
+    @Validate("$1 < $2")
     public ComplexComponent setParams(@Named("param1") short p1, @Named("param2") short p2);
 
     @Named("foo-blah")

@@ -26,10 +26,7 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
-import com.lhkbob.entreri.Ownable;
-import com.lhkbob.entreri.Owner;
+import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.*;
 
 import java.lang.annotation.Annotation;
@@ -48,6 +45,7 @@ import java.util.*;
 class ReflectionComponentSpecification implements ComponentSpecification {
     private final Class<? extends Component> type;
     private final List<ReflectionPropertyDeclaration> properties;
+    private final Map<String, List<Annotation>> setterValidationAnnotations;
 
     public ReflectionComponentSpecification(Class<? extends Component> type) {
         if (!Component.class.isAssignableFrom(type)) {
@@ -65,6 +63,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         Map<String, Method> getters = new HashMap<>();
         Map<String, Method> setters = new HashMap<>();
         Map<String, Integer> setterParameters = new HashMap<>();
+        setterValidationAnnotations = new HashMap<>();
 
         for (Method method : type.getMethods()) {
             // exclude methods defined in Component, Owner, Ownable, and Object
@@ -81,7 +80,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             } else if (method.getName().startsWith("get")) {
                 processGetter(method, "get", getters);
             } else if (method.getName().startsWith("set")) {
-                processSetter(method, setters, setterParameters);
+                processSetter(method, setters, setterParameters, setterValidationAnnotations);
             } else {
                 throw fail(md, method + " is an illegal property method");
             }
@@ -134,6 +133,16 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         return properties;
     }
 
+    @Override
+    public List<Annotation> getValidationAnnotations(String setterName) {
+        List<Annotation> v = setterValidationAnnotations.get(setterName);
+        if (v == null) {
+            return Collections.emptyList();
+        } else {
+            return Collections.unmodifiableList(v);
+        }
+    }
+
     private static IllegalComponentDefinitionException fail(Class<?> cls, String msg) {
         return new IllegalComponentDefinitionException(cls.getCanonicalName(), msg);
     }
@@ -153,6 +162,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         private final boolean isGeneric;
 
         private final Class<? extends Property> propertyType;
+        private final List<Annotation> validationAnnotations;
 
         @SuppressWarnings("unchecked")
         private ReflectionPropertyDeclaration(String name, PropertyFactory<?> factory, Method getter,
@@ -166,6 +176,14 @@ class ReflectionComponentSpecification implements ComponentSpecification {
 
             propertyType = getCreatedType((Class<? extends PropertyFactory<?>>) factory.getClass());
             isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
+
+            List<Annotation> v = new ArrayList<>();
+            for (Annotation a : setter.getParameterAnnotations()[setterParameter]) {
+                if (a instanceof NotNull || a instanceof Within) {
+                    v.add(a);
+                }
+            }
+            validationAnnotations = Collections.unmodifiableList(v);
         }
 
         @Override
@@ -209,6 +227,11 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
 
         @Override
+        public List<Annotation> getValidationAnnotations() {
+            return validationAnnotations;
+        }
+
+        @Override
         public boolean isShared() {
             return isSharedInstance;
         }
@@ -224,8 +247,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static void processSetter(Method m, Map<String, Method> setters,
-                                      Map<String, Integer> parameters) {
+    private static void processSetter(Method m, Map<String, Method> setters, Map<String, Integer> parameters,
+                                      Map<String, List<Annotation>> setterValidationAnnotations) {
         if (!m.getReturnType().equals(m.getDeclaringClass()) && !m.getReturnType().equals(void.class)) {
             throw fail(m.getDeclaringClass(), m + " has invalid return type for setter");
         }
@@ -272,6 +295,17 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 parameters.put(name, i);
             }
         }
+
+        // add all validation annotations applied directly to the method
+        // parameter annotations are handled by the declaration constructor
+        List<Annotation> annots = new ArrayList<>();
+        for (Annotation a : m.getAnnotations()) {
+            if (a instanceof NotNull || a instanceof Within || a instanceof Validate) {
+                annots.add(a);
+            }
+        }
+        // note this key needs to be method name, not property name
+        setterValidationAnnotations.put(m.getName(), annots);
     }
 
     private static void processGetter(Method m, String prefix, Map<String, Method> getters) {

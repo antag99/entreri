@@ -26,10 +26,7 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
-import com.lhkbob.entreri.Ownable;
-import com.lhkbob.entreri.Owner;
+import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.*;
 
 import javax.annotation.processing.Filer;
@@ -43,6 +40,7 @@ import javax.lang.model.util.Types;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
@@ -56,6 +54,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
     private final String typeName;
     private final String packageName;
     private final List<MirrorPropertyDeclaration> properties;
+    private final Map<String, List<Annotation>> setterValidationAnnotations;
 
     public MirrorComponentSpecification(TypeElement type, Types tu, Elements eu, Filer io) {
         TypeMirror baseComponentType = eu.getTypeElement(Component.class.getCanonicalName()).asType();
@@ -79,6 +78,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
         Map<String, ExecutableElement> getters = new HashMap<>();
         Map<String, ExecutableElement> setters = new HashMap<>();
         Map<String, Integer> setterParameters = new HashMap<>();
+        setterValidationAnnotations = new HashMap<>();
 
         for (ExecutableElement m : methods) {
             // exclude methods defined in Component, Owner, and Ownable
@@ -99,7 +99,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
             } else if (name.startsWith("get")) {
                 processGetter(m, "get", getters);
             } else if (name.startsWith("set")) {
-                processSetter(m, setters, setterParameters, tu);
+                processSetter(m, setters, setterParameters, setterValidationAnnotations, tu);
             } else {
                 throw fail(declare, name + " is an illegal property method");
             }
@@ -156,6 +156,16 @@ class MirrorComponentSpecification implements ComponentSpecification {
         return properties;
     }
 
+    @Override
+    public List<Annotation> getValidationAnnotations(String setterName) {
+        List<Annotation> v = setterValidationAnnotations.get(setterName);
+        if (v == null) {
+            return Collections.emptyList();
+        } else {
+            return Collections.unmodifiableList(v);
+        }
+    }
+
     private static IllegalComponentDefinitionException fail(TypeMirror type, String msg) {
         return new IllegalComponentDefinitionException(type.toString(), msg);
     }
@@ -174,6 +184,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
         private final String type;
         private final String propertyType;
 
+        private final List<Annotation> validationAnnotations;
+
         public MirrorPropertyDeclaration(String name, ExecutableElement getter, ExecutableElement setter,
                                          int parameter, TypeElement propertyType) {
             this.name = name;
@@ -187,6 +199,19 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
             isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
+
+            List<Annotation> annots = new ArrayList<>();
+            for (VariableElement param : setter.getParameters()) {
+                NotNull notNull = param.getAnnotation(NotNull.class);
+                if (notNull != null) {
+                    annots.add(notNull);
+                }
+                Within within = param.getAnnotation(Within.class);
+                if (within != null) {
+                    annots.add(within);
+                }
+            }
+            validationAnnotations = Collections.unmodifiableList(annots);
         }
 
         @Override
@@ -225,6 +250,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
         }
 
         @Override
+        public List<Annotation> getValidationAnnotations() {
+            return validationAnnotations;
+        }
+
+        @Override
         public boolean isShared() {
             return isSharedInstance;
         }
@@ -246,7 +276,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
     }
 
     private static void processSetter(ExecutableElement m, Map<String, ExecutableElement> setters,
-                                      Map<String, Integer> parameters, Types tu) {
+                                      Map<String, Integer> parameters,
+                                      Map<String, List<Annotation>> setterValidationAnnotations, Types tu) {
         TypeMirror declaringClass = m.getEnclosingElement().asType();
         if (!tu.isSameType(m.getReturnType(), m.getEnclosingElement().asType()) &&
             !m.getReturnType().getKind().equals(TypeKind.VOID)) {
@@ -297,6 +328,22 @@ class MirrorComponentSpecification implements ComponentSpecification {
                 parameters.put(name, i++);
             }
         }
+
+        List<Annotation> annots = new ArrayList<>();
+        NotNull notNull = m.getAnnotation(NotNull.class);
+        if (notNull != null) {
+            annots.add(notNull);
+        }
+        Within within = m.getAnnotation(Within.class);
+        if (within != null) {
+            annots.add(within);
+        }
+        Validate validate = m.getAnnotation(Validate.class);
+        if (validate != null) {
+            annots.add(validate);
+        }
+
+        setterValidationAnnotations.put(m.getSimpleName().toString(), annots);
     }
 
     private static void processGetter(ExecutableElement m, String prefix,
