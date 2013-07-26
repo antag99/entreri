@@ -245,7 +245,12 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @Override
     public ComponentIterator fastIterator() {
-        return new ComponentIteratorImpl(this);
+        return new SystemComponentIteratorImpl(this);
+    }
+
+    @Override
+    public ComponentIterator fastIterator(Iterable<Entity> entities) {
+        return new CollectionComponentIteratorImpl(this, entities);
     }
 
     /**

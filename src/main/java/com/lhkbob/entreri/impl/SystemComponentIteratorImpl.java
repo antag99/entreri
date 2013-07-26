@@ -36,7 +36,7 @@ import java.util.Arrays;
  *
  * @author Michael Ludwig
  */
-public class ComponentIteratorImpl implements ComponentIterator {
+public class SystemComponentIteratorImpl implements ComponentIterator {
     private final EntitySystemImpl system;
 
     private int index;
@@ -55,7 +55,7 @@ public class ComponentIteratorImpl implements ComponentIterator {
      *
      * @throws NullPointerException if system is null
      */
-    public ComponentIteratorImpl(EntitySystemImpl system) {
+    public SystemComponentIteratorImpl(EntitySystemImpl system) {
         if (system == null) {
             throw new NullPointerException("System cannot be null");
         }

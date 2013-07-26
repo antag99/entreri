@@ -225,4 +225,21 @@ public class ComponentIteratorTest {
 
         Assert.assertEquals(1, count);
     }
+
+    @Test
+    public void testCollectionIterator() {
+        // make collection only with even id entities
+        List<Entity> entities = new ArrayList<>();
+        for (Entity e : system) {
+            entities.add(e);
+        }
+
+        ComponentIterator it = system.fastIterator(entities);
+        floatData = it.addRequired(FloatComponent.class);
+        objData = it.addRequired(ObjectComponent.class);
+
+        doTestBulkComponentIterator(it);
+        it.reset();
+        doTestBulkComponentIterator(it);
+    }
 }

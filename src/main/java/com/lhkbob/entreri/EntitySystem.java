@@ -127,11 +127,27 @@ public interface EntitySystem extends Iterable<Entity> {
 
     /**
      * Return a new ComponentIterator that must be configured with required and optional components before
-     * use.
+     * use. This is equivalent to calling {@code es.fastIterator(es)} although the returned implementation may
+     * be more efficient in this situation.
      *
      * @return A new iterator over the components in this system
      */
     public ComponentIterator fastIterator();
+
+    /**
+     * Return a new ComponentIterator that walks over the given collection of entities. It is assumed that all
+     * entities within the system are from this system, undefined results will occur if this is not met. The
+     * returned iterator must still be configured with required and optional components before use.
+     * <p/>
+     * The returned iterator will report the entities in the order given by the iterable. If the exact order
+     * is not important, it can improve performance to sort the collection by entity id first if the
+     * collection is to be iterated over multiple times.
+     *
+     * @param entities The entity collection to walk over.
+     *
+     * @return A new iterator over the collection of entities
+     */
+    public ComponentIterator fastIterator(Iterable<Entity> entities);
 
     /**
      * <p/>
