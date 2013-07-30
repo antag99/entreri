@@ -180,6 +180,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
         private final String getter;
         private final boolean isSharedInstance;
         private final boolean isGeneric;
+        private final boolean isVersioned;
 
         private final String type;
         private final String propertyType;
@@ -198,6 +199,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
             setterReturnsComponent = !setter.getReturnType().getKind().equals(TypeKind.VOID);
 
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
+            isVersioned = getter.getAnnotation(NoAutoVersion.class) == null;
             isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
 
             List<Annotation> annots = new ArrayList<>();
@@ -262,6 +264,11 @@ class MirrorComponentSpecification implements ComponentSpecification {
         @Override
         public boolean isPropertyGeneric() {
             return isGeneric;
+        }
+
+        @Override
+        public boolean isAutoVersionEnabled() {
+            return isVersioned;
         }
 
         @Override

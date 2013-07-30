@@ -145,6 +145,17 @@ public class ComponentTest {
     }
 
     @Test
+    public void testAutomaticVersionDisabled() {
+        EntitySystem system = EntitySystem.Factory.create();
+        Entity e = system.addEntity();
+        FloatComponent cd = e.add(FloatComponent.class);
+
+        int originalVersion = cd.getVersion();
+        cd.setFloat(500);
+        Assert.assertEquals(originalVersion, cd.getVersion());
+    }
+
+    @Test
     public void testUniqueVersionUpdate() {
         EntitySystem system = EntitySystem.Factory.create();
         IntComponent cd1 = system.addEntity().add(IntComponent.class);

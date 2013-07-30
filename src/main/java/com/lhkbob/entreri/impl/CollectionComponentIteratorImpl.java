@@ -38,7 +38,7 @@ import java.util.Iterator;
  */
 public class CollectionComponentIteratorImpl implements ComponentIterator {
     private final EntitySystemImpl system;
-    private final Iterable<Entity> entities;
+    private Iterable<Entity> entities;
 
     private AbstractComponent<?>[] required; // all required except primary
     private AbstractComponent<?>[] optional;
@@ -46,6 +46,9 @@ public class CollectionComponentIteratorImpl implements ComponentIterator {
     private Iterator<Entity> currentIterator;
 
     public CollectionComponentIteratorImpl(EntitySystemImpl system, Iterable<Entity> entities) {
+        if (entities == null) {
+            throw new NullPointerException("Entity collection cannot be null");
+        }
         this.entities = entities;
         this.system = system;
 

@@ -386,14 +386,20 @@ public abstract class ComponentFactoryProvider {
         }
 
         // implement the body
+        boolean needsUpdate = false;
         for (PropertyDeclaration p : params) {
             int idx = properties.indexOf(p);
+            if (p.isAutoVersionEnabled()) {
+                needsUpdate = true;
+            }
             sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(idx).append(".set(")
               .append(INDEX_FIELD_NAME).append(", ").append(SETTER_PARAM_PREFIX).append(idx).append(");\n");
         }
 
-        sb.append("\t\t").append(REPO_FIELD_NAME).append('.').append(UPDATE_VERSION_METHOD).append("(")
-          .append(INDEX_FIELD_NAME).append(");\n");
+        if (needsUpdate) {
+            sb.append("\t\t").append(REPO_FIELD_NAME).append('.').append(UPDATE_VERSION_METHOD).append("(")
+              .append(INDEX_FIELD_NAME).append(");\n");
+        }
 
         // return this component if we're not a void setter
         if (returnComponent) {

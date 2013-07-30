@@ -160,6 +160,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         private final Method getter;
         private final boolean isSharedInstance;
         private final boolean isGeneric;
+        private final boolean isVersioned;
 
         private final Class<? extends Property> propertyType;
         private final List<Annotation> validationAnnotations;
@@ -173,6 +174,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
             this.setter = setter;
             this.setterParameter = setterParameter;
             isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
+            isVersioned = getter.getAnnotation(NoAutoVersion.class) == null;
 
             propertyType = getCreatedType((Class<? extends PropertyFactory<?>>) factory.getClass());
             isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
@@ -199,6 +201,11 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         @Override
         public boolean isPropertyGeneric() {
             return isGeneric;
+        }
+
+        @Override
+        public boolean isAutoVersionEnabled() {
+            return isVersioned;
         }
 
         @Override

@@ -123,6 +123,13 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     public boolean isShared();
 
     /**
+     * Get whether or not modifying this property should have updateVersion() called during the setter.
+     *
+     * @return True unless {@link com.lhkbob.entreri.NoAutoVersion} is present on getter
+     */
+    public boolean isAutoVersionEnabled();
+
+    /**
      * Get the PropertyFactory instance that was configured for this property. It must be used to instantiate
      * the property objects that will be assignable to the type returned by {@link
      * #getPropertyImplementation()}, and will be configured by all attribute annotations applied to the

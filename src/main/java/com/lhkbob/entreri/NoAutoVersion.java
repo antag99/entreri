@@ -24,20 +24,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.lhkbob.entreri.components;
+package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NoAutoVersion;
-import com.lhkbob.entreri.Within;
+import java.lang.annotation.*;
 
 /**
- * A test component that tests the float primitive type.
+ * By default, all modifications to properties declared in a component will automatically increment that
+ * component's version. This is useful when components are largely unchanging and the version change can be
+ * used to kick off a more expensive computation.  However, when a property stores a cached value that
+ * frequently changes or is not part of the common identify of the component, it can be useful to disable this
+ * behavior.
+ * <p/>
+ * It is highly recommended to not use this annotation until performance profiling suggests that disabling the
+ * version increment is necessary to take advantage of it.  An example of this is in Ferox, the Renderable
+ * component has its geometry's local bounds, but it also caches the world bounds. The world bounds is a
+ * cached value that combines the local bounds and the matrix from the Transform component. The Transform's
+ * version can change very often, which would force the Renderable's version to change when the world bounds
+ * was updated to match. By disabling the auto-update on the world bounds, the rest of the Renderable could be
+ * easily versioned.
+ * <p/>
+ * The annotation must be placed on the getter, it is ignored when placed on the setter.
  *
  * @author Michael Ludwig
  */
-public interface FloatComponent extends Component {
-    @NoAutoVersion
-    public float getFloat();
-
-    public void setFloat(@Within(min = -12, max = 4500) float value);
+@Documented
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface NoAutoVersion {
 }
