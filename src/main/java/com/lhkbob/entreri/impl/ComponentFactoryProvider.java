@@ -430,12 +430,12 @@ public abstract class ComponentFactoryProvider {
             // less than min check only
             sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
               .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
-              .append(" must be greater than ").append(w.min()).append("\");\n\t\t}\n");
+              .append(" must be greater than or equal to ").append(w.min()).append("\");\n\t\t}\n");
         } else if (Double.isInfinite(w.min())) {
             // greater than max check only
             sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" > ").append(w.max())
               .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
-              .append(" must be less than ").append(w.max()).append("\");\n\t\t}\n");
+              .append(" must be less than or equal to ").append(w.max()).append("\");\n\t\t}\n");
         } else {
             // both
             sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
