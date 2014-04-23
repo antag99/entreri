@@ -42,6 +42,8 @@ public final class InvokerUtils {
     public static boolean validateLog(File baseDir) throws IOException {
         String baseName = baseDir.getCanonicalPath();
         String componentClass = baseName.substring(baseName.lastIndexOf('/') + 1);
+        // replace Windows \ in path with escaped version so that it passes regex compilation
+        componentClass = componentClass.replace("\\", "\\\\");
         File logFile = new File(baseDir, "build.log");
 
         boolean compilationError = false;
