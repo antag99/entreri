@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -445,8 +445,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
                         throw new RuntimeException(e);
                     }
                 } else {
-                    TypeMirror enumType = tu
-                            .erasure(eu.getTypeElement(Enum.class.getCanonicalName()).asType());
+                    TypeMirror enumType = tu.erasure(eu.getTypeElement(Enum.class.getCanonicalName())
+                                                       .asType());
 
                     if (tu.isAssignable(baseType, enumType)) {
                         mappedType = eu.getTypeElement(EnumProperty.class.getCanonicalName());
@@ -467,8 +467,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
     private static TypeMirror getFactory(Element e) {
         try {
-            com.lhkbob.entreri.property.Factory factory = e
-                    .getAnnotation(com.lhkbob.entreri.property.Factory.class);
+            com.lhkbob.entreri.property.Factory factory = e.getAnnotation(com.lhkbob.entreri.property.Factory.class);
             if (factory != null) {
                 factory.value(); // will throw an exception
             }
@@ -498,7 +497,7 @@ class MirrorComponentSpecification implements ComponentSpecification {
 
         TypeMirror createdType = null;
         List<? extends ExecutableElement> factoryMethods = ElementFilter
-                .methodsIn(eu.getAllMembers((TypeElement) tu.asElement(factory)));
+                                                                   .methodsIn(eu.getAllMembers((TypeElement) tu.asElement(factory)));
         for (ExecutableElement m : factoryMethods) {
             if (m.getSimpleName().contentEquals("create")) {
                 createdType = m.getReturnType();
@@ -549,7 +548,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
             if (!tu.isAssignable(baseType, genericType)) {
                 throw fail(declaringClass,
                            propertyType + " cannot be used with " + baseType + ", type must extend from " +
-                           genericType);
+                           genericType
+                          );
             }
         } else {
             if (!findMethod(methods, tu, "get", baseType, intType)) {
@@ -563,8 +563,8 @@ class MirrorComponentSpecification implements ComponentSpecification {
             if (isShared) {
                 // we could instantiate the declared type, but that crashes if the parameter
                 // type must be a primitive, so the erased type gives us a good enough check
-                TypeMirror share = tu
-                        .erasure(eu.getTypeElement(ShareableProperty.class.getCanonicalName()).asType());
+                TypeMirror share = tu.erasure(eu.getTypeElement(ShareableProperty.class.getCanonicalName())
+                                                .asType());
                 if (!tu.isAssignable(asType, share)) {
                     throw fail(declaringClass, propertyType + " can't be used with @SharedInstance");
                 }

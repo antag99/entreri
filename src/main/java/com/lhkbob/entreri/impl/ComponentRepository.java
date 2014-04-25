@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -154,7 +154,7 @@ public final class ComponentRepository<T extends Component> {
      * @param componentIndex The component index whose owning entity is fetched
      *
      * @return The index of the entity that has the given component index, or 0 if the component is not
-     *         attached
+     * attached
      */
     public int getEntityIndex(int componentIndex) {
         return componentIndexToEntityIndex[componentIndex];
@@ -168,7 +168,7 @@ public final class ComponentRepository<T extends Component> {
      * @param entityIndex The entity index to look up
      *
      * @return The index of the attached component, or 0 if the entity does not have a component of this type
-     *         attached
+     * attached
      */
     public int getComponentIndex(int entityIndex) {
         return entityIndexToComponentRepository[entityIndex];
@@ -182,8 +182,8 @@ public final class ComponentRepository<T extends Component> {
      */
     public void expandEntityIndex(int numEntities) {
         if (entityIndexToComponentRepository.length < numEntities) {
-            entityIndexToComponentRepository = Arrays
-                    .copyOf(entityIndexToComponentRepository, (int) (numEntities * 1.5) + 1);
+            entityIndexToComponentRepository = Arrays.copyOf(entityIndexToComponentRepository,
+                                                             (int) (numEntities * 1.5) + 1);
         }
     }
 
@@ -310,9 +310,10 @@ public final class ComponentRepository<T extends Component> {
      */
     public T addComponent(int entityIndex, T fromTemplate) {
         if (!type.isInstance(fromTemplate)) {
-            throw new IllegalArgumentException(
-                    "Component not of expected type, expected: " + type + ", but was: " +
-                    fromTemplate.getClass());
+            throw new IllegalArgumentException("Component not of expected type, expected: " + type +
+                                               ", but was: " +
+                                               fromTemplate.getClass()
+            );
         }
         if (!fromTemplate.isAlive()) {
             throw new IllegalStateException("Template component is not live");
@@ -324,12 +325,12 @@ public final class ComponentRepository<T extends Component> {
         // same since they're reported in name order
         for (int i = 0; i < declaredProperties.size(); i++) {
             DeclaredPropertyStore dstStore = declaredProperties.get(i);
-            DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate).owner
-                    .declaredProperties.get(i);
+            DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate).owner.declaredProperties
+                                                          .get(i);
 
             templateStore.creator
-                         .clone(templateStore.getProperty(), fromTemplate.getIndex(), dstStore.property,
-                                instance.getIndex());
+                    .clone(templateStore.getProperty(), fromTemplate.getIndex(), dstStore.property,
+                           instance.getIndex());
         }
 
         return instance;

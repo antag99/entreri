@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -71,7 +71,7 @@ public class CachingDelegatingFactoryProvider extends ComponentFactoryProvider {
             }
         }
 
-        throw new UnsupportedOperationException(
-                "Unable to find or generate a component implementation for " + componentType);
+        throw new UnsupportedOperationException("Unable to find or generate a component implementation for " +
+                                                componentType);
     }
 }

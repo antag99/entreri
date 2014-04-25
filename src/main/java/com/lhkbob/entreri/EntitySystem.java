@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -82,7 +82,7 @@ public interface EntitySystem extends Iterable<Entity> {
      * @param type The query type
      *
      * @return All Component interfaces that have components in this EntitySystem that are subclasses of the
-     *         input component data type
+     * input component data type
      *
      * @throws NullPointerException if type is null
      */

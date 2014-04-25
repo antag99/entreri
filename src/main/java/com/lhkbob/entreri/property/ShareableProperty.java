@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,

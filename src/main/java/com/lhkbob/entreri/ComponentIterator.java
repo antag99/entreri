@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -111,7 +111,7 @@ public interface ComponentIterator {
      * false is always returned. The iterator must be constrained by at least one required type.
      *
      * @return True if another entity was found and the required components (and any present optional
-     *         components) have been updated to that entity
+     * components) have been updated to that entity
      */
     public boolean next();
 

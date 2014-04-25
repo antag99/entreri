@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -50,13 +50,13 @@ import java.lang.annotation.*;
 public @interface Within {
     /**
      * @return Minimum bound of input, inclusive, or leave unspecified for unbounded on the low side of the
-     *         range
+     * range
      */
     double min() default Double.NEGATIVE_INFINITY;
 
     /**
      * @return Maximum bound of input, inclusive, or leave unspecified for unbounded on the high side of the
-     *         range
+     * range
      */
     double max() default Double.POSITIVE_INFINITY;
 }

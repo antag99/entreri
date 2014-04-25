@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -89,9 +89,10 @@ public interface ComponentSpecification {
          *
          * @return The extracted ComponentSpecification
          *
-         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException
-         *          if the class does not follow the specification defined in Component, or if referenced
-         *          Property classes do not meet their requirements
+         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException if the class does not follow the
+         *                                                                specification defined in Component,
+         *                                                                or if referenced Property classes do
+         *                                                                not meet their requirements
          */
         public static ComponentSpecification fromClass(Class<? extends Component> type) {
             return new ReflectionComponentSpecification(type);
@@ -108,9 +109,10 @@ public interface ComponentSpecification {
          *
          * @return The extracted ComponentSpecification
          *
-         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException
-         *          if the class does not follow the specification defined in Component, or if referenced
-         *          Property classes do not meet ther requirements
+         * @throws com.lhkbob.entreri.IllegalComponentDefinitionException if the class does not follow the
+         *                                                                specification defined in Component,
+         *                                                                or if referenced Property classes do
+         *                                                                not meet ther requirements
          */
         public static ComponentSpecification fromTypeElement(TypeElement type, ProcessingEnvironment env) {
             return new MirrorComponentSpecification(type, env.getTypeUtils(), env.getElementUtils(),

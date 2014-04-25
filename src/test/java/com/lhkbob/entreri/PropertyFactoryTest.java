@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -73,8 +73,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneNoPolicy() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(
-                createAttributes("objectPropertyNoPolicy"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyNoPolicy"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -96,8 +95,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneDisabled() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(
-                createAttributes("objectPropertyDisabled"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDisabled"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -119,8 +117,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneJavaDefault() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(
-                createAttributes("objectPropertyDefault"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDefault"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -166,8 +163,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneNoPolicy() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(
-                createAttributes("doublePropertyNoPolicy"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyNoPolicy"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -188,8 +184,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneDisabled() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(
-                createAttributes("doublePropertyDisabled"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDisabled"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -210,8 +205,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneJavaDefault() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(
-                createAttributes("doublePropertyDefault"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDefault"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();

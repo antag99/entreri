@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -432,24 +432,28 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 if (!g.getReturnType().equals(genericSuperClass)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement generic " + genericSuperClass +
-                               " get(int)");
+                               " get(int)"
+                              );
                 }
                 Method s = propertyType.getMethod("set", int.class, genericSuperClass);
                 if (!s.getReturnType().equals(void.class)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement generic void set(int, " +
-                               genericSuperClass + ")");
+                               genericSuperClass + ")"
+                              );
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(),
                            propertyType + " does not implement generic " + baseType +
-                           " get(int) or void set(" + baseType + ", int)");
+                           " get(int) or void set(" + baseType + ", int)"
+                          );
             }
 
             if (!genericSuperClass.isAssignableFrom(baseType)) {
                 throw fail(getter.getDeclaringClass(),
                            propertyType + " cannot be used with " + baseType + ", it must extend " +
-                           genericSuperClass);
+                           genericSuperClass
+                          );
             }
         } else {
             try {
@@ -462,7 +466,8 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 if (!s.getReturnType().equals(void.class)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement void set(int, " +
-                               baseType + ")");
+                               baseType + ")"
+                              );
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
@@ -481,19 +486,22 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                     if (!sg.getReturnType().equals(void.class)) {
                         throw fail(getter.getDeclaringClass(),
                                    propertyType + " does not implement void get(int, " +
-                                   baseType + ")");
+                                   baseType + ")"
+                                  );
                     }
                     Method creator = propertyType.getMethod("createShareableInstance");
                     if (!creator.getReturnType().equals(baseType)) {
                         throw fail(getter.getDeclaringClass(),
                                    propertyType + " does not implement " + baseType +
-                                   " createShareableInstance()");
+                                   " createShareableInstance()"
+                                  );
                     }
                 } catch (NoSuchMethodException e) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement void get(int, " +
                                baseType + ") or " + baseType +
-                               " createShareableInstance()");
+                               " createShareableInstance()"
+                              );
                 }
             }
         }

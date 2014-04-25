@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -69,18 +69,18 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             // them from the classpath, so this factory has to validate certain elements
             // of the component type
             if (!loaded.getSuperclass().equals(AbstractComponent.class)) {
-                throw new IllegalStateException(
-                        "Discovered impl. class does not extend AbstractComponent for " + type);
+                throw new IllegalStateException("Discovered impl. class does not extend AbstractComponent for " +
+                                                type);
             }
             Type paramType = ((ParameterizedType) loaded.getGenericSuperclass()).getActualTypeArguments()[0];
             if (!paramType.equals(type)) {
-                throw new IllegalStateException(
-                        "Discovered impl. uses wrong type parameter for AbstractComponent, was " +
-                        paramType + " instead of " + type);
+                throw new IllegalStateException("Discovered impl. uses wrong type parameter for AbstractComponent, was " +
+                                                paramType + " instead of " + type
+                );
             }
             if (!type.isAssignableFrom(loaded)) {
-                throw new IllegalStateException(
-                        "Discovered impl. does not implement the expected interface: " + type);
+                throw new IllegalStateException("Discovered impl. does not implement the expected interface: " +
+                                                type);
             }
 
             // at this point it's a safe cast
@@ -89,8 +89,8 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             try {
                 ctor = implType.getConstructor(ComponentRepository.class);
             } catch (NoSuchMethodException e) {
-                throw new IllegalStateException(
-                        "Discovered impl. does not have mandated constructor for component: " + type);
+                throw new IllegalStateException("Discovered impl. does not have mandated constructor for component: " +
+                                                type);
             }
         }
 

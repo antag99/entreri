@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -103,8 +103,7 @@ public abstract class SimpleTask implements Task {
                             if (processMethod == null) {
                                 processMethod = m;
                             } else {
-                                throw new IllegalStateException(
-                                        "More than one processEntity() method defined");
+                                throw new IllegalStateException("More than one processEntity() method defined");
                             }
                         }
                     }

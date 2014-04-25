@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -125,7 +125,7 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * @param type The component type to check for
      *
      * @return True if the entity currently has the attached type, in which case get() will return a non-null
-     *         alive component
+     * alive component
      */
     public boolean has(Class<? extends Component> type);
 

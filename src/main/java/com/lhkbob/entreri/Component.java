@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -140,7 +140,7 @@ public interface Component extends Owner, Ownable {
      * Using property getters or setters on a dead component produces undefined behavior.
      *
      * @return True if the component is still attached to an entity in the entity system, or false if it or
-     *         its entity has been removed
+     * its entity has been removed
      */
     public boolean isAlive();
 

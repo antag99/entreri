@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -56,7 +56,7 @@ import java.lang.annotation.*;
 public @interface Validate {
     /**
      * @return Get the Java-like validation snippet that represents a boolean expression evaluating to true
-     *         when input parameters are valid
+     * when input parameters are valid
      */
     String value();
 

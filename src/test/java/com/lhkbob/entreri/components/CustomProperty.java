@@ -1,7 +1,7 @@
 /*
  * Entreri, an entity-component framework in Java
  *
- * Copyright (c) 2013, Michael Ludwig
+ * Copyright (c) 2014, Michael Ludwig
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
@@ -85,7 +85,8 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         public void setDefaultValue(CustomProperty property, int index) {
             Bletch b = new Bletch();
             b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0 : attributes
-                    .getAttribute(IntProperty.DefaultInt.class).value());
+                                                                                            .getAttribute(IntProperty.DefaultInt.class)
+                                                                                            .value());
             property.property.set(index, b);
         }
 
