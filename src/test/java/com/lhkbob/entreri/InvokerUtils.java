@@ -40,18 +40,16 @@ public final class InvokerUtils {
     }
 
     public static boolean validateLog(File baseDir) throws IOException {
-        String baseName = baseDir.getCanonicalPath();
-        String componentClass = baseName.substring(baseName.lastIndexOf('/') + 1);
-        // replace Windows \ in path with escaped version so that it passes regex compilation
-        componentClass = componentClass.replace("\\", "\\\\");
+        // The integration tests follow the convention of naming their base directory after the class
+        // that will fail to compile
+        String componentClass = baseDir.getName();
         File logFile = new File(baseDir, "build.log");
 
         boolean compilationError = false;
         boolean expectedClassFailure = false;
 
-        Pattern expectedPattern = Pattern
-                .compile("\\[ERROR] .*" + componentClass + "\\.java:\\[.*] error: .*");
-
+        Pattern expectedPattern = Pattern.compile("\\[ERROR] .*" + componentClass +
+                                                  "\\.java:\\[.*] error: .*");
         BufferedReader reader = new BufferedReader(new FileReader(logFile));
         String line;
         while ((line = reader.readLine()) != null) {
