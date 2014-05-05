@@ -37,7 +37,7 @@ import java.lang.annotation.*;
  * This should not be used with primitive typed data because they cannot be null. Some property
  * implementations may implicitly enforce a non-null rule already in which case this is unnecessary.
  * <p/>
- * This annotation is ignored when placed on the getter for a property
+ * This annotation is ignored when placed on the getter for a property.
  *
  * @author Michael Ludwig
  */

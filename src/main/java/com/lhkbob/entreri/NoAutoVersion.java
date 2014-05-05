@@ -32,7 +32,7 @@ import java.lang.annotation.*;
  * By default, all modifications to properties declared in a component will automatically increment that
  * component's version. This is useful when components are largely unchanging and the version change can be
  * used to kick off a more expensive computation.  However, when a property stores a cached value that
- * frequently changes or is not part of the common identify of the component, it can be useful to disable this
+ * frequently changes or is not part of the common identity of the component, it can be useful to disable this
  * behavior.
  * <p/>
  * It is highly recommended to not use this annotation until performance profiling suggests that disabling the
