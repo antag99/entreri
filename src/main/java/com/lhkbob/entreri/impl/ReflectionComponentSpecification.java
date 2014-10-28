@@ -35,6 +35,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
+ * ReflectionComponentSpecification
+ * ================================
+ *
  * ReflectionComponentSpecification is an implementation that extracts the component specification from a
  * {@link Class} object using the reflection APIs defined by Java. This can only be used after the referenced
  * classes have been compiled and are capable of being loaded, e.g. the opposite scenario from
@@ -42,7 +45,7 @@ import java.util.*;
  *
  * @author Michael Ludwig
  */
-class ReflectionComponentSpecification implements ComponentSpecification {
+public class ReflectionComponentSpecification implements ComponentSpecification {
     private final Class<? extends Component> type;
     private final List<ReflectionPropertyDeclaration> properties;
     private final Map<String, List<Annotation>> setterValidationAnnotations;
@@ -374,18 +377,12 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         if (getter.getAnnotation(com.lhkbob.entreri.property.Factory.class) != null) {
             // prefer getter specification to allow default overriding
             factoryType = getter.getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
-            validateFactory(getter, factoryType, null);
         } else {
             // try to find a default property type
-            Class<? extends Property> mappedType = TypePropertyMapping.getPropertyForType(baseType);
-            if (mappedType.getAnnotation(com.lhkbob.entreri.property.Factory.class) == null) {
-                throw fail(getter.getDeclaringClass(), mappedType + " has no @Factory annotation");
-            } else {
-                factoryType = mappedType.getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
-                validateFactory(getter, factoryType, mappedType);
-            }
+            factoryType = TypePropertyMapping.getPropertyFactory(baseType);
         }
 
+        validateFactory(getter, factoryType);
         PropertyFactory<?> factory = invokeConstructor(factoryType,
                                                        new Attributes(baseType, getter.getAnnotations()));
         if (factory == null) {
@@ -400,23 +397,10 @@ class ReflectionComponentSpecification implements ComponentSpecification {
         }
     }
 
-    private static void validateFactory(Method getter, Class<? extends PropertyFactory<?>> factory,
-                                        Class<? extends Property> propertyType) {
+    private static void validateFactory(Method getter, Class<? extends PropertyFactory<?>> factory) {
         boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
         Class<?> baseType = getter.getReturnType();
-        Class<? extends Property> createdType = getCreatedType(factory);
-
-        if (propertyType == null) {
-            // rely on factory to determine property type
-            propertyType = createdType;
-        } else {
-            // make sure factory returns an assignable type
-            if (!propertyType.isAssignableFrom(createdType)) {
-                throw fail(getter.getDeclaringClass(), "Factory creates " + createdType +
-                                                       ", which is incompatible with expected type " +
-                                                       propertyType);
-            }
-        }
+        Class<? extends Property> propertyType = getCreatedType(factory);
 
         // verify contract of property
         Class<?> genericSuperClass = getGenericSuperClass(propertyType);
@@ -432,28 +416,24 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 if (!g.getReturnType().equals(genericSuperClass)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement generic " + genericSuperClass +
-                               " get(int)"
-                              );
+                               " get(int)");
                 }
                 Method s = propertyType.getMethod("set", int.class, genericSuperClass);
                 if (!s.getReturnType().equals(void.class)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement generic void set(int, " +
-                               genericSuperClass + ")"
-                              );
+                               genericSuperClass + ")");
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(),
                            propertyType + " does not implement generic " + baseType +
-                           " get(int) or void set(" + baseType + ", int)"
-                          );
+                           " get(int) or void set(" + baseType + ", int)");
             }
 
             if (!genericSuperClass.isAssignableFrom(baseType)) {
                 throw fail(getter.getDeclaringClass(),
                            propertyType + " cannot be used with " + baseType + ", it must extend " +
-                           genericSuperClass
-                          );
+                           genericSuperClass);
             }
         } else {
             try {
@@ -466,8 +446,7 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                 if (!s.getReturnType().equals(void.class)) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement void set(int, " +
-                               baseType + ")"
-                              );
+                               baseType + ")");
                 }
             } catch (NoSuchMethodException e) {
                 throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
@@ -486,22 +465,19 @@ class ReflectionComponentSpecification implements ComponentSpecification {
                     if (!sg.getReturnType().equals(void.class)) {
                         throw fail(getter.getDeclaringClass(),
                                    propertyType + " does not implement void get(int, " +
-                                   baseType + ")"
-                                  );
+                                   baseType + ")");
                     }
                     Method creator = propertyType.getMethod("createShareableInstance");
                     if (!creator.getReturnType().equals(baseType)) {
                         throw fail(getter.getDeclaringClass(),
                                    propertyType + " does not implement " + baseType +
-                                   " createShareableInstance()"
-                                  );
+                                   " createShareableInstance()");
                     }
                 } catch (NoSuchMethodException e) {
                     throw fail(getter.getDeclaringClass(),
                                propertyType + " does not implement void get(int, " +
                                baseType + ") or " + baseType +
-                               " createShareableInstance()"
-                              );
+                               " createShareableInstance()");
                 }
             }
         }
