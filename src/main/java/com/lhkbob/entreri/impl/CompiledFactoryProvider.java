@@ -34,13 +34,16 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 /**
+ * CompiledFactoryProvider
+ * =======================
+ *
  * CompiledFactoryProvider searches the classpath for existing class definitions of the component types. This
  * is suitable for generating component implementations as part of a project build in conjunction with the
  * {@link ComponentImplementationProcessor}.
  *
  * @author Michael Ludwig
  */
-class CompiledFactoryProvider extends ComponentFactoryProvider {
+public class CompiledFactoryProvider extends ComponentFactoryProvider {
     @Override
     public <T extends Component> Factory<T> getFactory(Class<T> componentType) {
         try {
@@ -75,8 +78,7 @@ class CompiledFactoryProvider extends ComponentFactoryProvider {
             Type paramType = ((ParameterizedType) loaded.getGenericSuperclass()).getActualTypeArguments()[0];
             if (!paramType.equals(type)) {
                 throw new IllegalStateException("Discovered impl. uses wrong type parameter for AbstractComponent, was " +
-                                                paramType + " instead of " + type
-                );
+                                                paramType + " instead of " + type);
             }
             if (!type.isAssignableFrom(loaded)) {
                 throw new IllegalStateException("Discovered impl. does not implement the expected interface: " +

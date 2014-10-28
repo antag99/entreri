@@ -27,16 +27,17 @@
 package com.lhkbob.entreri.property;
 
 /**
- * <p/>
+ * PropertyFactory
+ * ===============
+ *
  * A PropertyFactory is a simple factory that can be used to create Property instances. Additionally, it is
- * used when decorating a ComponentData type in an EntitySystem to ensure that each decoration event gets a
+ * used when decorating a Component type in an EntitySystem to ensure that each decoration event gets a
  * unique property instance.
- * <p/>
+ *
  * PropertyFactory implementations must have a no-argument constructor or a constructor that takes an {@link
- * Attributes} as its only argument. The constructor does not need to be public.
+ * Attributes} object as its only argument. The constructor does not need to be public.
  *
  * @param <T> The Property type created
- *
  * @author Michael Ludwig
  */
 public interface PropertyFactory<T extends Property> {
@@ -58,11 +59,12 @@ public interface PropertyFactory<T extends Property> {
     public void setDefaultValue(T property, int index);
 
     /**
-     * Copy the value from <var>src</var> at component index, <var>srcIndex</var> to <var>dst</var> at
-     * <var>dstIndex</var>. This is used when a component is created and cloned from a template with {@link
+     * Copy the value from `src` at component index, `srcIndex` to `dst` at `dstIndex`. This is used when a
+     * component is created and cloned from a template with {@link
      * com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For many cases a plain copy-by-value or
-     * copy-by-reference is sufficient, but some component types might require more complicated cloning
-     * rules.
+     * copy-by-reference is sufficient, but some component types might require more complicated cloning rules.
+     * It is recommended to check for the {@link com.lhkbob.entreri.property.Clone} annotation in the provided
+     * attributes set to define this behavior.
      *
      * @param src      The source property that is being cloned
      * @param srcIndex The index into src of the component being cloned

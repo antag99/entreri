@@ -29,6 +29,9 @@ package com.lhkbob.entreri.property;
 import java.lang.annotation.*;
 
 /**
+ * SharedInstance
+ * ==============
+ *
  * SharedInstance is used to annotate Component getters when the Component instance returns the same object
  * regardless of how the component's identity changes. This can only be used on properties whose type can be
  * handled by a {@link com.lhkbob.entreri.property.ShareableProperty} class.

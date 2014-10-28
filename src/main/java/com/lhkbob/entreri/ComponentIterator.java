@@ -29,23 +29,27 @@ package com.lhkbob.entreri;
 import java.util.Iterator;
 
 /**
- * <p/>
+ * ComponentIterator
+ * =================
+ *
  * ComponentIterator is an {@link Iterator}-like class used for quickly iterating over subsets of entities
  * within an EntitySystem with direct access to the components you're interested in. You specify the component
  * classes using {@link #addRequired(Class)} and {@link #addOptional(Class)}, which return flyweight component
  * instances that are updated as the iterator is looped through. These determine the constraints on the
  * entities reported by the iterator. ComponentIterator is reset-able, so the same instance and created
- * components can be reused for multiple iterations.
- * <p/>
+ * components can be reused for multiple iterations (i.e. each frame).
+ *
  * The ComponentIterator will skip all entities that do not have components of the required component types.
- * This is very useful in Tasks because often there related component types that you want to fetch and process
- * at the same time. Optional Component's will be set to the entity if present otherwise they'll be marked as
- * dead.
- * <p/>
+ * This is very useful in Tasks when there are often related component types that you want to fetch and
+ * process at the same time, while ignoring all other entities that do not have the set of components.
+ * Optional Component's will be set to the entity if present otherwise they'll be marked as dead.
+ *
+ * ## Example
+ *
  * The basic workflow for using a ComponentIterator is shown below. In the example, the iterator is used to
- * iterate over all entities that have both an A and a B component, while optionally loading a C component if
- * available.
- * <pre>
+ * iterate over all entities that have both an `A` and a `B` component, while optionally loading a `C`
+ * component if available.
+ * ```java
  * // create iterator
  * ComponentIterator it = new ComponentIterator(system);
  *
@@ -57,15 +61,15 @@ import java.util.Iterator;
  * // iterate
  * it.reset(); // not actually required for first iteration
  * while(it.next()) {
- *    // cdA and cdB are both assigned to components of type A and B on the same
- *    // entity, so they can be processed without checking isAlive()
- *    ...
- *    // cdC may or may not be valid
- *    if (cdC.isAlive()) {
- *       // the current entity also has a component of type C
- *    }
+ * // cdA and cdB are both assigned to components of type A and B on the same
+ * // entity, so they can be processed without checking isAlive()
+ * ...
+ * // cdC may or may not be valid
+ * if (cdC.isAlive()) {
+ * // the current entity also has a component of type C
  * }
- * </pre>
+ * }
+ * ```
  *
  * @author Michael Ludwig
  */
@@ -77,7 +81,6 @@ public interface ComponentIterator {
      * components.
      *
      * @return A flyweight instance to access the current values for the component type
-     *
      * @throws NullPointerException if type is null
      */
     public <T extends Component> T addRequired(Class<T> type);
@@ -87,28 +90,28 @@ public interface ComponentIterator {
      * instance must be used to access the data for the component at each iteration. Every call to {@link
      * #next()} will update its identity to be the corresponding component of type T if the entity has a
      * component of type T.
-     * <p/>
+     *
      * If it does not then the component will be marked as dead until a future iteration has a T component
      *
      * @return A flyweight instance to access the current values for the component type
-     *
      * @throws NullPointerException if type is null
      */
     public <T extends Component> T addOptional(Class<T> type);
 
     /**
-     * <p/>
      * Advance the iterator to the next Entity that has components of all required types. Every flyweight
      * component returned by previous calls to {@link #addRequired(Class)} will be updated to point to that
      * entity. The optional flyweight components will be updated to the entity if a component exists. They may
-     * not be, in which case they will be flagged as invalid.
-     * <p/>
+     * not be, in which case `isAlive()` will return false for them.
+     *
      * It can be assumed that when an Entity is found that all required components are valid and reference
      * that entity's components of the appropriate type.
-     * <p/>
-     * True is returned if an Entity was found. False is returned if there were no more entities matching the
-     * requirements in the system. Additionally, if there has been no call to {@link #addRequired(Class)}
-     * false is always returned. The iterator must be constrained by at least one required type.
+     *
+     * True is returned if an Entity was found. False is returned if there were no more entities matching
+     * the requirements in the system. Additionally, if there has been no call to {@link #addRequired(Class)},
+     * false is always returned. The iterator must be constrained by at least one required type. To iterate
+     * over every single Entity in a system without respect to a component, use {@link
+     * com.lhkbob.entreri.EntitySystem#iterator()}.
      *
      * @return True if another entity was found and the required components (and any present optional
      * components) have been updated to that entity

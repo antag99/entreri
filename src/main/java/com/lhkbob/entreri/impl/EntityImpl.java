@@ -32,6 +32,9 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
+ * EntityImpl
+ * ==========
+ *
  * Entity implementation used by EntitySystemImpl.
  *
  * @author Michael Ludwig

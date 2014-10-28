@@ -33,6 +33,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
+ * AbstractComponent
+ * =================
+ *
  * AbstractComponent is the base class used for all generated proxy implementations of component subtypes. It
  * provides an implementation for all of the declared methods in Component as well as equals() and hashCode().
  * It should not be subclassed or extended directly, but is used as the parent class of generated proxies. As
@@ -40,6 +43,7 @@ import java.lang.reflect.Method;
  * Component.
  *
  * @param <T> The type of component the AbstractComponent is safely cast-able to
+ * @author Michael Ludwig
  */
 public abstract class AbstractComponent<T extends Component> implements Component {
     /**

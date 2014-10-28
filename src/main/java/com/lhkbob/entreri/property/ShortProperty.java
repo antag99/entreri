@@ -31,7 +31,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 
 /**
- * ShortProperty is an implementation of Property that stores a single short value.
+ * ShortProperty
+ * =============
+ *
+ * ShortProperty is an implementation of Property that stores a single short value. Under the hood all
+ * `short` values stored for this property are packed into a `short[]` and can be accessed in bulk with {@link
+ * #getIndexedData()}.
  *
  * @author Michael Ludwig
  */
@@ -61,9 +66,7 @@ public final class ShortProperty implements Property {
      * Get the value stored in this property for the given component index.
      *
      * @param componentIndex The component's index
-     *
      * @return The object at the given offset for the given component
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public short get(int componentIndex) {
@@ -75,7 +78,6 @@ public final class ShortProperty implements Property {
      *
      * @param componentIndex The index of the component being modified
      * @param val            The value to store, can be null
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(int componentIndex, short val) {

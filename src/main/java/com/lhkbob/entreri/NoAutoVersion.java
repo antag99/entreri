@@ -29,20 +29,24 @@ package com.lhkbob.entreri;
 import java.lang.annotation.*;
 
 /**
- * By default, all modifications to properties declared in a component will automatically increment that
+ * NoAutoVersion
+ * =============
+ *
+ * Disable the default automatic incrementing of a component's version when property values are modified. By
+ * default, all modifications to properties declared in a component will automatically increment that
  * component's version. This is useful when components are largely unchanging and the version change can be
  * used to kick off a more expensive computation.  However, when a property stores a cached value that
  * frequently changes or is not part of the common identity of the component, it can be useful to disable this
  * behavior.
- * <p/>
- * It is highly recommended to not use this annotation until performance profiling suggests that disabling the
- * version increment is necessary to take advantage of it.  An example of this is in Ferox, the Renderable
- * component has its geometry's local bounds, but it also caches the world bounds. The world bounds is a
- * cached value that combines the local bounds and the matrix from the Transform component. The Transform's
- * version can change very often, which would force the Renderable's version to change when the world bounds
- * was updated to match. By disabling the auto-update on the world bounds, the rest of the Renderable could be
- * easily versioned.
- * <p/>
+ *
+ * It is highly recommended to avoid the use this annotation until performance profiling suggests that
+ * disabling the version increment is necessary to take advantage of it.  An example of this is in Ferox, the
+ * Renderable component stores local bounds for visibility checks, but it also caches the world bounds. The
+ * world bounds is a cached value that combines the local bounds and the matrix from the Transform component.
+ * The Transform's version can change very often, which would force the Renderable's version to change when
+ * the world bounds was updated to match. By disabling the auto-update on the world bounds, the rest of the
+ * Renderable could be easily versioned.
+ *
  * The annotation must be placed on the getter, it is ignored when placed on the setter.
  *
  * @author Michael Ludwig

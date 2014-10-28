@@ -42,11 +42,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * ComponentFactoryProvider provides Factory instances that can create instances of components on demand.  The
- * provider encapsulates the strategy used to create or generate the component implementations. The two
- * current approaches are to generate the source at build time and look them up using reflection, and to use
- * Janino to dynamically generate and compile classes, although a Janino factory is not provided currently
- * because the annotation processor works sufficiently well.
+ * ComponentFactoryProvider
+ * ========================
+ *
+ * ComponentFactoryProvider provides {@link com.lhkbob.entreri.impl.ComponentFactoryProvider.Factory}
+ * instances that can create instances of components on demand.  The provider encapsulates the strategy used
+ * to create or generate the component implementations. The current approach are to generate the source
+ * at build time and look them up using reflection. It is relatively easy to extend this to an additional
+ * Janino or Proxy factory if the APT based approach is insufficient.
  *
  * @author Michael Ludwig
  */
@@ -65,7 +68,6 @@ public abstract class ComponentFactoryProvider {
          * AbstractComponent, and be cast-able to an instance of T.
          *
          * @param forRepository The repository using the instance
-         *
          * @return A new component instance
          */
         public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository);
@@ -84,7 +86,7 @@ public abstract class ComponentFactoryProvider {
      * Create or lookup the factory capable of creating the given component type. In many cases the factory
      * will have a comparatively expensive creation time and should be cached and reused to mitigate this
      * cost. Actual instance creation will likely be as cheap as a reflection-based constructor invocation.
-     * <p/>
+     *
      * This method is thread-safe and will guarantee there is at most a single factory instance for each type.
      * However, the {@link CachingDelegatingFactoryProvider} implements this logic so that actual factory
      * providers can have a simpler implementation (where it is acceptable to allocate a new factory when
@@ -92,7 +94,6 @@ public abstract class ComponentFactoryProvider {
      *
      * @param componentType The component type of the returned factory
      * @param <T>           The component type
-     *
      * @return The unique factory for the given component type from this provider
      */
     public abstract <T extends Component> Factory<T> getFactory(Class<T> componentType);
@@ -116,7 +117,6 @@ public abstract class ComponentFactoryProvider {
      *
      * @param spec           The component specification
      * @param includePackage True if the package should be included
-     *
      * @return The class name that corresponds to the generated proxy implmentation for the given type
      */
     public static String getImplementationClassName(ComponentSpecification spec, boolean includePackage) {
@@ -154,13 +154,12 @@ public abstract class ComponentFactoryProvider {
      * #getImplementationClassName(ComponentSpecification, boolean)}. It is assumed (and not validated) that
      * the property specification is valid and corresponds to the component type. The new class will also
      * extend from AbstractComponent and has a single constructor that takes a ComponentRepository.
-     * <p/>
+     *
      * The target source version generates two different outputs based on whether or not it should take
      * advantage of post 1.5 features.
      *
      * @param spec          The component specification that must be implemented
      * @param targetVersion The Java source version to target
-     *
      * @return Source code of a valid implementation for the component type
      */
     public static String generateJavaCode(ComponentSpecification spec, SourceVersion targetVersion) {

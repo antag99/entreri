@@ -49,7 +49,7 @@ public final class InvokerUtils {
         boolean expectedClassFailure = false;
 
         Pattern expectedPattern = Pattern.compile("\\[ERROR] .*" + componentClass +
-                                                  "\\.java:\\[.*] error: .*");
+                                                  "\\.java:.*");
         BufferedReader reader = new BufferedReader(new FileReader(logFile));
         String line;
         while ((line = reader.readLine()) != null) {

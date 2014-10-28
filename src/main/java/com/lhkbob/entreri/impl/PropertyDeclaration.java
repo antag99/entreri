@@ -32,6 +32,9 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
+ * PropertyDeclaration
+ * ===================
+ *
  * PropertyDeclaration represents a particular "property" instance declared in a Component sub-interface. A
  * property is represented by a bean getter method and an associated setter. This interface captures the
  * requisite information needed to implement a component type.
@@ -134,7 +137,7 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
      * the property objects that will be assignable to the type returned by {@link
      * #getPropertyImplementation()}, and will be configured by all attribute annotations applied to the
      * getter method.
-     * <p/>
+     *
      * This is only available during a runtime situation, and should not be called when ComponentSpecification
      * came from the mirror API.
      *

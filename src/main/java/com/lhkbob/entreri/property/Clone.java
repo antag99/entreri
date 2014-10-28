@@ -33,13 +33,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * <p/>
+ * Clone
+ * =====
+ *
  * Clone is an attribute that can be applied to property declarations to change how the property's values are
  * cloned when a Component or Entity are created from a template Component or Entity. At the moment it can be
- * used to: <ol> <li>Copy values using Java's assignment semantics</li> <li>Clone objects using their clone()
- * method if it exists</li> <li>Do not copy the value, and use the default value the factory normally would
- * have assigned</li> </ol>
- * <p/>
+ * used to:
+ *
+ * 1. Copy values using Java's assignment semantics.
+ * 2. Clone objects using their clone() method if it exists (falling back to assignment semantics).
+ * 3. Do not copy the value, and use the default value the factory normally would have assigned.
+ *
  * If these options are not sufficient, a custom {@link PropertyFactory} can be implemented and specified by
  * using the {@link Factory} annotation.
  *

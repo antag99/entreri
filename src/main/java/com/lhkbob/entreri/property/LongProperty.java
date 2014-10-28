@@ -31,6 +31,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 
 /**
+ * LongProperty
+ * ============
+ *
  * LongProperty is an implementation of Property that stores a single long value.
  *
  * @author Michael Ludwig
@@ -60,9 +63,7 @@ public final class LongProperty implements Property {
      * Get the value stored in this property for the given component index.
      *
      * @param componentIndex The component's index
-     *
      * @return The object at the given offset for the given component
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public long get(int componentIndex) {
@@ -70,11 +71,10 @@ public final class LongProperty implements Property {
     }
 
     /**
-     * Store <var>val</var> in this property for the given component index.
+     * Store `val` in this property for the given component index.
      *
      * @param componentIndex The index of the component being modified
      * @param val            The value to store, can be null
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(int componentIndex, long val) {

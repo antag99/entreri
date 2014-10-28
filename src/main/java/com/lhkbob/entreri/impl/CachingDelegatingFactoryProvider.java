@@ -32,9 +32,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * CachingDelegatingFactoryProvider implements the ComponentFactoryProvider interface to delegate to a list of
+ * CachingDelegatingFactoryProvider
+ * ================================
+ *
+ * CachingDelegatingFactoryProvider extends the ComponentFactoryProvider interface to delegate to a list of
  * factory providers and caches their created factories in a thread safe manner so that actual implementations
- * can be implemented simpler.
+ * can be implemented more simply.
  *
  * @author Michael Ludwig
  */

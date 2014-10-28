@@ -34,33 +34,35 @@ import java.lang.annotation.*;
 import java.lang.reflect.Method;
 
 /**
- * <p/>
- * SimpleTask extends Task adds logic to simplify the creation of tasks that perform the same operations on
- * each entity that matches a specific component configuration. Subclasses of SimpleTask should define a
- * single method named 'processEntity' that takes as its only parameters, any number of Component instances of
- * specific types. An example might be:
- * <p/>
- * <pre>
- * public class ExampleTask extends SimpleTask {
- *     // c1 and c2 are required types
- *     // c3 is an optional component type
- *     protected void processEntities(TypeA c1, TypeB c2, @Optional TypeC c3) {
- *         // perform operations on c1 and c2
- *         if (c3 != null) {
- *             // perform additional operations on c3
- *         }
- *     }
+ * SimpleTask
+ * ==========
  *
- *     public Task process(EntitySystem system, Job job) {
- *         // this will invoke processEntities() for each entity in the system
- *         // that has a TypeA and TypeB component. If the entity also has
- *         // a TypeC component, it is passed in too, otherwise it's null
- *         processEntities(system);
- *         return null;
- *     }
+ * An abstract Task that adds logic to simplify the creation of tasks that perform the same operations on
+ * each entity matching a specific component configuration. Subclasses of SimpleTask should define a
+ * single method named 'processEntity' that takes as its only parameters any number of Component instances of
+ * specific types. An example might be:
+ *
+ * ```java
+ * public class ExampleTask extends SimpleTask {
+ * // c1 and c2 are required types
+ * // c3 is an optional component type
+ * protected void processEntities(TypeA c1, TypeB c2, @Optional TypeC c3) {
+ * // perform operations on c1 and c2
+ * if (c3 != null) {
+ * // perform additional operations on c3
  * }
- * </pre>
- * <p/>
+ * }
+ *
+ * public Task process(EntitySystem system, Job job) {
+ * // this will invoke processEntities() for each entity in the system
+ * // that has a TypeA and TypeB component. If the entity also has
+ * // a TypeC component, it is passed in too, otherwise it's null
+ * processEntities(system);
+ * return null;
+ * }
+ * }
+ * ```
+ *
  * In the task's {@link #process(EntitySystem, Job)} method, it can then invoke {@link
  * #processEntities(EntitySystem)} to perform the automated iteration over matching entities within the
  * system. SimpleTask will call the identified 'processEntity' method for each matched entity.
@@ -68,6 +70,11 @@ import java.lang.reflect.Method;
  * @author Michael Ludwig
  */
 public abstract class SimpleTask implements Task {
+    /**
+     * An annotation that can be applied to parameters in the `processEntities()` method to specify that the
+     * Component is an option component. Absence of this annotation is taken to mean the parameter is a
+     * required component.
+     */
     @Target(ElementType.PARAMETER)
     @Retention(RetentionPolicy.RUNTIME)
     public static @interface Optional {
@@ -133,13 +140,12 @@ public abstract class SimpleTask implements Task {
     }
 
     /**
-     * The default implementation of process() just invokes {@link #processEntities(com.lhkbob.entreri.EntitySystem)}
-     * immediately and returns no future task.
+     * The default implementation of process() just invokes {@link
+     * #processEntities(com.lhkbob.entreri.EntitySystem)} immediately and returns no future task.
      *
      * @param system The EntitySystem being processed, which will always be the same for a given Task
      *               instance
      * @param job    The Job this task belongs to
-     *
      * @return Will return null unless overridden
      */
     @Override

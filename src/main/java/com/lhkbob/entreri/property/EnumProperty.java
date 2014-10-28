@@ -29,6 +29,9 @@ package com.lhkbob.entreri.property;
 import java.util.Arrays;
 
 /**
+ * EnumProperty
+ * ============
+ *
  * EnumProperty is a specialized generic property for enum values that stores just the ordinal values of a
  * specific enum class in a packed int array.  The type-mapping of component implementation generation
  * automatically uses an EnumProperty for any enum properties unless there's an explicit mapping declared in
@@ -64,10 +67,24 @@ public class EnumProperty implements Property {
         return data;
     }
 
+    /**
+     * Get the value stored in this property for the given component index.
+     *
+     * @param index The component's index
+     * @return The object at the given offset for the given component
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
+     */
     public Enum get(int index) {
         return values[data[index]];
     }
 
+    /**
+     * Store `value` in this property for the given component index.
+     *
+     * @param index The index of the component being modified
+     * @param value The value to store, can be null
+     * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
+     */
     public void set(int index, Enum value) {
         data[index] = value.ordinal();
     }

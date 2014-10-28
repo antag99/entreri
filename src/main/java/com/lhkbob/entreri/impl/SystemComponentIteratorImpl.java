@@ -32,6 +32,9 @@ import com.lhkbob.entreri.ComponentIterator;
 import java.util.Arrays;
 
 /**
+ * SystemComponentIteratorImpl
+ * ===========================
+ *
  * Implementation of ComponentIterator used by EntitySystemImpl.
  *
  * @author Michael Ludwig
@@ -52,7 +55,6 @@ public class SystemComponentIteratorImpl implements ComponentIterator {
      * before it can be iterated over.
      *
      * @param system The EntitySystem of the iterator
-     *
      * @throws NullPointerException if system is null
      */
     public SystemComponentIteratorImpl(EntitySystemImpl system) {

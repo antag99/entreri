@@ -34,20 +34,21 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * <p/>
+ * Scheduler
+ * =========
+ *
  * Scheduler coordinates the multi-threaded execution of jobs that process an EntitySystem. It is the factory
  * that creates jobs and contains convenience methods to schedule the execution of jobs.
- * <p/>
  * As an example, here's how you can set up a 'rendering' job, assuming that all tasks necessary to perform
- * rendering are in an array called <var>renderTasks</var>:
- * <p/>
- * <pre>
+ * rendering are in an array called `renderTasks`:
+ *
+ * ```java
  * Job renderJob = system.getScheduler().createJob(&quot;rendering&quot;, renderTasks);
  * ExecutorService service = system.getScheduler().runEvery(1.0 / 60.0, renderJob);
  *
  * // ... perform game logic, and wait for exit request
  * service.shutdown();
- * </pre>
+ * ```
  *
  * @author Michael Ludwig
  */
@@ -70,7 +71,6 @@ public class Scheduler {
      * safety between each other, only within their own jobs.
      *
      * @param system The EntitySystem accessed by jobs created by this scheduler
-     *
      * @throws NullPointerException if system is null
      * @see EntitySystem#getScheduler()
      */
@@ -101,7 +101,6 @@ public class Scheduler {
 
     /**
      * @param id The component type to lock
-     *
      * @return The lock used to coordinate access to the particular componen type
      */
     ReentrantLock getTypeLock(Class<? extends Component> id) {
@@ -121,13 +120,11 @@ public class Scheduler {
     }
 
     /**
-     * Create a new job with the given <var>name</var>, that will execute the provided tasks in order.
+     * Create a new job with the given `name`, that will execute the provided tasks in order.
      *
      * @param name  The name of the new job
      * @param tasks The tasks of the job
-     *
      * @return The new job
-     *
      * @throws NullPointerException if name is null, tasks is null or contains null elements
      */
     public Job createJob(String name, Task... tasks) {
@@ -137,12 +134,11 @@ public class Scheduler {
     /**
      * Execute the given job on the current thread. This will not return until after the job has completed
      * invoking all of its tasks, and any subsequently produced tasks.
-     * <p/>
+     *
      * This is a convenience for invoking {@link Job#run()}, and exists primarily to parallel the other
      * runX(Job) methods.
      *
      * @param job The job to run
-     *
      * @throws NullPointerException     if job is null
      * @throws IllegalArgumentException if job was not created by this scheduler
      */
@@ -159,16 +155,14 @@ public class Scheduler {
     }
 
     /**
-     * <p/>
      * Execute the given job once on a new thread. This will create a new thread that will invoke the job once
      * and then terminate once the job returns. This method will return after the thread starts and will not
      * block the calling thread while the job is executed.
-     * <p/>
+     *
      * This should be used as a convenience to invoke one-off jobs that should not block a performance
      * sensitive thread.
      *
      * @param job The job to run
-     *
      * @throws NullPointerException     if job is null
      * @throws IllegalArgumentException if job was not created by this scheduler
      */
@@ -186,23 +180,18 @@ public class Scheduler {
     }
 
     /**
-     * <p/>
-     * Create an ExecutorService that is configured to execute the given job every <var>dt</var> seconds.
-     * Assuming that the job terminates in under <var>dt</var> seconds, it will not be invoked until
-     * <var>dt</var> seconds after it was first started.
-     * <p/>
-     * To schedule a rendering job to run at 60 FPS, you could call <code>runEvery(1.0 / 60.0,
-     * renderJob)</code>.
-     * <p/>
+     * Create an ExecutorService that is configured to execute the given job every `dt` seconds. Assuming
+     * that the job terminates in under `dt` seconds, it will not be invoked until `dt` seconds after it was
+     * first started. To schedule a rendering job to run at 60 FPS, you could call `runEvery(1.0 / 60.0,
+     * renderJob)`.
+     *
      * The returned ExecutorService should have its {@link ExecutorService#shutdown() shutdown()} method
      * called when the job no longer needs to be invoked. Scheduling timing is undefined if new Runnables or
      * Callables are submitted to the returned service.
      *
      * @param dt  The amount of time between the start of each job execution
      * @param job The job to be repeatedly executed
-     *
      * @return An unconfigurable executor service that performs the scheduling, and owns the execution thread
-     *
      * @throws NullPointerException     if job is null
      * @throws IllegalArgumentException if job was not created by this scheduler, or if dt is negative
      */
@@ -229,26 +218,22 @@ public class Scheduler {
     }
 
     /**
-     * <p/>
      * Create an ExecutorService that is configured to execute the given job back to back as fast as the job
      * executes.
-     * <p/>
      * This effectively performs the following logic on a separate thread:
-     * <p/>
-     * <pre>
+     *
+     * ```java
      * while (true) {
-     *     job.run();
+     * job.run();
      * }
-     * </pre>
-     * <p/>
+     * ```
+     *
      * The returned ExecutorService should have its {@link ExecutorService#shutdown() shutdown()} method
      * called when the job no longer needs to be invoked. Scheduling timing is undefined if new Runnables or
      * Callables are submitted to the returned service.
      *
      * @param job The job to be repeatedly executed
-     *
      * @return An unconfigurable executor service that performs the scheduling, and owns the execution thread
-     *
      * @throws NullPointerException     if job is null
      * @throws IllegalArgumentException if job was not created by this scheduler
      */

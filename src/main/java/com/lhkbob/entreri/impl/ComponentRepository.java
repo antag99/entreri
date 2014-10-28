@@ -38,12 +38,14 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * ComponentRepository manages storing all the componentDatas of a specific type for an EntitySystem. It also
- * controls the IndexedDataStore's for the type's set of properties. It is package-private because its details
- * are low-level and complex.
+ * ComponentRepository
+ * ===================
+ *
+ * ComponentRepository manages storing all the components of a specific type for an EntitySystemImpl. It
+ * invokes the PropertyFactories of each property in a component definition and manages the created Properties
+ * so that they grow and compact with the entity-component mapping that it maintains.
  *
  * @param <T> The type of component stored by the index
- *
  * @author Michael Ludwig
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -79,7 +81,6 @@ public final class ComponentRepository<T extends Component> {
      *
      * @param system The owning system
      * @param type   The type of component
-     *
      * @throws NullPointerException if system or type are null
      */
     public ComponentRepository(EntitySystemImpl system, Class<T> type) {
@@ -152,7 +153,6 @@ public final class ComponentRepository<T extends Component> {
      * EntitySystemImpl#getEntityByIndex(int)}.
      *
      * @param componentIndex The component index whose owning entity is fetched
-     *
      * @return The index of the entity that has the given component index, or 0 if the component is not
      * attached
      */
@@ -166,7 +166,6 @@ public final class ComponentRepository<T extends Component> {
      * #getComponent(int)} and related methods.
      *
      * @param entityIndex The entity index to look up
-     *
      * @return The index of the attached component, or 0 if the entity does not have a component of this type
      * attached
      */
@@ -189,7 +188,6 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * @param componentIndex The component index
-     *
      * @return The component id of the component at the given index
      */
     public int getId(int componentIndex) {
@@ -198,7 +196,6 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * @param componentIndex The component index
-     *
      * @return The component version of the component at the given index
      */
     public int getVersion(int componentIndex) {
@@ -221,7 +218,6 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * @param componentIndex The component index
-     *
      * @return The OwnerSupport delegate for the component by the given index
      */
     public OwnerSupport getOwnerDelegate(int componentIndex) {
@@ -231,7 +227,6 @@ public final class ComponentRepository<T extends Component> {
     /**
      * @param propertyIndex The index of the property, which is the corresponding index from the property
      *                      specification of the component type
-     *
      * @return The declared property used for the given index by this repository
      */
     public Property getProperty(int propertyIndex) {
@@ -240,7 +235,6 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * @param propertyIndex The index of the property
-     *
      * @return The logical name of the property
      */
     public String getDeclaredPropertyName(int propertyIndex) {
@@ -289,7 +283,6 @@ public final class ComponentRepository<T extends Component> {
 
     /**
      * @param componentIndex The component index whose component is fetched
-     *
      * @return The component reference at the given index, may be null
      */
     public T getComponent(int componentIndex) {
@@ -302,9 +295,7 @@ public final class ComponentRepository<T extends Component> {
      *
      * @param entityIndex  The entity index which the component is attached to
      * @param fromTemplate A template to assign values to the new component
-     *
      * @return A new component of type T
-     *
      * @throws NullPointerException  if fromTemplate is null
      * @throws IllegalStateException if the template is not live
      */
@@ -312,8 +303,7 @@ public final class ComponentRepository<T extends Component> {
         if (!type.isInstance(fromTemplate)) {
             throw new IllegalArgumentException("Component not of expected type, expected: " + type +
                                                ", but was: " +
-                                               fromTemplate.getClass()
-            );
+                                               fromTemplate.getClass());
         }
         if (!fromTemplate.isAlive()) {
             throw new IllegalStateException("Template component is not live");
@@ -341,9 +331,7 @@ public final class ComponentRepository<T extends Component> {
      * the default state as specified by its properties.
      *
      * @param entityIndex The entity index which the component is attached to
-     *
      * @return A new component of type T
-     *
      * @throws IllegalArgumentException if initParams is incorrect
      */
     public T addComponent(int entityIndex) {
@@ -411,7 +399,6 @@ public final class ComponentRepository<T extends Component> {
      * returned if a component was removed, or false otherwise.
      *
      * @param entityIndex The entity's index whose component is removed
-     *
      * @return True if a component was removed
      */
     public boolean removeComponent(int entityIndex) {
@@ -542,7 +529,6 @@ public final class ComponentRepository<T extends Component> {
      * @param <P>     The type of property created
      * @param factory The factory that will create a unique Property instance associated with the decorated
      *                property and this index
-     *
      * @return The property decorated onto the type of the index
      */
     public <P extends Property> P decorate(PropertyFactory<P> factory) {

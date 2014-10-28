@@ -33,15 +33,17 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * <p/>
+ * Job
+ * ===
+ *
  * Job represents a list of {@link Task tasks} that must be executed in a particular order so that they
  * produce a meaningful computation over an entity system. Examples of a job might be to render a frame, which
  * could then be decomposed into tasks for computing the visible objects, occluded objects, the optimal
  * rendering order, and shadow computations, etc.
- * <p/>
+ *
  * Jobs are created by first getting the {@link Scheduler} from a particular EntitySystem, and then calling
- * {@link Scheduler#createJob(String, Task...)}. The name of a job is primarily used to for informational
- * purposes and does not affect its behavior.
+ * {@link Scheduler#createJob(String, Task...)}. The name of a job is used to for informational purposes and
+ * does not affect its behavior.
  *
  * @author Michael Ludwig
  */
@@ -64,7 +66,6 @@ public class Job implements Runnable {
      * @param name      The name of the job
      * @param scheduler The owning scheduler
      * @param tasks     The tasks in order of execution
-     *
      * @throws NullPointerException if name is null, tasks is null or contains null elements
      */
     Job(String name, Scheduler scheduler, Task... tasks) {
@@ -153,10 +154,9 @@ public class Job implements Runnable {
     }
 
     /**
-     * <p/>
      * Invoke all tasks in this job. This method is thread-safe and will use its owning scheduler to
      * coordinate the locks necessary to safely execute its tasks.
-     * <p/>
+     *
      * Although {@link Scheduler} has convenience methods to repeatedly invoke a job, this method can be
      * called directly if a more controlled job execution scheme is required.
      */
@@ -224,10 +224,9 @@ public class Job implements Runnable {
 
     /**
      * Report the given result instance to all tasks yet to be executed by this job, that have declared a
-     * public method named 'report' that takes a Result sub-type that is compatible with <var>r</var>'s type.
+     * public method named 'report' that takes a Result sub-type that is compatible with `r`'s type.
      *
      * @param r The result to report
-     *
      * @throws NullPointerException  if r is null
      * @throws IllegalStateException if r is a singleton result whose type has already been reported by
      *                               another task in this job, or if the job is not currently executing tasks

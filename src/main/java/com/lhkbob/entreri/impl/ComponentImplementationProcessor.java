@@ -45,7 +45,10 @@ import java.io.Writer;
 import java.util.Set;
 
 /**
- * ComponentImplementationProcessor is an annotation processor to use with Java 6 compilers or APT to generate
+ * ComponentImplementationProcessor
+ * ================================
+ *
+ * ComponentImplementationProcessor is an annotation processor to use with Java 6+ compilers or APT to generate
  * component proxy implementations for all component sub-interfaces encountered in the build class path. These
  * will then be dynamically loaded at runtime instead of using something such as Janino to generate classes
  * from scratch.

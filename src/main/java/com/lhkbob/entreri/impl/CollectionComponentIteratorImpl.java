@@ -34,7 +34,13 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 /**
+ * CollectionComponentIteratorImpl
+ * ===============================
  *
+ * A ComponentIterator implementation that iterates over an Iterable of entities. Each time it is reset it
+ * gets a new iterator from the Iterable.
+ *
+ * @author Michael Ludwig
  */
 public class CollectionComponentIteratorImpl implements ComponentIterator {
     private final EntitySystemImpl system;

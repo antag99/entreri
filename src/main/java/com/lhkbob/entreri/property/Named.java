@@ -29,9 +29,12 @@ package com.lhkbob.entreri.property;
 import java.lang.annotation.*;
 
 /**
+ * Named
+ * =====
+ *
  * Annotation applied to getters, setters, and setter parameters in a Component definition to specify an exact
  * property name instead of using Java naming conventions to infer it from the getter or setter.
- * <p/>
+ *
  * When a setter takes multiple parameters, this annotation is required for each parameter because method
  * parameter names are not always available via reflection at runtime.
  *

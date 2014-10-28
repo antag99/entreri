@@ -30,10 +30,13 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
+ * ObjectProperty
+ * ==============
+ *
  * ObjectProperty is an implementation of Property that stores the property data as a number of packed Object
  * references for each property. Because it is not primitive data, cache locality will suffer compared to the
  * primitive property types, but it will allow you to store arbitrary objects.
- * <p/>
+ *
  * However, ObjectProperty assumes that all component values can be null, and the default value is null. If
  * this is not an acceptable contract then a custom property must be defined with a factory capable of
  * constructing proper default instances.
@@ -67,9 +70,7 @@ public final class ObjectProperty implements Property {
      * Get the value stored in this property for the given component index.
      *
      * @param componentIndex The component's index
-     *
      * @return The object at the given offset for the given component
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     @SuppressWarnings("unchecked")
@@ -78,11 +79,10 @@ public final class ObjectProperty implements Property {
     }
 
     /**
-     * Store <var>val</var> in this property for the given component index.
+     * Store `val` in this property for the given component index.
      *
      * @param componentIndex The index of the component being modified
      * @param val            The value to store, can be null
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(int componentIndex, Object val) {

@@ -35,19 +35,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Utility for shared implementation of {@link com.lhkbob.entreri.Ownable} and {@link
+ * OwnerSupport
+ * ============
+ *
+ * Utility class for shared implementation of {@link com.lhkbob.entreri.Ownable} and {@link
  * com.lhkbob.entreri.Owner}
  *
  * @author Michael Ludwig
  */
-class OwnerSupport {
+public class OwnerSupport {
     private final Ownable target;
     private final Set<Ownable> ownedObjects;
     private Owner currentOwner;
 
     /**
      * Create a new OwnerSupport that functions as both the {@link Owner} and {@link Ownable} implementation
-     * for <var>target</var>
+     * for `target`.
      *
      * @param target The actual ownable
      */
@@ -62,7 +65,6 @@ class OwnerSupport {
 
     /**
      * @param obj The object now owned
-     *
      * @see Owner#notifyOwnershipGranted(Ownable)
      */
     public void notifyOwnershipGranted(Ownable obj) {
@@ -71,7 +73,6 @@ class OwnerSupport {
 
     /**
      * @param obj The object no longer owned
-     *
      * @see Owner#notifyOwnershipRevoked(Ownable)
      */
     public void notifyOwnershipRevoked(Ownable obj) {
@@ -80,7 +81,6 @@ class OwnerSupport {
 
     /**
      * @param owner The owner, possibly flyweight
-     *
      * @see Ownable#setOwner(Owner)
      */
     public void setOwner(Owner owner) {
@@ -96,7 +96,6 @@ class OwnerSupport {
 
     /**
      * @return The owner
-     *
      * @see Ownable#getOwner()
      */
     public Owner getOwner() {

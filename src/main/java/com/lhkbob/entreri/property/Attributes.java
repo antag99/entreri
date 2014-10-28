@@ -32,6 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Attributes
+ * ==========
+ *
  * Attributes represents the collection of attributes that have been provided on a property declaration within
  * a ComponentData definition. To use attributes, {@link PropertyFactory} implementations should have a
  * constructor that takes a single Attributes instance.
@@ -49,7 +52,6 @@ public class Attributes {
      *
      * @param propertyType The class of the declared property that produced these attributes
      * @param attrs        The annotations from the method, or field, etc.
-     *
      * @throws NullPointerException if attrs is null or contains null elements
      */
     public Attributes(Class<?> propertyType, Annotation... attrs) {
@@ -71,7 +73,8 @@ public class Attributes {
     }
 
     /**
-     * @return The class of the property this set of attributes belongs to
+     * @return The class of the property this set of attributes belongs to, where property refers to the
+     * logical property declared in a Component and not the selected `Property` class
      */
     public Class<?> getPropertyType() {
         return propertyType;
@@ -82,7 +85,6 @@ public class Attributes {
      * returned.
      *
      * @param cls The attribute annotation class type
-     *
      * @return The associated attribute instance
      */
     @SuppressWarnings("unchecked")
@@ -98,7 +100,6 @@ public class Attributes {
      * have any variables, this is sufficient instead of getting the actual instance.
      *
      * @param cls The annotation class type
-     *
      * @return True if the associated attribute exists
      */
     public boolean hasAttribute(Class<? extends Annotation> cls) {

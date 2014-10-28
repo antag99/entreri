@@ -34,6 +34,9 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 /**
+ * ComponentSpecification
+ * ======================
+ *
  * ComponentSpecification provides an interface to access the information encoded in a Component sub-interface
  * in order to generate a proxy implementation. The specification can be extracted at runtime using
  * reflection, or at compile time using the annotation processor mirror API. The two factory methods, {@link
@@ -60,7 +63,7 @@ public interface ComponentSpecification {
     /**
      * Get all properties that must be implemented for this component type. This will include all properties
      * defined in a parent component type if the type does not directly extend Component.
-     * <p/>
+     *
      * The returned list will be immutable and sorted by logical property name.
      *
      * @return The list of all properties for the component
@@ -73,7 +76,6 @@ public interface ComponentSpecification {
      * and {@link com.lhkbob.entreri.Validate}.
      *
      * @param setterName The setter method name to look up
-     *
      * @return All annotations present on the given method
      */
     public List<Annotation> getValidationAnnotations(String setterName);
@@ -86,9 +88,7 @@ public interface ComponentSpecification {
          * Produce a ComponentSpecification for the given Component class type.
          *
          * @param type The component type
-         *
          * @return The extracted ComponentSpecification
-         *
          * @throws com.lhkbob.entreri.IllegalComponentDefinitionException if the class does not follow the
          *                                                                specification defined in Component,
          *                                                                or if referenced Property classes do
@@ -106,9 +106,7 @@ public interface ComponentSpecification {
          *
          * @param type The component type
          * @param env  The ProcessingEnvironment for the current round
-         *
          * @return The extracted ComponentSpecification
-         *
          * @throws com.lhkbob.entreri.IllegalComponentDefinitionException if the class does not follow the
          *                                                                specification defined in Component,
          *                                                                or if referenced Property classes do

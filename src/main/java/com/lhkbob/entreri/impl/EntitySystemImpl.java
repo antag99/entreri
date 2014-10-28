@@ -37,7 +37,12 @@ import com.lhkbob.entreri.task.Scheduler;
 import java.util.*;
 
 /**
- * Main implementation of EntitySystem.
+ * EntitySystemImpl
+ * ================
+ *
+ * Main and default implementation of EntitySystem that uses the registered annotation processor,
+ * {@link com.lhkbob.entreri.impl.ComponentImplementationProcessor} to generate Java implementations of
+ * Component definitions and then have them compiled.
  *
  * @author Michael Ludwig
  */
@@ -259,7 +264,6 @@ public final class EntitySystemImpl implements EntitySystem {
      *
      * @param <T>  The Component type
      * @param type The component type
-     *
      * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
@@ -302,7 +306,6 @@ public final class EntitySystemImpl implements EntitySystem {
      *
      * @param entityIndex The index that the entity is stored at within the entity array and component
      *                    indicees
-     *
      * @return The canonical Entity instance for the index
      */
     Entity getEntityByIndex(int entityIndex) {

@@ -27,22 +27,30 @@
 package com.lhkbob.entreri.property;
 
 /**
- * <p/>
- * Property represents a generic field or property of a Component definition. A component can have multiple
- * properties. A single property instance holds the corresponding values for every component of that type in
- * an EntitySystem. It is effectively an indexed map from component index to property value.
- * <p/>
+ * Property
+ * ========
+ *
+ * Property represents a generic field or property of a {@link com.lhkbob.entreri.Component} definition. A
+ * component can have multiple properties. A single Property instance holds the corresponding values for every
+ * component of that type in an EntitySystem. It is effectively an indexed map from component index to
+ * property value.
+ *
  * This is an approach to mapped-objects where Components can be mapped onto primitive arrays so that
  * iteration sees optimal cache locality. As an example, there could be two instances of type A, with
- * properties a and b. The two 'a' properties would share the same data store, and the two 'b' properties
+ * properties a and b. The two 'a' references would share the same data store, and the two 'b' references
  * would share another store.
- * <p/>
- * All property implementations must expose two methods: <code>T get(int)</code> and <code>void set(int,
- * T)</code> to get and set values at a particular index. To support primitives without boxing, they are not
- * part of the interface definition but are required. The exposed get() and set() methods, and potentially a
+ *
+ * All property implementations must expose two methods:
+ *
+ * 1. `T get(int)` - which returns the value of type `T` at the component index.
+ * 2. `void set(int, T)` - which stores the value of type `T` at the particular component index.
+ *
+ * To support primitives without boxing, `T` need not be a subclass of Object are not part of the interface
+ * definition that would require generics.  They are are required and any attempts to use a Property
+ * implementation without them will throw an exception. The exposed get() and set() methods, and potentially a
  * bulk accessor (such as returning the underlying array) are the supported methods for manipulating decorated
  * property values.
- * <p/>
+ *
  * Property instances are carefully managed by an EntitySystem. There is ever only one property instance per
  * defined property in a component type for a system. Property instances are created by {@link PropertyFactory
  * PropertyFactories}. Every concrete Property class must be annotated with {@link Factory} to specify the
@@ -54,12 +62,12 @@ package com.lhkbob.entreri.property;
 public interface Property {
     /**
      * Resize the internal storage to support indexed lookups from 0 to <code>size - 1</code>.  If
-     * <var>>size</var> is less than the current capacity, all previous values with an index less than
-     * <var>size</var> must be preserved, and the remainder are discarded.  If <var>size</var> is greater than
+     * `size` is less than the current capacity, all previous values with an index less than
+     * `size` must be preserved, and the remainder are discarded.  If `size` is greater than
      * the current capacity, all previous indexed values must be preserved and the new values can be
      * undefined.
-     * <p/>
-     * This is for internal use only to manage, and should not be called on decorated properties returned by
+     *
+     * This is for internal use *only*, and should not be called on decorated properties returned by
      * {@link com.lhkbob.entreri.EntitySystem#decorate(Class, PropertyFactory)}.
      *
      * @param size The new capacity, will be at least 1
@@ -67,22 +75,22 @@ public interface Property {
     public void setCapacity(int size);
 
     /**
-     * Get the current capacity of the property. All instances must start with a capacity of at least 1.  The
-     * capacity represents the number of component instances the property can handle. If a component property
-     * is decomposed into multiple primitives that is still a single value instance when considering the
-     * capacity.
-     * <p/>
-     * This is for internal use only to manage, and should not be called on decorated properties returned by
-     * {@link com.lhkbob.entreri.EntitySystem#decorate(Class, PropertyFactory)}.
+     * Get the current capacity of the property. All instances must start with a capacity of at least 1.
+     * The capacity represents the number of component instances the property can handle. Even if component's
+     * property value is represented as multiple consecutive primitives, that is still a single value instance
+     * when considering the capacity an index supplied to `get()` or `set()`.
+     *
+     * This is intended for internal use but provides an upper limit on valid indices for access purposes.
+     * It will be at least the actual number of component instances of the associated type.
      *
      * @return The current capacity of the property
      */
     public int getCapacity();
 
     /**
-     * Swap the value at <var>indexA</var> with <var>indexB</var>.
-     * <p/>
-     * This is for internal use only to manage, and should not be called on decorated properties returned by
+     * Swap the value at `indexA` with `indexB`.
+     *
+     * This is for internal use *only*, and should not be called on decorated properties returned by
      * {@link com.lhkbob.entreri.EntitySystem#decorate(Class, PropertyFactory)}.
      *
      * @param indexA The index of the first value

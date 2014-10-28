@@ -31,6 +31,9 @@ import com.lhkbob.entreri.property.IntProperty.DefaultInt;
 import java.lang.annotation.*;
 
 /**
+ * Attribute
+ * =========
+ *
  * Attribute is used to declare that other annotation types are 'attributes' of a Property declaration in a
  * ComponentData type definition. They can then be accessed by custom {@link PropertyFactory factories} to
  * configure the specific property. Examples include describing cloning behavior and default values.

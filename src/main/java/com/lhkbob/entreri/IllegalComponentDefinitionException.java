@@ -27,8 +27,14 @@
 package com.lhkbob.entreri;
 
 /**
+ * IllegalComponentDefinitionException
+ * ===================================
+ *
  * IllegalComponentDefinitionException is an exception thrown if a Component implementation does not follow
- * the class hierarchy or field rules defined in {@link Component}.
+ * the class hierarchy or field rules defined in {@link Component}. This will generally be handled by the
+ * annotation processor that outputs proxy implementations of components. However, if a discrepency in the
+ * class file occurs between compilation after generation and before class loading, this may be thrown at
+ * runtime.
  *
  * @author Michael Ludwig
  */
