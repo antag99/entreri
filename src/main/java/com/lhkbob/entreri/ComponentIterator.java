@@ -49,6 +49,7 @@ import java.util.Iterator;
  * The basic workflow for using a ComponentIterator is shown below. In the example, the iterator is used to
  * iterate over all entities that have both an `A` and a `B` component, while optionally loading a `C`
  * component if available.
+ *
  * ```java
  * // create iterator
  * ComponentIterator it = new ComponentIterator(system);
@@ -61,13 +62,13 @@ import java.util.Iterator;
  * // iterate
  * it.reset(); // not actually required for first iteration
  * while(it.next()) {
- * // cdA and cdB are both assigned to components of type A and B on the same
- * // entity, so they can be processed without checking isAlive()
- * ...
- * // cdC may or may not be valid
- * if (cdC.isAlive()) {
- * // the current entity also has a component of type C
- * }
+ *     // cdA and cdB are both assigned to components of type A and B on the same
+ *     // entity, so they can be processed without checking isAlive()
+ *     ...
+ *     // cdC may or may not be valid
+ *     if (cdC.isAlive()) {
+ *         // the current entity also has a component of type C
+ *     }
  * }
  * ```
  *

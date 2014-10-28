@@ -66,7 +66,6 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * if the component type has not been attached to the entity. The returned instance will *not* be
      * flyweight (e.g. it is the canonical Component instance).
      *
-     * @param <T>           The parameterized type of ComponentData of the component
      * @param componentType The given type
      * @return The current Component of type T attached to this entity
      * @throws NullPointerException if componentType is null
@@ -78,7 +77,6 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * it is removed first, and a new one is instantiated. The created component is returned and is the
      * canonical Component instance.
      *
-     * @param <T>           The parameterized type of component being added
      * @param componentType The component type
      * @return A new component of type T
      * @throws NullPointerException if componentId is null
@@ -96,7 +94,6 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * applied in the component definition, and by the implementation of each property factory managing the
      * data of the component's properties.
      *
-     * @param <T>     The parameterized type of component to add
      * @param toClone The existing T to clone when attaching to this component
      * @return A new component of type T
      * @throws NullPointerException  if toClone is null
@@ -110,7 +107,6 @@ public interface Entity extends Iterable<Component>, Comparable<Entity>, Ownable
      * component, and adding it if the get returned null.
      *
      * @param type The class interface of the component to add
-     * @param <T>  The parameterized type of component
      * @return The component of type T, potentially new if it wasn't already on the entity
      */
     public <T extends Component> T as(Class<T> type);

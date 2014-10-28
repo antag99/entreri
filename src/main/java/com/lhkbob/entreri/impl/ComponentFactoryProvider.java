@@ -93,7 +93,6 @@ public abstract class ComponentFactoryProvider {
      * their getFactory() method is called).
      *
      * @param componentType The component type of the returned factory
-     * @param <T>           The component type
      * @return The unique factory for the given component type from this provider
      */
     public abstract <T extends Component> Factory<T> getFactory(Class<T> componentType);

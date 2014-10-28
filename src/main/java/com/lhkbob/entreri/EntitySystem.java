@@ -212,8 +212,6 @@ public interface EntitySystem extends Iterable<Entity> {
      * add dynamic runtime data to statically defined component types. Game editors could also use this to
      * simulate dynamic component creation.
      *
-     * @param <T>     The component type to mutate
-     * @param <P>     The created property type
      * @param type    The component type to mutate
      * @param factory The property factory that creates the decorating property
      * @return The property that has decorated the given component type

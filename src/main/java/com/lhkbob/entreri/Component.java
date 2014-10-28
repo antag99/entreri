@@ -108,14 +108,16 @@ package com.lhkbob.entreri;
  * a property to specify that the {@link com.lhkbob.entreri.property.ShareableProperty ShareableProperty} API
  * should be leveraged by the generated class.
  *
- * Additional attribute annotations can be added to the getter method to influence the behavior of the {@link
- * com.lhkbob.entreri.property.PropertyFactory PropertyFactory} used for each property in the component
+ * Additional attribute annotations can be added to the getter method to influence the behavior of the
+ * {@link com.lhkbob.entreri.property.PropertyFactory PropertyFactory} used for each property in the component
  * definition. Besides using the Factory annotation to specify the factory type, a property implementation can
- * be associated with a type with canonical name <var>C</var> by adding the file META-INF/entreri/mapping/C to
- * the classpath, where its contents must be:
+ * be associated with a type with canonical name `C` by adding the file `META-INF/entreri/mapping/C` to the
+ * classpath, where its contents must be:
+ *
  * ```
- * &lt;BINARY NAME OF PROPERTY&gt;
+ * <BINARY NAME OF PROPERTY>
  * ```
+ *
  * where the value is suitable for passing into {@link Class#forName(String)}.
  *
  * The provided Attribute annotations and any custom annotations you write can only be applied to the getter

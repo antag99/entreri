@@ -526,7 +526,6 @@ public final class ComponentRepository<T extends Component> {
      * and will have the default value assigned for each new Component. Decorators can then access the
      * returned property to manipulate the decorated component data.
      *
-     * @param <P>     The type of property created
      * @param factory The factory that will create a unique Property instance associated with the decorated
      *                property and this index
      * @return The property decorated onto the type of the index

@@ -44,22 +44,22 @@ import java.lang.reflect.Method;
  *
  * ```java
  * public class ExampleTask extends SimpleTask {
- * // c1 and c2 are required types
- * // c3 is an optional component type
- * protected void processEntities(TypeA c1, TypeB c2, @Optional TypeC c3) {
- * // perform operations on c1 and c2
- * if (c3 != null) {
- * // perform additional operations on c3
- * }
- * }
+ *     // c1 and c2 are required types
+ *     // c3 is an optional component type
+ *     protected void processEntities(TypeA c1, TypeB c2, @Optional TypeC c3) {
+ *         // perform operations on c1 and c2
+ *         if (c3 != null) {
+ *             // perform additional operations on c3
+ *         }
+ *     }
  *
- * public Task process(EntitySystem system, Job job) {
- * // this will invoke processEntities() for each entity in the system
- * // that has a TypeA and TypeB component. If the entity also has
- * // a TypeC component, it is passed in too, otherwise it's null
- * processEntities(system);
- * return null;
- * }
+ *     public Task process(EntitySystem system, Job job) {
+ *         // this will invoke processEntities() for each entity in the system
+ *         // that has a TypeA and TypeB component. If the entity also has
+ *         // a TypeC component, it is passed in too, otherwise it's null
+ *         processEntities(system);
+ *         return null;
+ *     }
  * }
  * ```
  *
