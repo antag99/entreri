@@ -40,23 +40,23 @@ package com.lhkbob.entreri;
  * Logically a component definition is a set of named and typed properties, and a method-based API to get
  * and set the values of each property. Specific types of component are defined by creating a sub-interface of
  * Component (implementations will be auto-generated, minimizing the amount of work needed to declare a new
- * component type). Using the {@link com.lhkbob.entreri.property.Named Named}, {@link
- * com.lhkbob.entreri.property.SharedInstance SharedInstance}, {@link com.lhkbob.entreri.property.Factory
- * Factory} and custom {@link com.lhkbob.entreri.property.Attribute Attribute} annotations defined by {@link
+ * component type). Using the {@link com.lhkbob.entreri.attr.Named Named}, {@link
+ * com.lhkbob.entreri.attr.SharedInstance SharedInstance}, {@link com.lhkbob.entreri.attr.Factory
+ * Factory} and custom {@link com.lhkbob.entreri.attr.Attribute Attribute} annotations defined by {@link
  * com.lhkbob.entreri.property.Property Property} implementations, the data properties of a component type are
  * defined as a sub-interface. A declaration model similar to the Java Bean model is used and is outlined
  * below.
  *
  * 1. Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a property. The property
  * type is inspected from the return type of the method. The property name is the method name minus the
- * 'get'/'is'/'has' prefix with its first letter made lower-case. The {@link com.lhkbob.entreri.property.Named
+ * 'get'/'is'/'has' prefix with its first letter made lower-case. The {@link com.lhkbob.entreri.attr.Named
  * Named} annotation can be used to override the name.
  * 2. Single-argument methods starting with 'set' are assumed to be a setter corresponding to a property.
- * The single parameter's type must equal the type of the getter. The {@link com.lhkbob.entreri.property.Named
+ * The single parameter's type must equal the type of the getter. The {@link com.lhkbob.entreri.attr.Named
  * Named} annotation can be applied to the setter to specify the property name modified by the method.
  * 3. Multi-argument methods starting with 'set' are assumed to be a setter that assigns values to multiple
  * properties, one for each argument. Each argument must be annotated with {@link
- * com.lhkbob.entreri.property.Named Named} to specify the property, and the argument type must equal the type
+ * com.lhkbob.entreri.attr.Named Named} to specify the property, and the argument type must equal the type
  * of the matching property.
  * 4. Setter methods identified by rules `2` or `3` must return `void` or the component's type, in which case
  * the component will return itself to allow method chaining.
@@ -81,19 +81,19 @@ package com.lhkbob.entreri;
  * ### Property default type mappings
  *
  * The table below shows how the type of a logical property is mapped to a Property implementation,
- * as well as the custom {@link com.lhkbob.entreri.property.Attribute} annotation that property class defines
+ * as well as the custom {@link com.lhkbob.entreri.attr.Attribute} annotation that property class defines
  * that specifies default values for each component instance.
  *
  * Type               | PropertyFactory implementation                              | Default attribute annotation
  * -------------------|-------------------------------------------------------------|-----------------------------
- * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty.Factory} | {@link com.lhkbob.entreri.property.BooleanProperty.DefaultBoolean}
- * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty.Factory}    | {@link com.lhkbob.entreri.property.ByteProperty.DefaultByte}
- * `short`            | {@link com.lhkbob.entreri.property.ShortProperty.Factory}   | {@link com.lhkbob.entreri.property.ShortProperty.DefaultShort}
- * `char`             | {@link com.lhkbob.entreri.property.CharProperty.Factory}    | {@link com.lhkbob.entreri.property.CharProperty.DefaultChar}
- * `int`              | {@link com.lhkbob.entreri.property.IntProperty.Factory}     | {@link com.lhkbob.entreri.property.IntProperty.DefaultInt}
- * `long`             | {@link com.lhkbob.entreri.property.LongProperty.Factory}    | {@link com.lhkbob.entreri.property.LongProperty.DefaultLong}
- * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}           | {@link com.lhkbob.entreri.property.FloatProperty.DefaultFloat}
- * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty.Factory}  | {@link com.lhkbob.entreri.property.DoubleProperty.DefaultDouble}
+ * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty.Factory} | {@link com.lhkbob.entreri.attr.DefaultBoolean}
+ * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultByte}
+ * `short`            | {@link com.lhkbob.entreri.property.ShortProperty.Factory}   | {@link com.lhkbob.entreri.attr.DefaultShort}
+ * `char`             | {@link com.lhkbob.entreri.property.CharProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultChar}
+ * `int`              | {@link com.lhkbob.entreri.property.IntProperty.Factory}     | {@link com.lhkbob.entreri.attr.DefaultInt}
+ * `long`             | {@link com.lhkbob.entreri.property.LongProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultLong}
+ * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}           | {@link com.lhkbob.entreri.attr.DefaultFloat}
+ * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty.Factory}  | {@link com.lhkbob.entreri.attr.DefaultDouble}
  * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty.Factory}    | NA
  * `? extends Object` | {@link com.lhkbob.entreri.property.ObjectProperty.Factory}  | NA
  *
@@ -104,7 +104,7 @@ package com.lhkbob.entreri;
  * com.lhkbob.entreri.property.Property} instances of a compatible type. This allows iteration over components
  * to have much better cache locality if the component is defined in terms of primitives or types that have
  * specialized Property implementations that can pack and unpack an instance. The {@link
- * com.lhkbob.entreri.property.SharedInstance SharedInstance} annotation can be added to the getter method of
+ * com.lhkbob.entreri.attr.SharedInstance SharedInstance} annotation can be added to the getter method of
  * a property to specify that the {@link com.lhkbob.entreri.property.ShareableProperty ShareableProperty} API
  * should be leveraged by the generated class.
  *
@@ -224,7 +224,7 @@ public interface Component extends Owner, Ownable {
     /**
      * Increment the version of the component accessed by this instance. This will be automatically called by
      * all exposed setters by the generated proxies, but if necessary it can be invoked manually as well.
-     * Properties annotated with {@link com.lhkbob.entreri.NoAutoVersion} will not automatically call this
+     * Properties annotated with {@link com.lhkbob.entreri.attr.DontAutoVersion} will not automatically call this
      * method.
      *
      * @see #getVersion()

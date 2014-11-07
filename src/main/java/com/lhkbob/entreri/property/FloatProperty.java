@@ -26,8 +26,10 @@
  */
 package com.lhkbob.entreri.property;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.DefaultFloat;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -64,9 +66,7 @@ public final class FloatProperty implements Property {
      * Get the value stored in this property for the given component index.
      *
      * @param componentIndex The component's index
-     *
      * @return The object at the given offset for the given component
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public float get(int componentIndex) {
@@ -78,7 +78,6 @@ public final class FloatProperty implements Property {
      *
      * @param componentIndex The index of the component being modified
      * @param val            The value to store, can be null
-     *
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     public void set(int componentIndex, float val) {
@@ -112,12 +111,9 @@ public final class FloatProperty implements Property {
         private final float defaultValue;
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            defaultValue =
-                    attrs.hasAttribute(DefaultFloat.class) ? attrs.getAttribute(DefaultFloat.class).value()
-                                                           : 0f;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(DefaultFloat dflt, Clone clone) {
+            defaultValue = dflt != null ? dflt.value() : 0f;
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(float defaultValue) {
@@ -152,16 +148,5 @@ public final class FloatProperty implements Property {
                 throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
-    }
-
-    /**
-     * Default float attribute for properties.
-     *
-     * @author Michael Ludwig
-     */
-    @Attribute
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface DefaultFloat {
-        float value();
     }
 }

@@ -49,7 +49,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
     /**
      * The ComponentRepository managing this component and all of its property data
      */
-    protected final ComponentRepository<T> owner;
+    protected final ComponentDataStore<T> owner;
 
     /**
      * The current index of the component. Subclasses must not modify directly, but should call setIndex().
@@ -63,7 +63,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
      *
      * @param owner The ComponentRepository owner
      */
-    public AbstractComponent(ComponentRepository<T> owner) {
+    public AbstractComponent(ComponentDataStore<T> owner) {
         this.owner = owner;
         this.index = 0;
     }

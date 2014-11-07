@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.attr.Factory;
 import com.lhkbob.entreri.property.*;
 
 import javax.annotation.processing.Filer;
@@ -262,7 +263,7 @@ public final class TypePropertyMapping {
 
     private static TypeMirror getFactory(Element e) {
         try {
-            com.lhkbob.entreri.property.Factory factory = e.getAnnotation(com.lhkbob.entreri.property.Factory.class);
+            Factory factory = e.getAnnotation(Factory.class);
             if (factory != null) {
                 factory.value(); // will throw an exception
             }

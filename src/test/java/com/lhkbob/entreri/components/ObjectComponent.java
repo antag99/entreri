@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NotNull;
+import com.lhkbob.entreri.attr.NotNull;
 
 /**
  * A test component that tests the default object property for unknown types.

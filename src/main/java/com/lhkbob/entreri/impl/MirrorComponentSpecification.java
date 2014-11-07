@@ -26,17 +26,22 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.*;
-import com.lhkbob.entreri.property.*;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
+import com.lhkbob.entreri.attr.Attribute;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.lang.model.element.*;
 import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.*;
 
@@ -54,9 +59,10 @@ public class MirrorComponentSpecification implements ComponentSpecification {
     private final String typeName;
     private final String packageName;
     private final List<MirrorPropertyDeclaration> properties;
-    private final Map<String, List<Annotation>> setterValidationAnnotations;
+    private final List<MethodDeclaration> methods;
 
-    public MirrorComponentSpecification(TypeElement type, Types tu, Elements eu, Filer io) {
+    public MirrorComponentSpecification(TypeElement type, List<? extends MethodPattern> patterns, Types tu,
+                                        Elements eu, Filer io, Messager log) {
         TypeMirror baseComponentType = eu.getTypeElement(Component.class.getCanonicalName()).asType();
         TypeMirror ownerType = eu.getTypeElement(Owner.class.getCanonicalName()).asType();
         TypeMirror ownableType = eu.getTypeElement(Ownable.class.getCanonicalName()).asType();
@@ -70,21 +76,33 @@ public class MirrorComponentSpecification implements ComponentSpecification {
         }
 
         List<MirrorPropertyDeclaration> properties = new ArrayList<>();
+        List<MethodDeclaration> methods = new ArrayList<>();
+
+        Set<Class<? extends Annotation>> interested = new HashSet<>();
+        interested.add(com.lhkbob.entreri.attr.Factory.class);
+        for (MethodPattern pattern : patterns) {
+            interested.addAll(pattern.getSupportedAttributes());
+        }
+        Iterator<Class<? extends Annotation>> it = interested.iterator();
+        while (it.hasNext()) {
+            Class<? extends Annotation> attr = it.next();
+            if (attr.getAnnotation(Attribute.class) == null) {
+                it.remove();
+                log.printMessage(Diagnostic.Kind.WARNING,
+                                 attr + " used as an attribute, but is not annotated with @Attribute");
+            }
+        }
 
         // since this is an interface, we're only dealing with public methods
         // so getMethods() returns everything we're interested in plus the methods
         // declared in Component, which we'll have to exclude
-        List<? extends ExecutableElement> methods = ElementFilter.methodsIn(eu.getAllMembers(type));
-        Map<String, ExecutableElement> getters = new HashMap<>();
-        Map<String, ExecutableElement> setters = new HashMap<>();
-        Map<String, Integer> setterParameters = new HashMap<>();
-        setterValidationAnnotations = new HashMap<>();
+        Map<ExecutableElement, MethodPattern> validMethods = new HashMap<>();
+        Map<ExecutableElement, List<String>> methodProperties = new HashMap<>();
+        Map<String, MirrorPropertyDeclaration> declaredProperties = new HashMap<>();
 
-        for (ExecutableElement m : methods) {
-            // exclude methods defined in Component, Owner, and Ownable
-            String name = m.getSimpleName().toString();
-            TypeMirror declare = m.getEnclosingElement().asType();
-
+        for (ExecutableElement m : ElementFilter.methodsIn(eu.getAllMembers(type))) {
+            // exclude methods defined in Component, Owner, Ownable, and Object
+            TypeMirror declare = findEnclosingTypeElement(m).asType();
             if (tu.isSameType(declare, baseComponentType) ||
                 tu.isSameType(declare, ownableType) ||
                 tu.isSameType(declare, ownerType) ||
@@ -92,41 +110,95 @@ public class MirrorComponentSpecification implements ComponentSpecification {
                 continue;
             }
 
-            if (name.startsWith("is")) {
-                processGetter(m, "is", getters);
-            } else if (name.startsWith("has")) {
-                processGetter(m, "has", getters);
-            } else if (name.startsWith("get")) {
-                processGetter(m, "get", getters);
-            } else if (name.startsWith("set")) {
-                processSetter(m, setters, setterParameters, setterValidationAnnotations, tu);
-            } else {
-                throw fail(declare, name + " is an illegal property method");
+            boolean matched = false;
+            for (MethodPattern pattern : patterns) {
+                if (pattern.matches(m)) {
+                    validMethods.put(m, pattern);
+                    matched = true;
+
+                    // determine the set of properties defined by this method and merge it into component state
+                    Map<String, TypeMirror> methodDeclaredTypes = pattern.getDeclaredProperties(m);
+                    for (Map.Entry<String, TypeMirror> p : methodDeclaredTypes.entrySet()) {
+                        if (p.getValue() != null) {
+                            // this method explicitly declares a named property and its type
+                            MirrorPropertyDeclaration oldProp = declaredProperties.get(p.getKey());
+                            if (oldProp != null) {
+                                if (!tu.isSameType(oldProp.type, p.getValue())) {
+                                    throw fail(type.asType(),
+                                               p.getKey() + " has inconsistent type across its methods");
+                                }
+                                // else type is consistent but some other method already created the prop declaration
+                            } else {
+                                // make a new property declaration
+                                MirrorPropertyDeclaration prop = new MirrorPropertyDeclaration(p.getKey(),
+                                                                                               p.getValue());
+
+                                declaredProperties.put(p.getKey(), prop);
+                                properties.add(prop);
+                            }
+                        } else {
+                            // this method references a property but doesn't exactly know the type of it yet
+                            declaredProperties.put(p.getKey(), null);
+                        }
+                    }
+
+                    // remember the property names needed for this pattern
+                    methodProperties.put(m, new ArrayList<>(methodDeclaredTypes.keySet()));
+
+                    break;
+                }
+            }
+
+            if (!matched) {
+                throw fail(declare, m.getSimpleName().toString() + " is an unsupported property method");
             }
         }
 
-        for (String property : getters.keySet()) {
-            ExecutableElement getter = getters.get(property);
-            ExecutableElement setter = setters.remove(property);
-            Integer param = setterParameters.remove(property);
-
-            if (setter == null) {
-                throw fail(type.asType(), property + " has no matching setter");
-            } else if (!tu.isSameType(getter.getReturnType(), setter.getParameters().get(param).asType())) {
-                throw fail(type.asType(), property + " has inconsistent type");
+        // make sure all declared properties have a known type
+        for (Map.Entry<String, MirrorPropertyDeclaration> p : declaredProperties.entrySet()) {
+            if (p.getValue() == null) {
+                throw fail(type.asType(),
+                           p.getKey() + " is referenced but a concrete type could not be determined");
             }
-
-            TypeMirror propertyType = getPropertyType(getter, tu, eu, io);
-            properties.add(new MirrorPropertyDeclaration(property, getter, setter, param,
-                                                         (TypeElement) tu.asElement(propertyType)));
         }
 
-        if (!setters.isEmpty()) {
-            throw fail(type.asType(), setters.keySet() + " have no matching getters");
+        // update the list of attribute annotations for all properties
+        for (Map.Entry<ExecutableElement, MethodPattern> m : validMethods.entrySet()) {
+            for (String property : methodProperties.get(m.getKey())) {
+                Set<Annotation> attrs = m.getValue()
+                                         .getPropertyLevelAttributes(m.getKey(), property, interested);
+                declaredProperties.get(property).addAttributes(attrs);
+            }
+        }
+
+        // now all attributes are available on the property declaration, the property implementation can be chosen
+        for (MirrorPropertyDeclaration prop : declaredProperties.values()) {
+            prop.updatePropertyImplementation(tu, eu, io);
+        }
+
+        // compute method declarations based on these properties (now complete up to method declarations)
+        for (ExecutableElement m : validMethods.keySet()) {
+            MethodPattern pattern = validMethods.get(m);
+            List<TypeMirror> propTypes = new ArrayList<>();
+            List<MirrorPropertyDeclaration> props = new ArrayList<>();
+            for (String p : methodProperties.get(m)) {
+                MirrorPropertyDeclaration prop = declaredProperties.get(p);
+                props.add(prop);
+                propTypes.add(prop.propertyType);
+            }
+
+            MethodDeclaration method = pattern.createMethodDeclaration(m, propTypes, props);
+
+            // add the method to every property
+            for (MirrorPropertyDeclaration prop : props) {
+                prop.methods.add(method);
+            }
+            methods.add(method);
         }
 
         // order the list of properties by their natural ordering
         Collections.sort(properties);
+        Collections.sort(methods);
 
         String qualifiedName = type.getQualifiedName().toString();
         String packageName = eu.getPackageOf(type).getQualifiedName().toString();
@@ -139,6 +211,7 @@ public class MirrorComponentSpecification implements ComponentSpecification {
         }
 
         this.properties = Collections.unmodifiableList(properties);
+        this.methods = Collections.unmodifiableList(methods);
     }
 
     @Override
@@ -157,13 +230,8 @@ public class MirrorComponentSpecification implements ComponentSpecification {
     }
 
     @Override
-    public List<Annotation> getValidationAnnotations(String setterName) {
-        List<Annotation> v = setterValidationAnnotations.get(setterName);
-        if (v == null) {
-            return Collections.emptyList();
-        } else {
-            return Collections.unmodifiableList(v);
-        }
+    public List<? extends MethodDeclaration> getMethods() {
+        return methods;
     }
 
     private static IllegalComponentDefinitionException fail(TypeMirror type, String msg) {
@@ -173,47 +241,18 @@ public class MirrorComponentSpecification implements ComponentSpecification {
     private static class MirrorPropertyDeclaration implements PropertyDeclaration {
         private final String name;
 
-        private final String setter;
-        private final int setterParameter;
-        private final boolean setterReturnsComponent;
+        private final TypeMirror type;
+        private TypeMirror propertyType; // cannot be determined prior to construction since @Factory could be on any referencing method
 
-        private final String getter;
-        private final boolean isSharedInstance;
-        private final boolean isGeneric;
-        private final boolean isVersioned;
+        private final Set<Annotation> annotations;
+        private final List<MethodDeclaration> methods;
 
-        private final String type;
-        private final String propertyType;
-
-        private final List<Annotation> validationAnnotations;
-
-        public MirrorPropertyDeclaration(String name, ExecutableElement getter, ExecutableElement setter,
-                                         int parameter, TypeElement propertyType) {
+        public MirrorPropertyDeclaration(String name, TypeMirror type) {
             this.name = name;
-            this.getter = getter.getSimpleName().toString();
-            this.setter = setter.getSimpleName().toString();
-            this.propertyType = propertyType.toString();
-            setterParameter = parameter;
+            this.type = type;
 
-            type = getter.getReturnType().toString();
-            setterReturnsComponent = !setter.getReturnType().getKind().equals(TypeKind.VOID);
-
-            isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
-            isVersioned = getter.getAnnotation(NoAutoVersion.class) == null;
-            isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
-
-            List<Annotation> annots = new ArrayList<>();
-            for (VariableElement param : setter.getParameters()) {
-                NotNull notNull = param.getAnnotation(NotNull.class);
-                if (notNull != null) {
-                    annots.add(notNull);
-                }
-                Within within = param.getAnnotation(Within.class);
-                if (within != null) {
-                    annots.add(within);
-                }
-            }
-            validationAnnotations = Collections.unmodifiableList(annots);
+            annotations = new HashSet<>();
+            methods = new ArrayList<>();
         }
 
         @Override
@@ -223,52 +262,22 @@ public class MirrorComponentSpecification implements ComponentSpecification {
 
         @Override
         public String getType() {
-            return type;
+            return type.toString();
         }
 
         @Override
         public String getPropertyImplementation() {
-            return propertyType;
+            return propertyType.toString();
         }
 
         @Override
-        public String getSetterMethod() {
-            return setter;
+        public List<MethodDeclaration> getMethods() {
+            return Collections.unmodifiableList(methods);
         }
 
         @Override
-        public String getGetterMethod() {
-            return getter;
-        }
-
-        @Override
-        public int getSetterParameter() {
-            return setterParameter;
-        }
-
-        @Override
-        public boolean getSetterReturnsComponent() {
-            return setterReturnsComponent;
-        }
-
-        @Override
-        public List<Annotation> getValidationAnnotations() {
-            return validationAnnotations;
-        }
-
-        @Override
-        public boolean isShared() {
-            return isSharedInstance;
-        }
-
-        @Override
-        public boolean isPropertyGeneric() {
-            return isGeneric;
-        }
-
-        @Override
-        public boolean isAutoVersionEnabled() {
-            return isVersioned;
+        public Set<Annotation> getAttributes() {
+            return Collections.unmodifiableSet(annotations);
         }
 
         @Override
@@ -280,258 +289,114 @@ public class MirrorComponentSpecification implements ComponentSpecification {
         public int compareTo(PropertyDeclaration o) {
             return name.compareTo(o.getName());
         }
-    }
 
-    private static void processSetter(ExecutableElement m, Map<String, ExecutableElement> setters,
-                                      Map<String, Integer> parameters,
-                                      Map<String, List<Annotation>> setterValidationAnnotations, Types tu) {
-        TypeMirror declaringClass = m.getEnclosingElement().asType();
-        if (!tu.isSameType(m.getReturnType(), m.getEnclosingElement().asType()) &&
-            !m.getReturnType().getKind().equals(TypeKind.VOID)) {
-            throw fail(declaringClass, m + " has invalid return type for setter");
-        }
-
-        List<? extends VariableElement> params = m.getParameters();
-        if (params.isEmpty()) {
-            throw fail(declaringClass, m + " must have at least one parameter");
-        }
-
-        if (params.size() == 1) {
-            String name = getNameFromParameter(params.get(0));
-            if (name != null) {
-                // verify absence of @Named on actual setter
-                if (m.getAnnotation(Named.class) != null) {
-                    throw fail(declaringClass, m + ", @Named cannot be on both parameter and method");
-                }
-            } else {
-                name = getName(m, "set");
-            }
-
-            if (setters.containsKey(name)) {
-                throw fail(declaringClass, name + " already declared on a setter");
-            }
-            setters.put(name, m);
-            parameters.put(name, 0);
-        } else {
-            // verify absence of @Named on actual setter
-            if (m.getAnnotation(Named.class) != null) {
-                throw fail(declaringClass,
-                           m + ", @Named cannot be applied to setter method with multiple parameters");
-            }
-
-            int i = 0;
-            for (VariableElement p : params) {
-                String name = getNameFromParameter(p);
-                if (name == null) {
-                    throw fail(declaringClass, m +
-                                               ", @Named must be applied to each parameter for multi-parameter setter methods");
-                }
-
-                if (setters.containsKey(name)) {
-                    throw fail(declaringClass, name + " already declared on a setter");
-                }
-
-                setters.put(name, m);
-                parameters.put(name, i++);
-            }
-        }
-
-        List<Annotation> annots = new ArrayList<>();
-        NotNull notNull = m.getAnnotation(NotNull.class);
-        if (notNull != null) {
-            annots.add(notNull);
-        }
-        Within within = m.getAnnotation(Within.class);
-        if (within != null) {
-            annots.add(within);
-        }
-        Validate validate = m.getAnnotation(Validate.class);
-        if (validate != null) {
-            annots.add(validate);
-        }
-
-        setterValidationAnnotations.put(m.getSimpleName().toString(), annots);
-    }
-
-    private static void processGetter(ExecutableElement m, String prefix,
-                                      Map<String, ExecutableElement> getters) {
-        TypeMirror declaringClass = m.getEnclosingElement().asType();
-
-        String name = getName(m, prefix);
-        if (getters.containsKey(name)) {
-            throw fail(declaringClass, name + " already declared on a getter");
-        }
-        if (!m.getParameters().isEmpty()) {
-            throw fail(declaringClass, m + ", getter must not take arguments");
-        }
-        if (m.getReturnType().getKind().equals(TypeKind.VOID)) {
-            throw fail(declaringClass, m + ", getter must have non-void return type");
-        }
-
-        getters.put(name, m);
-    }
-
-    private static String getNameFromParameter(VariableElement parameter) {
-        Named n = parameter.getAnnotation(Named.class);
-        if (n != null) {
-            return n.value();
-        } else {
-            return null;
-        }
-    }
-
-    private static String getName(ExecutableElement m, String prefix) {
-        Named n = m.getAnnotation(Named.class);
-        if (n != null) {
-            return n.value();
-        } else {
-            String name = m.getSimpleName().toString();
-            return Character.toLowerCase(name.charAt(prefix.length())) + name.substring(prefix.length() + 1);
-        }
-    }
-
-    private static TypeMirror getPropertyType(ExecutableElement getter, Types tu, Elements eu, Filer io) {
-        TypeMirror baseType = getter.getReturnType();
-
-        // prefer getter specification to allow default overriding
-        TypeMirror factory = getFactory(getter);
-        if (factory == null) {
-            // but otherwise lookup property or its factory
-            factory = TypePropertyMapping.getPropertyFactory(baseType, tu, eu, io);
-        }
-
-        return validateFactory(getter, factory, tu, eu);
-    }
-
-    private static TypeMirror getFactory(Element e) {
-        try {
-            com.lhkbob.entreri.property.Factory factory = e.getAnnotation(com.lhkbob.entreri.property.Factory.class);
-            if (factory != null) {
-                factory.value(); // will throw an exception
-            }
-            return null;
-        } catch (MirroredTypeException te) {
-            return te.getTypeMirror();
-        }
-    }
-
-    private static TypeMirror getGenericPropertySuperclass(Element e) {
-        try {
-            GenericProperty generic = e.getAnnotation(GenericProperty.class);
-            if (generic != null) {
-                generic.superClass(); // will throw an exception
-            }
-            return null;
-        } catch (MirroredTypeException te) {
-            return te.getTypeMirror();
-        }
-    }
-
-    private static TypeMirror validateFactory(ExecutableElement getter, TypeMirror factory, Types tu,
-                                              Elements eu) {
-        TypeMirror declaringClass = getter.getEnclosingElement().asType();
-        boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
-        TypeMirror baseType = getter.getReturnType();
-
-        TypeMirror propertyType = null;
-        List<? extends ExecutableElement> factoryMethods = ElementFilter
-                                                                   .methodsIn(eu.getAllMembers((TypeElement) tu.asElement(factory)));
-        for (ExecutableElement m : factoryMethods) {
-            if (m.getSimpleName().contentEquals("create")) {
-                propertyType = m.getReturnType();
-                break;
-            }
-        }
-        if (propertyType == null) {
-            throw fail(declaringClass, factory + " is missing create() method");
-        }
-
-        // verify contract of property
-        TypeMirror intType = tu.getPrimitiveType(TypeKind.INT);
-        TypeMirror voidType = tu.getNoType(TypeKind.VOID);
-        TypeElement propertyTypeElement = (TypeElement) tu.asElement(propertyType);
-        List<? extends ExecutableElement> methods = ElementFilter
-                                                            .methodsIn(eu.getAllMembers(propertyTypeElement));
-
-        TypeMirror genericType = getGenericPropertySuperclass(propertyTypeElement);
-        if (genericType != null) {
-            // special case for properties that claim to support more permissive assignments
-            if (isShared) {
-                throw fail(declaringClass,
-                           propertyType + " can't be used with @SharedInstance, it is declared generic");
-            }
-
-            // ensure that the getter and setter methods exist with the declared super class type
-            // and that the base value type is assignable to the super type
-            if (!findMethod(methods, tu, "get", genericType, intType)) {
-                throw fail(declaringClass,
-                           propertyType + " does not implement generic " + genericType + " get(int)");
-            }
-            if (!findMethod(methods, tu, "set", voidType, intType, genericType)) {
-                throw fail(declaringClass,
-                           propertyType + " does not implement generic void set(int, " + baseType + ")");
-            }
-
-            if (!tu.isAssignable(baseType, genericType)) {
-                throw fail(declaringClass,
-                           propertyType + " cannot be used with " + baseType + ", type must extend from " +
-                           genericType);
-            }
-        } else {
-            if (!findMethod(methods, tu, "get", baseType, intType)) {
-                throw fail(declaringClass, propertyType + " does not implement " + baseType + " get(int)");
-            }
-            if (!findMethod(methods, tu, "set", voidType, intType, baseType)) {
-                throw fail(declaringClass, propertyType + " does not implement void set(int, " +
-                                           baseType + ")");
-            }
-
-            if (isShared) {
-                // we could instantiate the declared type, but that crashes if the parameter
-                // type must be a primitive, so the erased type gives us a good enough check
-                TypeMirror share = tu.erasure(eu.getTypeElement(ShareableProperty.class.getCanonicalName())
-                                                .asType());
-                if (!tu.isAssignable(propertyType, share)) {
-                    throw fail(declaringClass, propertyType + " can't be used with @SharedInstance");
-                }
-
-                // verify additional shareable property contract
-                if (!findMethod(methods, tu, "get", voidType, intType, baseType)) {
-                    throw fail(declaringClass, propertyType + " does not implement void get(int, " +
-                                               baseType + ")");
-                }
-                if (!findMethod(methods, tu, "createShareableInstance", baseType)) {
-                    throw fail(declaringClass, propertyType + " does not implement " + baseType +
-                                               " createShareableInstance()");
-                }
-            }
-        }
-
-        return tu.erasure(propertyType);
-    }
-
-    private static boolean findMethod(List<? extends ExecutableElement> methods, Types tu, String name,
-                                      TypeMirror returnType, TypeMirror... params) {
-        for (ExecutableElement m : methods) {
-            if (m.getSimpleName().contentEquals(name) && tu.isSameType(returnType, m.getReturnType())) {
-                // now check parameters
-                List<? extends VariableElement> realParams = m.getParameters();
-                if (params.length == realParams.size()) {
-                    boolean found = true;
-                    for (int i = 0; i < params.length; i++) {
-                        if (!tu.isSameType(params[i], realParams.get(i).asType())) {
-                            found = false;
-                            break;
+        private void addAttributes(Set<Annotation> annotations) {
+            // add annotations, but make sure that annotations of the same type are not added
+            // if the values are equal then ignore the duplicates; if they disagree in parameters then
+            // a conflict exists and the component is invalid
+            for (Annotation a : annotations) {
+                if (!this.annotations.contains(a)) {
+                    for (Annotation o : this.annotations) {
+                        if (a.getClass().equals(o.getClass())) {
+                            // a is of the same type as o, but they are not equal
+                            throw new IllegalComponentDefinitionException("Conflicting applications of " +
+                                                                          a.getClass() + " on property " +
+                                                                          name);
                         }
                     }
-
-                    if (found) {
-                        return true;
-                    }
-                }
+                    // not of any prior type
+                    this.annotations.add(a);
+                } // ignore duplicates
             }
         }
 
-        return false;
+        private void updatePropertyImplementation(Types tu, Elements eu, Filer io) {
+            TypeMirror propFactoryType = null;
+
+            for (Annotation a : annotations) {
+                if (a instanceof com.lhkbob.entreri.attr.Factory) {
+                    try {
+                        ((com.lhkbob.entreri.attr.Factory) a).value();
+                    } catch (MirroredTypeException te) {
+                        propFactoryType = te.getTypeMirror();
+                    }
+                    break;
+                }
+            }
+
+            if (propFactoryType == null) {
+                // look up from the file mapping
+                propFactoryType = TypePropertyMapping.getPropertyFactory(type, tu, eu, io);
+            }
+
+            if (propFactoryType != null) {
+                validateFactoryConstructor(propFactoryType, tu, eu);
+
+                TypeMirror propertyType = null;
+                List<? extends ExecutableElement> factoryMethods = ElementFilter
+                                                                           .methodsIn(eu.getAllMembers((TypeElement) tu.asElement(propFactoryType)));
+                for (ExecutableElement m : factoryMethods) {
+                    if (m.getSimpleName().contentEquals("create")) {
+                        propertyType = m.getReturnType();
+                        break;
+                    }
+                }
+                if (propertyType == null) {
+                    throw new RuntimeException(propFactoryType + " is missing create() method");
+                }
+
+                this.propertyType = propertyType;
+            } else {
+                throw new RuntimeException("Unable to determine PropertyFactory for property " + name);
+            }
+        }
+
+        private void validateFactoryConstructor(TypeMirror factoryType, Types tu, Elements eu) {
+            List<? extends ExecutableElement> ctors = ElementFilter
+                                                              .constructorsIn(eu.getAllMembers((TypeElement) tu.asElement(factoryType)));
+            boolean foundValid = false;
+            for (ExecutableElement ctor : ctors) {
+                if (isValidConstructor(ctor, tu, eu)) {
+                    foundValid = true;
+                    break;
+                }
+            }
+
+            if (!foundValid) {
+                throw new IllegalComponentDefinitionException("PropertyFactory referenced by property " +
+                                                              name +
+                                                              " has no valid constructor to invoke by reflection");
+            }
+        }
+
+        private boolean isValidConstructor(ExecutableElement ctor, Types tu, Elements eu) {
+            List<? extends TypeParameterElement> args = ctor.getTypeParameters();
+            if (args.size() == 0) {
+                return true;
+            }
+
+            int startIndex = 0;
+            if (tu.isSameType(args.get(0).asType(),
+                              eu.getTypeElement(Class.class.getCanonicalName()).asType())) {
+                startIndex = 1;
+            }
+
+            TypeMirror annotClass = eu.getTypeElement(Annotation.class.getCanonicalName()).asType();
+            for (int i = startIndex; i < args.size(); i++) {
+                if (!tu.isAssignable(args.get(i).asType(), annotClass) ||
+                    args.get(i).getAnnotation(Attribute.class) == null) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    private static TypeElement findEnclosingTypeElement(Element e) {
+        while (e != null && !(e instanceof TypeElement)) {
+            e = e.getEnclosingElement();
+        }
+        return TypeElement.class.cast(e);
     }
 }

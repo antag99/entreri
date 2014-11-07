@@ -26,8 +26,10 @@
  */
 package com.lhkbob.entreri.property;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.DefaultBoolean;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -109,11 +111,9 @@ public final class BooleanProperty implements Property {
         private final boolean defaultValue;
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            defaultValue = attrs.hasAttribute(DefaultBoolean.class) &&
-                           attrs.getAttribute(DefaultBoolean.class).value();
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(DefaultBoolean dflt, Clone clonePolicy) {
+            defaultValue = dflt != null && dflt.value();
+            policy = clonePolicy != null ? clonePolicy.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(boolean defaultValue) {
@@ -148,16 +148,5 @@ public final class BooleanProperty implements Property {
                 throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
-    }
-
-    /**
-     * Default boolean attribute for properties.
-     *
-     * @author Michael Ludwig
-     */
-    @Attribute
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface DefaultBoolean {
-        boolean value();
     }
 }

@@ -27,14 +27,17 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.attr.SharedInstance;
 import com.lhkbob.entreri.components.*;
 import com.lhkbob.entreri.property.*;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ComponentSpecificationTest {
     @Test
@@ -70,6 +73,65 @@ public class ComponentSpecificationTest {
         }
     }
 
+    private boolean isShared(PropertyDeclaration prop) {
+        List<MethodDeclaration> methods = prop.getMethods();
+        for (MethodDeclaration m : methods) {
+            Set<Annotation> attrs = m.getAttributes();
+            for (Annotation a : attrs) {
+                if (a instanceof SharedInstance) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isGeneric(PropertyDeclaration prop) throws Exception {
+        Class<?> propClass = Class.forName(prop.getPropertyImplementation());
+        return propClass.getAnnotation(GenericProperty.class) != null;
+    }
+
+    private void assertSimpleGetter(String name, PropertyDeclaration prop) {
+        for (MethodDeclaration m : prop.getMethods()) {
+            if (m.getName().equals(name)) {
+                Assert.assertEquals(prop.getType(), m.getReturnType());
+                Assert.assertTrue(m.getParameterNames().isEmpty());
+                return;
+            }
+        }
+        Assert.fail("method could not be found");
+    }
+
+    private void assertSimpleSetter(String name, PropertyDeclaration prop) {
+        for (MethodDeclaration m : prop.getMethods()) {
+            if (m.getName().equals(name)) {
+                if (!"void".equals(m.getReturnType())) {
+                    Assert.assertEquals("com.lhkbob.entreri.components.ComplexComponent", m.getReturnType());
+                }
+                Assert.assertEquals(1, m.getParameterNames().size());
+                Assert.assertEquals(prop.getType(), m.getParameterTypes().get(0));
+                return;
+            }
+        }
+        Assert.fail("method could not be found");
+    }
+
+    private void assertSetter(String name, int totalArgs, int propParam, PropertyDeclaration prop) {
+        Assert.assertTrue(propParam < totalArgs && propParam >= 0);
+        for (MethodDeclaration m : prop.getMethods()) {
+            if (m.getName().equals(name)) {
+                if (!"void".equals(m.getReturnType())) {
+                    Assert.assertEquals("com.lhkbob.entreri.components.ComplexComponent", m.getReturnType());
+                }
+                Assert.assertEquals(totalArgs, m.getParameterNames().size());
+                Assert.assertEquals(prop.getType(), m.getParameterTypes().get(propParam));
+                return;
+            }
+        }
+        Assert.fail("method could not be found");
+    }
+
     @Test
     @SuppressWarnings("unchecked")
     public void testPropertyLookup() throws Exception {
@@ -89,123 +151,113 @@ public class ComponentSpecificationTest {
         // property - int from IntComponent
         PropertyDeclaration intSpec = props.remove("int");
         Assert.assertNotNull(intSpec);
-        Assert.assertFalse(intSpec.isShared());
-        Assert.assertFalse(intSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(intSpec));
+        Assert.assertFalse(isGeneric(intSpec));
         IntProperty intProp = (IntProperty) intSpec.getPropertyFactory().create();
         ((IntProperty.Factory) intSpec.getPropertyFactory()).setDefaultValue(intProp, 0);
         Assert.assertEquals(0, intProp.get(0));
-        Assert.assertEquals("getInt", intSpec.getGetterMethod());
-        Assert.assertEquals("setInt", intSpec.getSetterMethod());
-        Assert.assertEquals(0, intSpec.getSetterParameter());
+        assertSimpleGetter("getInt", intSpec);
+        assertSimpleSetter("setInt", intSpec);
 
         // property - float from FloatComponent
         PropertyDeclaration floatSpec = props.remove("float");
         Assert.assertNotNull(floatSpec);
-        Assert.assertFalse(floatSpec.isShared());
-        Assert.assertFalse(floatSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(floatSpec));
+        Assert.assertFalse(isGeneric(floatSpec));
         FloatProperty floatProp = (FloatProperty) floatSpec.getPropertyFactory().create();
         ((FloatProperty.Factory) floatSpec.getPropertyFactory()).setDefaultValue(floatProp, 0);
         Assert.assertEquals(0f, floatProp.get(0), 0.0001f);
-        Assert.assertEquals("getFloat", floatSpec.getGetterMethod());
-        Assert.assertEquals("setFloat", floatSpec.getSetterMethod());
-        Assert.assertEquals(0, floatSpec.getSetterParameter());
+        assertSimpleGetter("getFloat", floatSpec);
+        assertSimpleSetter("setFloat", floatSpec);
 
         // property - long
         PropertyDeclaration longSpec = props.remove("long");
         Assert.assertNotNull(longSpec);
-        Assert.assertFalse(longSpec.isShared());
-        Assert.assertFalse(longSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(longSpec));
+        Assert.assertFalse(isGeneric(longSpec));
         LongProperty longProp = (LongProperty) longSpec.getPropertyFactory().create();
         ((LongProperty.Factory) longSpec.getPropertyFactory()).setDefaultValue(longProp, 0);
         Assert.assertEquals(Long.MAX_VALUE, longProp.get(0));
-        Assert.assertEquals("getLong", longSpec.getGetterMethod());
-        Assert.assertEquals("setLong", longSpec.getSetterMethod());
-        Assert.assertEquals(0, longSpec.getSetterParameter());
+        assertSimpleGetter("getLong", longSpec);
+        assertSimpleSetter("setLong", longSpec);
 
         // property - factoryFloat
         PropertyDeclaration facFloatSpec = props.remove("factoryFloat");
         Assert.assertNotNull(facFloatSpec);
-        Assert.assertFalse(facFloatSpec.isShared());
-        Assert.assertFalse(facFloatSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(facFloatSpec));
+        Assert.assertFalse(isGeneric(facFloatSpec));
         FloatProperty floatFactoryProp = (FloatProperty) facFloatSpec.getPropertyFactory().create();
         ((FloatPropertyFactory) facFloatSpec.getPropertyFactory()).setDefaultValue(floatFactoryProp, 0);
         Assert.assertEquals(FloatPropertyFactory.DEFAULT, floatFactoryProp.get(0), 0.0001f);
-        Assert.assertEquals("getFactoryFloat", facFloatSpec.getGetterMethod());
-        Assert.assertEquals("setFactoryFloat", facFloatSpec.getSetterMethod());
-        Assert.assertEquals(0, facFloatSpec.getSetterParameter());
+        assertSimpleGetter("getFactoryFloat", facFloatSpec);
+        assertSimpleSetter("setFactoryFloat", facFloatSpec);
 
         // property - param1
         PropertyDeclaration param1Spec = props.remove("param1");
         Assert.assertNotNull(param1Spec);
-        Assert.assertFalse(param1Spec.isShared());
-        Assert.assertFalse(param1Spec.isPropertyGeneric());
+        Assert.assertFalse(isShared(param1Spec));
+        Assert.assertFalse(isGeneric(param1Spec));
         ShortProperty param1Prop = (ShortProperty) param1Spec.getPropertyFactory().create();
         ((ShortProperty.Factory) param1Spec.getPropertyFactory()).setDefaultValue(param1Prop, 0);
         Assert.assertEquals((short) 0, param1Prop.get(0));
-        Assert.assertEquals("getParam1", param1Spec.getGetterMethod());
-        Assert.assertEquals("setParams", param1Spec.getSetterMethod());
-        Assert.assertEquals(0, param1Spec.getSetterParameter());
+        assertSimpleGetter("getParam1", param1Spec);
+        assertSetter("setParams", 2, 0, param1Spec);
 
         // property - param2
         PropertyDeclaration param2Spec = props.remove("param2");
         Assert.assertNotNull(param2Spec);
-        Assert.assertFalse(param2Spec.isShared());
-        Assert.assertFalse(param2Spec.isPropertyGeneric());
+        Assert.assertFalse(isShared(param2Spec));
+        Assert.assertFalse(isGeneric(param2Spec));
         ShortProperty param2Prop = (ShortProperty) param2Spec.getPropertyFactory().create();
         ((ShortProperty.Factory) param2Spec.getPropertyFactory()).setDefaultValue(param2Prop, 0);
         Assert.assertEquals((short) 0, param2Prop.get(0));
-        Assert.assertEquals("getParam2", param2Spec.getGetterMethod());
-        Assert.assertEquals("setParams", param2Spec.getSetterMethod());
-        Assert.assertEquals(1, param2Spec.getSetterParameter());
+        assertSimpleGetter("getParam2", param2Spec);
+        assertSetter("setParams", 2, 1, param2Spec);
 
         // property - foo-blah
         PropertyDeclaration fooblahSpec = props.remove("foo-blah");
         Assert.assertNotNull(fooblahSpec);
-        Assert.assertFalse(fooblahSpec.isShared());
-        Assert.assertFalse(fooblahSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(fooblahSpec));
+        Assert.assertFalse(isGeneric(fooblahSpec));
         BooleanProperty fooblahProp = (BooleanProperty) fooblahSpec.getPropertyFactory().create();
         ((BooleanProperty.Factory) fooblahSpec.getPropertyFactory()).setDefaultValue(fooblahProp, 0);
         Assert.assertEquals(false, fooblahProp.get(0));
-        Assert.assertEquals("isNamedParamGetter", fooblahSpec.getGetterMethod());
-        Assert.assertEquals("setNamedParamSetter", fooblahSpec.getSetterMethod());
-        Assert.assertEquals(0, fooblahSpec.getSetterParameter());
+        assertSimpleGetter("isNamedParamGetter", fooblahSpec);
+        assertSimpleSetter("setNamedParamSetter", fooblahSpec);
 
         // property - bletch
         PropertyDeclaration bletchSpec = props.remove("bletch");
         Assert.assertNotNull(bletchSpec);
-        Assert.assertTrue(bletchSpec.isShared());
-        Assert.assertFalse(bletchSpec.isPropertyGeneric());
+        Assert.assertTrue(isShared(bletchSpec));
+        Assert.assertFalse(isGeneric(bletchSpec));
         CustomProperty bletchProp = (CustomProperty) bletchSpec.getPropertyFactory().create();
         ((CustomProperty.CustomFactoryWithAttributes) bletchSpec.getPropertyFactory())
                 .setDefaultValue(bletchProp, 0);
         Assert.assertEquals(14, bletchProp.get(0).value);
-        Assert.assertEquals("hasBletch", bletchSpec.getGetterMethod());
-        Assert.assertEquals("setBletch", bletchSpec.getSetterMethod());
-        Assert.assertEquals(0, bletchSpec.getSetterParameter());
+        assertSimpleGetter("hasBletch", bletchSpec);
+        assertSimpleSetter("setBletch", bletchSpec);
 
         // property - superValue
         PropertyDeclaration superSpec = props.remove("superValue");
         Assert.assertNotNull(superSpec);
-        Assert.assertFalse(superSpec.isShared());
-        Assert.assertFalse(superSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(superSpec));
+        Assert.assertFalse(isGeneric(superSpec));
         IntProperty superProp = (IntProperty) superSpec.getPropertyFactory().create();
         ((IntProperty.Factory) superSpec.getPropertyFactory()).setDefaultValue(superProp, 0);
         Assert.assertEquals(0, superProp.get(0));
-        Assert.assertEquals("getSuperValue", superSpec.getGetterMethod());
-        Assert.assertEquals("setSuperValue", superSpec.getSetterMethod());
-        Assert.assertEquals(0, superSpec.getSetterParameter());
+        assertSimpleGetter("getSuperValue", superSpec);
+        assertSimpleSetter("setSuperValue", superSpec);
 
         // property - enum
         PropertyDeclaration enumSpec = props.remove("enum");
         Assert.assertNotNull(enumSpec);
-        Assert.assertFalse(enumSpec.isShared());
-        Assert.assertTrue(enumSpec.isPropertyGeneric());
+        Assert.assertFalse(isShared(enumSpec));
+        Assert.assertTrue(isGeneric(enumSpec));
         EnumProperty enumProp = (EnumProperty) enumSpec.getPropertyFactory().create();
         ((EnumProperty.Factory) enumSpec.getPropertyFactory()).setDefaultValue(enumProp, 0);
         Assert.assertEquals(ComplexComponent.TestEnum.V1, enumProp.get(0));
-        Assert.assertEquals("getEnum", enumSpec.getGetterMethod());
-        Assert.assertEquals("setEnum", enumSpec.getSetterMethod());
-        Assert.assertEquals(0, enumSpec.getSetterParameter());
+        assertSimpleGetter("getEnum", enumSpec);
+        assertSimpleSetter("setEnum", enumSpec);
 
         // no other properties
         Assert.assertTrue(props.isEmpty());

@@ -31,11 +31,50 @@ package com.lhkbob.entreri.property;
  * ===============
  *
  * A PropertyFactory is a simple factory that can be used to create Property instances. Additionally, it is
- * used when decorating a Component type in an EntitySystem to ensure that each decoration event gets a
- * unique property instance.
+ * used when decorating a Component type in an EntitySystem to ensure that each decoration gets a unique
+ * property instance. PropertyFactories are instantiated at runtime using reflection. As such, at least one
+ * provided constructor must fit the following pattern:
  *
- * PropertyFactory implementations must have a no-argument constructor or a constructor that takes an {@link
- * Attributes} object as its only argument. The constructor does not need to be public.
+ * # Constructors
+ *
+ * 1. Access may be public, private, or protected although public access makes it self-documenting.
+ * 2. The first argument may be of type `Class` and will be passed the concrete type the property must store.
+ * This is largely only valuable for generic properties that might depend on the actual class type.
+ * 3. All remaining arguments must be {@link com.lhkbob.entreri.attr.Attribute}-labeled `Annotation`
+ * instances.
+ *
+ * The default `entrer` implementation will inject the property class (if its requested as the first
+ * argument), and it will inject the annotation instances that were attached to the property methods of the
+ * component. If `null` is passed in, it means the attribute was not specified for that property in the
+ * component description. If the `Class` argument is present in the constructor, the value will never be null.
+ *
+ * The following examples illustrate constructors that fit these patterns:
+ *
+ * ```java
+ * // a factory that requires no extra configuration
+ * public MyFactory() { }
+ *
+ * // a generic factory that wants the property class
+ * public MyGenericFactory(Class<? extends T> type) {
+ * // here T is the type specified in the @GenericProperty annotation
+ * }
+ *
+ * // a factory that supports multiple attributes
+ * public MyCustomizableFactory(DefaultValue dflt, Clone clonePolicy) {
+ * if (dflt != null) {
+ * // read default value for property
+ * }
+ * }
+ *
+ * // a generic factory with attributes
+ * public MyCustomGenericFactory(Class<? extends T> type, Clone clonePolicy) {
+ *
+ * }
+ * ```
+ *
+ * In the event that multiple constructors fit these patterns, the constructor with the most arguments is
+ * invoked. Other constructors that have a more programmer friendly API can and should be provided if they
+ * make sense and will be ignored.
  *
  * @param <T> The Property type created
  * @author Michael Ludwig
@@ -63,7 +102,7 @@ public interface PropertyFactory<T extends Property> {
      * component is created and cloned from a template with {@link
      * com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For many cases a plain copy-by-value or
      * copy-by-reference is sufficient, but some component types might require more complicated cloning rules.
-     * It is recommended to check for the {@link com.lhkbob.entreri.property.Clone} annotation in the provided
+     * It is recommended to check for the {@link com.lhkbob.entreri.attr.Clone} annotation in the provided
      * attributes set to define this behavior.
      *
      * @param src      The source property that is being cloned

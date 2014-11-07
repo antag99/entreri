@@ -179,7 +179,7 @@ public interface EntitySystem extends Iterable<Entity> {
      * Add a new Entity to this EntitySystem. If `template` is not null, the components attached to the
      * template will have their state cloned onto the new entity. The semantics of cloning is defined by the
      * `clone` method of the selected PropertyFactory used by the generated proxy. Factories often modify
-     * their behavior in response to the {@link com.lhkbob.entreri.property.Clone} annotation. By default they
+     * their behavior in response to the {@link com.lhkbob.entreri.attr.Clone} annotation. By default they
      * follows Java's reference/value assignment rules.
      *
      * Specifying a null template makes this behave identically to {@link #addEntity()}.

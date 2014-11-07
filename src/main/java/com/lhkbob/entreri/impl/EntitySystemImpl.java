@@ -41,7 +41,7 @@ import java.util.*;
  * ================
  *
  * Main and default implementation of EntitySystem that uses the registered annotation processor,
- * {@link com.lhkbob.entreri.impl.ComponentImplementationProcessor} to generate Java implementations of
+ * {@link ComponentAnnotationProcessor} to generate Java implementations of
  * Component definitions and then have them compiled.
  *
  * @author Michael Ludwig
@@ -51,7 +51,7 @@ public final class EntitySystemImpl implements EntitySystem {
     private final Map<Class<? extends Component>, Integer> typeIndexMap;
     private int typeIdSeq;
 
-    private ComponentRepository<?>[] componentRepositories;
+    private ComponentDataStore<?>[] componentRepositories;
 
     private EntityImpl[] entities;
 
@@ -69,7 +69,7 @@ public final class EntitySystemImpl implements EntitySystem {
 
         manager = new Scheduler(this);
         entities = new EntityImpl[1];
-        componentRepositories = new ComponentRepository[0];
+        componentRepositories = new ComponentDataStore[0];
 
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0
         entityInsert = 1;
@@ -244,7 +244,7 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @Override
     public <T extends Component, P extends Property> P decorate(Class<T> type, PropertyFactory<P> factory) {
-        ComponentRepository<?> index = getRepository(type);
+        ComponentDataStore<?> index = getRepository(type);
         return index.decorate(factory);
     }
 
@@ -267,17 +267,17 @@ public final class EntitySystemImpl implements EntitySystem {
      * @return The ComponentRepository for the type
      */
     @SuppressWarnings("unchecked")
-    <T extends Component> ComponentRepository<T> getRepository(Class<T> type) {
+    <T extends Component> ComponentDataStore<T> getRepository(Class<T> type) {
         int index = getTypeIndex(type);
         if (index >= componentRepositories.length) {
             // make sure it's the correct size
             componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
         }
 
-        ComponentRepository<T> i = (ComponentRepository<T>) componentRepositories[index];
+        ComponentDataStore<T> i = (ComponentDataStore<T>) componentRepositories[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
-            i = new ComponentRepository<>(this, type);
+            i = new ComponentDataStore<>(this, type);
             i.expandEntityIndex(entities.length);
             componentRepositories[index] = i;
         }
@@ -297,7 +297,7 @@ public final class EntitySystemImpl implements EntitySystem {
     /**
      * @return Return an iterator over the registered component indices
      */
-    Iterator<ComponentRepository<?>> indexIterator() {
+    Iterator<ComponentDataStore<?>> indexIterator() {
         return new ComponentRepositoryIterator();
     }
 
@@ -314,11 +314,11 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <T extends Component> void addFromTemplate(int entityIndex, Class type, T c) {
-        ComponentRepository index = getRepository(type);
+        ComponentDataStore index = getRepository(type);
         index.addComponent(entityIndex, c);
     }
 
-    private class ComponentRepositoryIterator implements Iterator<ComponentRepository<?>> {
+    private class ComponentRepositoryIterator implements Iterator<ComponentDataStore<?>> {
         private int index;
         private boolean advanced;
 
@@ -336,7 +336,7 @@ public final class EntitySystemImpl implements EntitySystem {
         }
 
         @Override
-        public ComponentRepository<?> next() {
+        public ComponentDataStore<?> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }

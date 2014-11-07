@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.property.Factory;
+import com.lhkbob.entreri.attr.Factory;
 import com.lhkbob.entreri.property.Property;
 import com.lhkbob.entreri.property.PropertyFactory;
 

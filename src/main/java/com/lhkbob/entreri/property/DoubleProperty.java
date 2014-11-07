@@ -26,8 +26,10 @@
  */
 package com.lhkbob.entreri.property;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.DefaultDouble;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -108,12 +110,9 @@ public final class DoubleProperty implements Property {
         private final double defaultValue;
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            defaultValue =
-                    attrs.hasAttribute(DefaultDouble.class) ? attrs.getAttribute(DefaultDouble.class).value()
-                                                            : 0.0;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(DefaultDouble dflt, Clone clone) {
+            defaultValue = dflt != null ? dflt.value() : 0.0;
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(double defaultValue) {
@@ -148,16 +147,5 @@ public final class DoubleProperty implements Property {
                 throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
-    }
-
-    /**
-     * Default double attribute for properties.
-     *
-     * @author Michael Ludwig
-     */
-    @Attribute
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface DefaultDouble {
-        double value();
     }
 }

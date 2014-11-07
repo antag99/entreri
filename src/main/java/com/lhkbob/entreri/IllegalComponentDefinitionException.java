@@ -45,7 +45,7 @@ public class IllegalComponentDefinitionException extends RuntimeException {
 
     /**
      * Create an exception that specifies the leaf-level class in a Component type hierarchy has some problem
-     * with its definition
+     * with its definition.
      *
      * @param componentTypeName The canonical class name of the component type
      * @param problem           A generic error message to be tacked to the end of the final error message
@@ -53,6 +53,17 @@ public class IllegalComponentDefinitionException extends RuntimeException {
     public IllegalComponentDefinitionException(String componentTypeName, String problem) {
         super(componentTypeName + " is invalid, error: " + problem);
         this.componentTypeName = componentTypeName;
+    }
+
+    /**
+     * Create an exception that specifies a problem was detected, but at a point where the current Component
+     * type was unknown or unavailable.
+     *
+     * @param problem The error message
+     */
+    public IllegalComponentDefinitionException(String problem) {
+        super(problem);
+        componentTypeName = "[?]";
     }
 
     /**

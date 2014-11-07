@@ -26,11 +26,10 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.property.Attributes;
-import com.lhkbob.entreri.property.Clone;
-import com.lhkbob.entreri.property.Clone.Policy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.Clone.Policy;
+import com.lhkbob.entreri.attr.DefaultDouble;
 import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.DoubleProperty.DefaultDouble;
 import com.lhkbob.entreri.property.ObjectProperty;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,42 +37,54 @@ import org.junit.Test;
 @SuppressWarnings({ "unused", "rawtypes", "unchecked" })
 public class PropertyFactoryTest {
     /*
-     * ObjectProperty fields for Attributes creation
+     * ObjectProperty methods for Attributes creation
      */
-    private ObjectProperty objectPropertyNoPolicy;
+    private void objectPropertyNoPolicy() {
+    }
 
     @Clone(Policy.DISABLE)
-    private ObjectProperty objectPropertyDisabled;
+    private void objectPropertyDisabled() {
+    }
 
     @Clone(Policy.JAVA_DEFAULT)
-    private ObjectProperty objectPropertyDefault;
+    private void objectPropertyDefault() {
+    }
 
     @Clone(Policy.INVOKE_CLONE)
-    private ObjectProperty objectPropertyInvoke;
+    private void objectPropertyInvoke() {
+    }
 
     /*
      * DoubleProperty fields for Attributes creation
      */
     @DefaultDouble(1.0)
-    private DoubleProperty doublePropertyNoPolicy;
+    private void doublePropertyNoPolicy() {
+    }
 
     @DefaultDouble(2.0)
     @Clone(Policy.DISABLE)
-    private DoubleProperty doublePropertyDisabled;
+    private void doublePropertyDisabled() {
+    }
 
     @Clone(Policy.JAVA_DEFAULT)
-    private DoubleProperty doublePropertyDefault;
+    private void doublePropertyDefault() {
+    }
 
     @Clone(Policy.INVOKE_CLONE)
-    private DoubleProperty doublePropertyInvoke;
+    private void doublePropertyInvoke() {
+    }
 
-    private Attributes createAttributes(String fieldName) throws Exception {
-        return new Attributes(Object.class, getClass().getDeclaredField(fieldName).getAnnotations());
+    private Clone getCloneAttribute(String methodName) throws Exception {
+        return getClass().getDeclaredMethod(methodName).getAnnotation(Clone.class);
+    }
+
+    private DefaultDouble getDefaultDoubleAttribute(String methodName) throws Exception {
+        return getClass().getDeclaredMethod(methodName).getAnnotation(DefaultDouble.class);
     }
 
     @Test
     public void testObjectPropertyCloneNoPolicy() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyNoPolicy"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(getCloneAttribute("objectPropertyNoPolicy"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -95,7 +106,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneDisabled() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDisabled"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(getCloneAttribute("objectPropertyDisabled"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -117,7 +128,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneJavaDefault() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyDefault"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(getCloneAttribute("objectPropertyDefault"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -139,7 +150,7 @@ public class PropertyFactoryTest {
 
     @Test
     public void testObjectPropertyCloneInvoke() throws Exception {
-        ObjectProperty.Factory factory = new ObjectProperty.Factory(createAttributes("objectPropertyInvoke"));
+        ObjectProperty.Factory factory = new ObjectProperty.Factory(getCloneAttribute("objectPropertyInvoke"));
 
         ObjectProperty p1 = factory.create();
         ObjectProperty p2 = factory.create();
@@ -163,7 +174,8 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneNoPolicy() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyNoPolicy"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(getDefaultDoubleAttribute("doublePropertyNoPolicy"),
+                                                                    getCloneAttribute("doublePropertyNoPolicy"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -184,7 +196,8 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneDisabled() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDisabled"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(getDefaultDoubleAttribute("doublePropertyDisabled"),
+                                                                    getCloneAttribute("doublePropertyDisabled"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -205,7 +218,8 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneJavaDefault() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyDefault"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(getDefaultDoubleAttribute("doublePropertyDefault"),
+                                                                    getCloneAttribute("doublePropertyDefault"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();
@@ -226,7 +240,8 @@ public class PropertyFactoryTest {
 
     @Test
     public void testPrimitivePropertyCloneInvoke() throws Exception {
-        DoubleProperty.Factory factory = new DoubleProperty.Factory(createAttributes("doublePropertyInvoke"));
+        DoubleProperty.Factory factory = new DoubleProperty.Factory(getDefaultDoubleAttribute("doublePropertyInvoke"),
+                                                                    getCloneAttribute("doublePropertyInvoke"));
 
         DoubleProperty p1 = factory.create();
         DoubleProperty p2 = factory.create();

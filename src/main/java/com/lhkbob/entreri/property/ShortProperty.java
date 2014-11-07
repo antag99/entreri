@@ -26,8 +26,10 @@
  */
 package com.lhkbob.entreri.property;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.DefaultShort;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -111,12 +113,9 @@ public final class ShortProperty implements Property {
         private final short defaultValue;
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            defaultValue =
-                    attrs.hasAttribute(DefaultShort.class) ? attrs.getAttribute(DefaultShort.class).value()
-                                                           : 0;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(DefaultShort dflt, Clone clone) {
+            defaultValue = dflt != null ? dflt.value() : 0;
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(short defaultValue) {
@@ -151,16 +150,5 @@ public final class ShortProperty implements Property {
                 throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
-    }
-
-    /**
-     * Default short attribute for properties.
-     *
-     * @author Michael Ludwig
-     */
-    @Attribute
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface DefaultShort {
-        short value();
     }
 }

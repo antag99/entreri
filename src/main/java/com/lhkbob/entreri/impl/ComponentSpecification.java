@@ -27,10 +27,18 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.impl.methods.BeanGetterPattern;
+import com.lhkbob.entreri.impl.methods.BeanSetterPattern;
+import com.lhkbob.entreri.impl.methods.MultiSetterPattern;
+import com.lhkbob.entreri.impl.methods.SharedBeanGetterPattern;
 
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
-import java.lang.annotation.Annotation;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,9 +55,9 @@ import java.util.List;
  */
 public interface ComponentSpecification {
     /**
-     * Get the qualified name of the component type, with the package prefix removed. Thus, the returned
-     * string should be valid to insert into source code within the same package of the component and refer to
-     * that exact type.
+     * Get the qualified name of the component type, including the package name reported by {@link
+     * #getPackage()}. Thus, the returned string should be valid to insert into source code regardless of if
+     * there's another property or type that may have the same class name.
      *
      * @return The component type
      */
@@ -70,15 +78,7 @@ public interface ComponentSpecification {
      */
     public List<? extends PropertyDeclaration> getProperties();
 
-    /**
-     * Get all validation annotations applied directly to the setter with the given method name. Included
-     * annotations will be instances of {@link com.lhkbob.entreri.NotNull}, {@link com.lhkbob.entreri.Within},
-     * and {@link com.lhkbob.entreri.Validate}.
-     *
-     * @param setterName The setter method name to look up
-     * @return All annotations present on the given method
-     */
-    public List<Annotation> getValidationAnnotations(String setterName);
+    public List<? extends MethodDeclaration> getMethods();
 
     public static final class Factory {
         private Factory() {
@@ -95,7 +95,8 @@ public interface ComponentSpecification {
          *                                                                not meet their requirements
          */
         public static ComponentSpecification fromClass(Class<? extends Component> type) {
-            return new ReflectionComponentSpecification(type);
+            // pass null for APT components since they won't be used
+            return new ReflectionComponentSpecification(type, patterns(null, null, null));
         }
 
         /**
@@ -113,8 +114,17 @@ public interface ComponentSpecification {
          *                                                                not meet ther requirements
          */
         public static ComponentSpecification fromTypeElement(TypeElement type, ProcessingEnvironment env) {
-            return new MirrorComponentSpecification(type, env.getTypeUtils(), env.getElementUtils(),
-                                                    env.getFiler());
+            Types ty = env.getTypeUtils();
+            Elements eu = env.getElementUtils();
+            Filer io = env.getFiler();
+            Messager log = env.getMessager();
+
+            return new MirrorComponentSpecification(type, patterns(ty, eu, log), ty, eu, io, log);
+        }
+
+        private static List<? extends MethodPattern> patterns(Types ty, Elements eu, Messager log) {
+            return Arrays.asList(new SharedBeanGetterPattern(eu, ty, log), new BeanGetterPattern(eu, ty, log),
+                                 new MultiSetterPattern(eu, ty, log), new BeanSetterPattern(eu, ty, log));
         }
     }
 }

@@ -26,7 +26,11 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.property.*;
+import com.lhkbob.entreri.attr.DefaultInt;
+import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.property.ObjectProperty;
+import com.lhkbob.entreri.property.PropertyFactory;
+import com.lhkbob.entreri.property.ShareableProperty;
 
 @Factory(CustomProperty.CustomFactoryWithAttributes.class)
 public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> {
@@ -70,10 +74,10 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
     }
 
     public static class CustomFactoryWithAttributes implements PropertyFactory<CustomProperty> {
-        private final Attributes attributes;
+        private final int dflt;
 
-        public CustomFactoryWithAttributes(Attributes attrs) {
-            attributes = attrs;
+        public CustomFactoryWithAttributes(DefaultInt dflt) {
+            this.dflt = (dflt == null ? 0 : dflt.value());
         }
 
         @Override
@@ -84,9 +88,7 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         @Override
         public void setDefaultValue(CustomProperty property, int index) {
             Bletch b = new Bletch();
-            b.value = (!attributes.hasAttribute(IntProperty.DefaultInt.class) ? 0 : attributes
-                                                                                            .getAttribute(IntProperty.DefaultInt.class)
-                                                                                            .value());
+            b.value = dflt;
             property.property.set(index, b);
         }
 

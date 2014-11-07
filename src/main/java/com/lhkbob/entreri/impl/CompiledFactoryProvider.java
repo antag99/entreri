@@ -39,7 +39,7 @@ import java.lang.reflect.Type;
  *
  * CompiledFactoryProvider searches the classpath for existing class definitions of the component types. This
  * is suitable for generating component implementations as part of a project build in conjunction with the
- * {@link ComponentImplementationProcessor}.
+ * {@link ComponentAnnotationProcessor}.
  *
  * @author Michael Ludwig
  */
@@ -89,7 +89,7 @@ public class CompiledFactoryProvider extends ComponentFactoryProvider {
             implType = (Class<? extends AbstractComponent<T>>) loaded;
 
             try {
-                ctor = implType.getConstructor(ComponentRepository.class);
+                ctor = implType.getConstructor(ComponentDataStore.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Discovered impl. does not have mandated constructor for component: " +
                                                 type);
@@ -98,7 +98,7 @@ public class CompiledFactoryProvider extends ComponentFactoryProvider {
 
 
         @Override
-        public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository) {
+        public AbstractComponent<T> newInstance(ComponentDataStore<T> forRepository) {
             try {
                 return ctor.newInstance(forRepository);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {

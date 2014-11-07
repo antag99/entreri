@@ -27,12 +27,8 @@
 package com.lhkbob.entreri.impl;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.NotNull;
-import com.lhkbob.entreri.Validate;
-import com.lhkbob.entreri.Within;
 
 import javax.lang.model.SourceVersion;
-import java.lang.annotation.Annotation;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -70,7 +66,7 @@ public abstract class ComponentFactoryProvider {
          * @param forRepository The repository using the instance
          * @return A new component instance
          */
-        public AbstractComponent<T> newInstance(ComponentRepository<T> forRepository);
+        public AbstractComponent<T> newInstance(ComponentDataStore<T> forRepository);
 
         /**
          * Get the property specification used by this factory. The list will be immutable and not change
@@ -116,7 +112,7 @@ public abstract class ComponentFactoryProvider {
      *
      * @param spec           The component specification
      * @param includePackage True if the package should be included
-     * @return The class name that corresponds to the generated proxy implmentation for the given type
+     * @return The class name that corresponds to the generated proxy implementation for the given type
      */
     public static String getImplementationClassName(ComponentSpecification spec, boolean includePackage) {
         // first get the simple name, concatenating all types in the hierarchy
@@ -155,22 +151,25 @@ public abstract class ComponentFactoryProvider {
      * extend from AbstractComponent and has a single constructor that takes a ComponentRepository.
      *
      * The target source version generates two different outputs based on whether or not it should take
-     * advantage of post 1.5 features.
+     * advantage of 1.5+ features.
      *
      * @param spec          The component specification that must be implemented
      * @param targetVersion The Java source version to target
      * @return Source code of a valid implementation for the component type
      */
     public static String generateJavaCode(ComponentSpecification spec, SourceVersion targetVersion) {
-        boolean use15 = targetVersion.compareTo(SourceVersion.RELEASE_5) >= 0;
-        String implName = getImplementationClassName(spec, false);
+        List<? extends MethodDeclaration> methods = spec.getMethods();
 
-        // the implementation will extend AbstractComponent sans generics because
-        // Janino does not support them right now
-        StringBuilder sb = new StringBuilder();
+        // begin outputting source code
+        final boolean use15 = targetVersion.compareTo(SourceVersion.RELEASE_5) >= 0;
+        String implName = getImplementationClassName(spec, false);
+        String genericParam = (use15 ? "<" + spec.getType() + ">" : "");
+
+        GeneratorImpl generator = new GeneratorImpl();
 
         if (!spec.getPackage().isEmpty()) {
-            sb.append("package ").append(spec.getPackage()).append(";\n\n");
+            generator.appendSyntax("package " + spec.getPackage() + ";");
+            generator.newline();
         }
 
         if (use15) {
@@ -181,271 +180,146 @@ public abstract class ComponentFactoryProvider {
             df.setTimeZone(tz);
             String nowAsISO = df.format(new Date());
 
-            sb.append("import javax.annotation.Generated;\n\n");
-            sb.append("@Generated(value={\"").append(ComponentFactoryProvider.class.getCanonicalName())
-              .append("\"}, date=\"").append(nowAsISO).append("\")\n");
-            sb.append("@SuppressWarnings(\"unchecked\")\n");
+            generator.appendSyntax("import javax.annotation.Generated;", "",
+                                   "@Generated(value={\"" + ComponentFactoryProvider.class.getName() +
+                                   "\"}, date=\"" + nowAsISO + "\")", "@SuppressWarnings(\"unchecked\")");
         }
 
-        sb.append("public class ").append(implName).append(" extends ").append(ABSTRACT_COMPONENT_NAME);
-        if (use15) {
-            sb.append('<').append(spec.getType()).append('>');
-        }
-        sb.append(" implements ").append(spec.getType()).append(" {\n");
+        generator.appendSyntax("public class " + implName + " extends " + AbstractComponent.class.getName() +
+                               genericParam + " implements " + spec.getType() + " {");
+        generator.pushTab();
 
         // add property instances with proper cast so we don't have to do that every
         // time a property is accessed, and add any shared instance field declarations
-        int property = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            sb.append("\tprivate final ").append(s.getPropertyImplementation()).append(' ')
-              .append(PROPERTY_FIELD_PREFIX).append(property).append(";\n");
-            if (s.isShared()) {
-                sb.append("\tprivate final ").append(s.getType()).append(' ').append(SHARED_FIELD_PREFIX)
-                  .append(property).append(";\n");
-            }
-            property++;
+            generator.appendSyntax("private final " + s.getPropertyImplementation() + " " +
+                                   generator.getPropertyMemberName(s.getName()) + ";");
         }
+        generator.newline();
+        for (MethodDeclaration m : methods) {
+            m.appendMembers(generator);
+        }
+        generator.newline();
 
         // define the constructor, must invoke super, assign properties, and allocate
         // shared instances; as with type declaration we cannot use generics
-        sb.append("\n\tpublic ").append(implName).append("(").append(COMPONENT_REPO_NAME);
-        if (use15) {
-            sb.append('<').append(spec.getType()).append('>');
-        }
+        generator
+                .appendSyntax("public " + implName + "(" + ComponentDataStore.class.getName() + genericParam +
+                              " repo) {");
+        generator.pushTab();
+        generator.appendSyntax("super(repo);", "// get properties from data store");
 
-        sb.append(" ").append(REPO_FIELD_NAME).append(") {\n").append("\t\tsuper(").append(REPO_FIELD_NAME)
-          .append(");\n");
-        property = 0;
+        int propIndex = 0;
         for (PropertyDeclaration s : spec.getProperties()) {
-            sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(property).append(" = (")
-              .append(s.getPropertyImplementation()).append(") ").append(REPO_FIELD_NAME).append('.')
-              .append(GET_PROPERTY_METHOD).append('(').append(property).append(");\n");
-            if (s.isShared()) {
-                sb.append("\t\t").append(SHARED_FIELD_PREFIX).append(property).append(" = ")
-                  .append(PROPERTY_FIELD_PREFIX).append(property).append('.').append(CREATE_SHARE_METHOD)
-                  .append("();\n");
-            }
-            property++;
+            generator.appendSyntax(generator.getPropertyMemberName(s.getName()) + " = (" +
+                                   s.getPropertyImplementation() + ") repo.getProperty(" + propIndex + ");");
+            propIndex++;
         }
-        sb.append("\t}\n");
+        generator.appendSyntax("// any extra member initialization");
+        for (MethodDeclaration m : methods) {
+            m.appendConstructorInitialization(generator);
+        }
+        generator.popTab();
+        generator.appendSyntax("}", "");
 
-        // implement all getters of the interface, and accumulate setters
-        Map<String, List<PropertyDeclaration>> setters = new HashMap<>();
-        property = 0;
-        for (PropertyDeclaration s : spec.getProperties()) {
-            if (use15) {
-                sb.append("\n\t@Override");
-            }
-            appendGetter(s, property, sb);
-            List<PropertyDeclaration> setterParams = setters.get(s.getSetterMethod());
-            if (setterParams == null) {
-                setterParams = new ArrayList<>();
-                setters.put(s.getSetterMethod(), setterParams);
-            }
-            setterParams.add(s);
-
-            property++;
+        // now add all methods
+        for (MethodDeclaration m : methods) {
+            generator.appendMethod(m);
+            generator.newline();
         }
 
-        // implement all setters
-        for (List<PropertyDeclaration> setter : setters.values()) {
-            if (use15) {
-                sb.append("\n\t@Override");
-            }
-            appendSetter(setter, spec, sb);
-        }
-
-        sb.append("}\n");
-        return sb.toString();
+        // close the class
+        generator.popTab();
+        generator.appendSyntax("}", "");
+        return generator.getSource();
     }
 
-    // magic constants used to produce the component implementation source files
-    private static final String ABSTRACT_COMPONENT_NAME = AbstractComponent.class.getName();
-    private static final String COMPONENT_REPO_NAME = ComponentRepository.class.getName();
+    private static class GeneratorImpl implements Generator {
+        private int tabCount;
+        private final StringBuilder source;
 
-    private static final String REPO_FIELD_NAME = "owner";
-    private static final String INDEX_FIELD_NAME = "index";
-    private static final String GET_PROPERTY_METHOD = "getProperty";
-    private static final String CREATE_SHARE_METHOD = "createShareableInstance";
-    private static final String UPDATE_VERSION_METHOD = "incrementVersion";
+        private final Map<Object, Map<String, String>> auxMembers;
+        private int memberCounter;
 
-    private static final String PROPERTY_FIELD_PREFIX = "property";
-    private static final String SHARED_FIELD_PREFIX = "sharedInstance";
-    private static final String SETTER_PARAM_PREFIX = "param";
-
-    // Internal helper functions to generate the source code
-
-    /**
-     * Append the getter method definition for the given property.
-     *
-     * @param forProperty The property whose getter method will be defined
-     * @param index       The index of the property in the overall spec
-     * @param sb          The buffer to append to
-     */
-    private static void appendGetter(PropertyDeclaration forProperty, int index, StringBuilder sb) {
-        // method signature
-        sb.append("\n\tpublic ").append(forProperty.getType()).append(" ")
-          .append(forProperty.getGetterMethod()).append("() {\n\t\t");
-
-        // implementation body, depending on if we use a shared instance variable or not
-        if (forProperty.isShared()) {
-            sb.append(PROPERTY_FIELD_PREFIX).append(index).append(".get(").append(INDEX_FIELD_NAME)
-              .append(", ").append(SHARED_FIELD_PREFIX).append(index).append(");\n\t\treturn ")
-              .append(SHARED_FIELD_PREFIX).append(index).append(";");
-        } else {
-            if (forProperty.isPropertyGeneric()) {
-                // special case where we allow property to have more permissive getters
-                // and setters to support any type under the sun, but that means we have
-                // to cast the object we get back
-                sb.append("return (").append(forProperty.getType()).append(") ").append(PROPERTY_FIELD_PREFIX)
-                  .append(index).append(".get(").append(INDEX_FIELD_NAME).append(");");
-            } else {
-                sb.append("return ").append(PROPERTY_FIELD_PREFIX).append(index).append(".get(")
-                  .append(INDEX_FIELD_NAME).append(");");
-            }
+        public GeneratorImpl() {
+            source = new StringBuilder();
+            tabCount = 0;
+            memberCounter = 0;
+            auxMembers = new HashMap<>();
         }
 
-        sb.append("\n\t}\n");
-    }
-
-    /**
-     * Append the setter method definition given the property declarations that correspond to the method and
-     * its parameters.
-     *
-     * @param params The properties mutated and that define the parameters of the setter method
-     * @param spec   The spec for the component type being generated
-     * @param sb     The buffer to append to
-     */
-    private static void appendSetter(List<PropertyDeclaration> params, ComponentSpecification spec,
-                                     StringBuilder sb) {
-        // order by parameter index
-        Collections.sort(params, new Comparator<PropertyDeclaration>() {
-            @Override
-            public int compare(PropertyDeclaration o1, PropertyDeclaration o2) {
-                return o1.getSetterParameter() - o2.getSetterParameter();
-            }
-        });
-
-        List<? extends PropertyDeclaration> properties = spec.getProperties();
-        String name = params.get(0).getSetterMethod();
-        boolean returnComponent = params.get(0).getSetterReturnsComponent();
-
-        // complete method signature
-        if (returnComponent) {
-            sb.append("\n\tpublic ").append(spec.getType());
-        } else {
-            sb.append("\n\tpublic void");
+        public String getSource() {
+            return source.toString();
         }
-        sb.append(' ').append(name).append('(');
 
-        // with its possibly many parameters
-        boolean first = true;
-        for (PropertyDeclaration p : params) {
-            if (first) {
-                first = false;
-            } else {
-                sb.append(", ");
-            }
-            sb.append(p.getType()).append(' ').append(SETTER_PARAM_PREFIX).append(properties.indexOf(p));
+        public void pushTab() {
+            tabCount++;
         }
-        sb.append(") {\n");
 
-        // perform any validation, first from the method annotations
-        for (Annotation validate : spec.getValidationAnnotations(name)) {
-            if (validate instanceof NotNull) {
-                // add not null checks for every parameter
-                for (PropertyDeclaration p : params) {
-                    int idx = properties.indexOf(p);
-                    addNotNullValidationForParameter(idx, p, sb);
+        public void popTab() {
+            tabCount = Math.max(0, tabCount - 1);
+        }
+
+        public void appendMethod(MethodDeclaration method) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < method.getParameterNames().size(); i++) {
+                if (i > 0) {
+                    sb.append(", ");
                 }
-            } else if (validate instanceof Within) {
-                // when added to the method, this only affects the first property
-                addWithinValidationForParameter(0, params.get(0), (Within) validate, sb);
-            } else {
-                // assume its a Validate annotation
-                Validate v = (Validate) validate;
-                String javaValidation = filterValidationSnippet(spec, params, v.value());
-                sb.append("\t\tif(!(").append(javaValidation)
-                  .append(")) {\n\t\t\tthrow new IllegalArgumentException(\"").append(v.errorMsg())
-                  .append("\");\n\t\t}\n");
+                sb.append(method.getParameterTypes().get(i)).append(' ')
+                  .append(method.getParameterNames().get(i));
             }
+            appendSyntax("public " + method.getReturnType() + " " + method.getName() + "(" + sb.toString() +
+                         ") {");
+            pushTab();
+            method.appendMethodBody(this);
+            popTab();
+            appendSyntax("}");
         }
-        // then parameter validation
-        for (PropertyDeclaration p : params) {
-            int idx = properties.indexOf(p);
-            for (Annotation validate : p.getValidationAnnotations()) {
-                if (validate instanceof NotNull) {
-                    addNotNullValidationForParameter(idx, p, sb);
-                } else {
-                    // assume within since Validate is not allowed on parameters
-                    addWithinValidationForParameter(idx, p, (Within) validate, sb);
+
+        public void newline() {
+            appendSyntax("");
+        }
+
+        @Override
+        public String getPropertyMemberName(String propertyName) {
+            return "property_" + filterName(propertyName);
+        }
+
+        @Override
+        public String getMemberName(String propertyName, Object owner) {
+            Map<String, String> forKey = auxMembers.get(owner);
+            if (forKey == null) {
+                forKey = new HashMap<>();
+                auxMembers.put(owner, forKey);
+            }
+
+            String member = forKey.get(propertyName);
+            if (member == null) {
+                // make a new member variable name
+                member = "aux_" + (memberCounter++) + "_" + filterName(propertyName);
+                forKey.put(propertyName, member);
+            }
+            return member;
+        }
+
+        private String filterName(String name) {
+            return name.replaceAll("[^a-zA-Z0-9_]", "");
+        }
+
+        @Override
+        public String getComponentIndex() {
+            return "index";
+        }
+
+        @Override
+        public void appendSyntax(String... blobLines) {
+            for (String line : blobLines) {
+                for (int i = 0; i < tabCount; i++) {
+                    source.append('\t');
                 }
+                source.append(line).append('\n');
             }
         }
-
-        // implement the body
-        boolean needsUpdate = false;
-        for (PropertyDeclaration p : params) {
-            int idx = properties.indexOf(p);
-            if (p.isAutoVersionEnabled()) {
-                needsUpdate = true;
-            }
-            sb.append("\t\t").append(PROPERTY_FIELD_PREFIX).append(idx).append(".set(")
-              .append(INDEX_FIELD_NAME).append(", ").append(SETTER_PARAM_PREFIX).append(idx).append(");\n");
-        }
-
-        if (needsUpdate) {
-            sb.append("\t\t").append(REPO_FIELD_NAME).append('.').append(UPDATE_VERSION_METHOD).append("(")
-              .append(INDEX_FIELD_NAME).append(");\n");
-        }
-
-        // return this component if we're not a void setter
-        if (returnComponent) {
-            sb.append("\t\treturn this;\n");
-        }
-        sb.append("\t}\n");
-    }
-
-    private static String filterValidationSnippet(ComponentSpecification spec,
-                                                  List<PropertyDeclaration> params, String snippet) {
-        // first filter $n parameter names
-        List<? extends PropertyDeclaration> allProps = spec.getProperties();
-        for (int i = 0; i < params.size(); i++) {
-            int varIndex = allProps.indexOf(params.get(i));
-            snippet = snippet.replace("$" + (i + 1), SETTER_PARAM_PREFIX + varIndex);
-        }
-        // filter property names
-        for (PropertyDeclaration p : allProps) {
-            snippet = snippet.replace("$" + p.getName(), p.getGetterMethod() + "()");
-        }
-        return snippet;
-    }
-
-    private static void addWithinValidationForParameter(int param, PropertyDeclaration p, Within w,
-                                                        StringBuilder sb) {
-
-        if (Double.isInfinite(w.max())) {
-            // less than min check only
-            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
-              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
-              .append(" must be greater than or equal to ").append(w.min()).append("\");\n\t\t}\n");
-        } else if (Double.isInfinite(w.min())) {
-            // greater than max check only
-            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" > ").append(w.max())
-              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
-              .append(" must be less than or equal to ").append(w.max()).append("\");\n\t\t}\n");
-        } else {
-            // both
-            sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" < ").append(w.min())
-              .append(" || ").append(SETTER_PARAM_PREFIX).append(param).append(" > ").append(w.max())
-              .append(") {\n\t\t\tthrow new IllegalArgumentException(\"").append(p.getName())
-              .append(" must be in [").append(w.min()).append(", ").append(w.max()).append("]\");\n\t\t}\n");
-        }
-    }
-
-    private static void addNotNullValidationForParameter(int param, PropertyDeclaration p, StringBuilder sb) {
-        sb.append("\t\tif (").append(SETTER_PARAM_PREFIX).append(param).append(" == null) {\n")
-          .append("\t\t\tthrow new NullPointerException(\"").append(p.getName())
-          .append(" cannot be null\");\n\t\t}\n");
     }
 }

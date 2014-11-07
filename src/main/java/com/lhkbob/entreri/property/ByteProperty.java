@@ -26,8 +26,10 @@
  */
 package com.lhkbob.entreri.property;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.DefaultByte;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -109,11 +111,9 @@ public final class ByteProperty implements Property {
         private final byte defaultValue;
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            defaultValue =
-                    attrs.hasAttribute(DefaultByte.class) ? attrs.getAttribute(DefaultByte.class).value() : 0;
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(DefaultByte dflt, Clone clone) {
+            defaultValue = dflt != null ? dflt.value() : 0;
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(byte defaultValue) {
@@ -148,16 +148,5 @@ public final class ByteProperty implements Property {
                 throw new UnsupportedOperationException("Enum value not supported: " + policy);
             }
         }
-    }
-
-    /**
-     * Default byte attribute for properties.
-     *
-     * @author Michael Ludwig
-     */
-    @Attribute
-    @Retention(RetentionPolicy.RUNTIME)
-    public static @interface DefaultByte {
-        byte value();
     }
 }

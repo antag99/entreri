@@ -30,6 +30,7 @@ import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Set;
 
 /**
  * PropertyDeclaration
@@ -44,7 +45,7 @@ import java.util.List;
 public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     /**
      * Get the logical name of the property, either the name extracted from the getter bean method, or from
-     * the {@link com.lhkbob.entreri.property.Named} annotation.
+     * the {@link com.lhkbob.entreri.attr.Named} annotation.
      *
      * @return The property name
      */
@@ -58,14 +59,6 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     public String getType();
 
     /**
-     * Get whether or not the property is generic and thus needs an explicit cast for the accessor
-     * implementation of the property.
-     *
-     * @return True if a cast must be added to the generic code
-     */
-    public boolean isPropertyGeneric();
-
-    /**
      * Get the canonical class name of the {@link com.lhkbob.entreri.property.Property Property}
      * implementation corresponding to the type of this property.
      *
@@ -74,63 +67,20 @@ public interface PropertyDeclaration extends Comparable<PropertyDeclaration> {
     public String getPropertyImplementation();
 
     /**
-     * Get the name of the setter method that will be used to modify this property value. Multiply properties
-     * may use the same setter, and {@link #getSetterParameter()} determines their order in the signature. All
-     * properties in a ComponentSpecification that share a setter name use the same setter method.
+     * Get all methods of the component that interact with this property. These methods may be bean-like
+     * getters and setters, methods that manipulate or access elements within the property value (e.g.
+     * collections), or bulk setters that are shared by multiple properties.
      *
-     * @return The name of the setter method
+     * @return All methods that use this property
      */
-    public String getSetterMethod();
+    public List<MethodDeclaration> getMethods();
 
     /**
-     * Get the name of the getter method that is used to access the value of this property. Its return type is
-     * equal to {@link #getType()} and it will not take any arguments.
-     *
-     * @return The bean getter method
-     */
-    public String getGetterMethod();
-
-    /**
-     * Get the parameter index used by this property in the signature of its corresponding setter method. This
-     * will be 0 for properties that use the standard bean setter method, but may be different when properties
-     * share the same setter with multiple parameters.
-     *
-     * @return The method parameter corresponding to this property
-     */
-    public int getSetterParameter();
-
-    /**
-     * Get whether or not the signature of the setter method of this property returns the owning Component or
-     * if it returns void.  When multiple properties have the same setter method name, this will always
-     * agree.
-     *
-     * @return True if the method signature returns the component
-     */
-    public boolean getSetterReturnsComponent();
-
-    /**
-     * Get all validation annotations applied directly to the setter parameter of this property. Included
-     * annotations will be instances of {@link com.lhkbob.entreri.NotNull} or {@link
-     * com.lhkbob.entreri.Within}.
+     * Get all PROPERTY-level attribute annotations applied to any valid entry point of the property.
      *
      * @return All annotations present on the given parameter
      */
-    public List<Annotation> getValidationAnnotations();
-
-    /**
-     * Get whether or not this property should use the shared instance API to store and get values of the
-     * property.
-     *
-     * @return True if the getter was annotated with {@link com.lhkbob.entreri.property.SharedInstance}
-     */
-    public boolean isShared();
-
-    /**
-     * Get whether or not modifying this property should have updateVersion() called during the setter.
-     *
-     * @return True unless {@link com.lhkbob.entreri.NoAutoVersion} is present on getter
-     */
-    public boolean isAutoVersionEnabled();
+    public Set<Annotation> getAttributes();
 
     /**
      * Get the PropertyFactory instance that was configured for this property. It must be used to instantiate

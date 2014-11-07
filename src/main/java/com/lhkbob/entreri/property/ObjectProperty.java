@@ -26,6 +26,9 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -115,9 +118,8 @@ public final class ObjectProperty implements Property {
     public static class Factory implements PropertyFactory<ObjectProperty> {
         private final Clone.Policy policy;
 
-        public Factory(Attributes attrs) {
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(Clone clone) {
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         public Factory(Clone.Policy policy) {

@@ -86,19 +86,19 @@ public final class EntityImpl implements Entity {
 
     @Override
     public <T extends Component> T get(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
+        ComponentDataStore<T> ci = system.getRepository(componentType);
         return ci.getComponent(ci.getComponentIndex(index));
     }
 
     @Override
     public <T extends Component> T add(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
+        ComponentDataStore<T> ci = system.getRepository(componentType);
         return ci.addComponent(index);
     }
 
     @Override
     public <T extends Component> T as(Class<T> componentType) {
-        ComponentRepository<T> ci = system.getRepository(componentType);
+        ComponentDataStore<T> ci = system.getRepository(componentType);
         int componentIndex = ci.getComponentIndex(index);
         if (componentIndex > 0) {
             return ci.getComponent(componentIndex);
@@ -109,7 +109,7 @@ public final class EntityImpl implements Entity {
 
     @Override
     public boolean has(Class<? extends Component> componentType) {
-        ComponentRepository<?> ci = system.getRepository(componentType);
+        ComponentDataStore<?> ci = system.getRepository(componentType);
         return ci.getComponentIndex(index) > 0;
     }
 
@@ -119,13 +119,13 @@ public final class EntityImpl implements Entity {
         if (toClone == null) {
             throw new NullPointerException("ComponentData template, toClone, cannot be null");
         }
-        ComponentRepository ci = system.getRepository(toClone.getType());
+        ComponentDataStore ci = system.getRepository(toClone.getType());
         return (T) ci.addComponent(index, toClone);
     }
 
     @Override
     public boolean remove(Class<? extends Component> componentType) {
-        ComponentRepository<?> ci = system.getRepository(componentType);
+        ComponentDataStore<?> ci = system.getRepository(componentType);
         return ci.removeComponent(index);
     }
 
@@ -140,10 +140,10 @@ public final class EntityImpl implements Entity {
      */
     private static class ComponentIterator implements Iterator<Component> {
         private final int entityIndex;
-        private final Iterator<ComponentRepository<?>> indices;
+        private final Iterator<ComponentDataStore<?>> indices;
 
-        private ComponentRepository<?> currentIndex;
-        private ComponentRepository<?> nextIndex;
+        private ComponentDataStore<?> currentIndex;
+        private ComponentDataStore<?> nextIndex;
 
         public ComponentIterator(EntitySystemImpl system, int entityIndex) {
             this.entityIndex = entityIndex;

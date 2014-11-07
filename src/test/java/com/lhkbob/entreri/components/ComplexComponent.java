@@ -26,12 +26,7 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.Validate;
-import com.lhkbob.entreri.property.Factory;
-import com.lhkbob.entreri.property.IntProperty.DefaultInt;
-import com.lhkbob.entreri.property.LongProperty.DefaultLong;
-import com.lhkbob.entreri.property.Named;
-import com.lhkbob.entreri.property.SharedInstance;
+import com.lhkbob.entreri.attr.*;
 
 /**
  * A Component that tests a variety of things: multiple properties, different types, customized default
@@ -64,7 +59,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
 
     public short getParam2();
 
-    @Validate("$1 < $2")
+    @Validate("${1} < ${2}")
     public ComplexComponent setParams(@Named("param1") short p1, @Named("param2") short p2);
 
     @Named("foo-blah")

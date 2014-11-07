@@ -26,6 +26,9 @@
  */
 package com.lhkbob.entreri.property;
 
+import com.lhkbob.entreri.attr.Clone;
+import com.lhkbob.entreri.attr.Factory;
+
 import java.util.Arrays;
 
 /**
@@ -110,19 +113,15 @@ public class EnumProperty implements Property {
      * Factory implementation for EnumProperty.
      */
     public static class Factory implements PropertyFactory<EnumProperty> {
-        private final Class<? extends Enum> enumType;
+        private final Class<? extends Enum<?>> enumType;
         private final Clone.Policy policy;
 
         /**
          * Default factory constructor for use by the implementation.
-         *
-         * @param attrs The target attributes
          */
-        @SuppressWarnings("unchecked")
-        public Factory(Attributes attrs) {
-            enumType = (Class<? extends Enum<?>>) attrs.getPropertyType();
-            policy = attrs.hasAttribute(Clone.class) ? attrs.getAttribute(Clone.class).value()
-                                                     : Clone.Policy.JAVA_DEFAULT;
+        public Factory(Class<? extends Enum<?>> type, Clone clone) {
+            enumType = type;
+            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
         }
 
         /**
@@ -130,7 +129,7 @@ public class EnumProperty implements Property {
          *
          * @param enumType The enum class
          */
-        public Factory(Class<? extends Enum> enumType) {
+        public Factory(Class<? extends Enum<?>> enumType) {
             this.enumType = enumType;
             policy = Clone.Policy.JAVA_DEFAULT;
         }

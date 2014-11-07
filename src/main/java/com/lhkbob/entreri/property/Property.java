@@ -53,9 +53,9 @@ package com.lhkbob.entreri.property;
  *
  * Property instances are carefully managed by an EntitySystem. There is ever only one property instance per
  * defined property in a component type for a system. Property instances are created by {@link PropertyFactory
- * PropertyFactories}. Every concrete Property class must be annotated with {@link Factory} to specify the
- * PropertyFactory class that constructs it. That PropertyFactory must expose a no-argument constructor, or a
- * constructor that takes an {@link Attributes} instance as its only argument.
+ * PropertyFactories}. Every concrete Property class should be annotated with {@link
+ * com.lhkbob.entreri.attr.Factory} to specify the PropertyFactory class that constructs it. If not every
+ * component method utilizing the property must specify the `@Factory` annotation explicitly.
  *
  * @author Michael Ludwig
  */

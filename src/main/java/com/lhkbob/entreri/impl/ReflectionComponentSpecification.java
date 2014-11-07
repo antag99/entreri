@@ -26,11 +26,17 @@
  */
 package com.lhkbob.entreri.impl;
 
-import com.lhkbob.entreri.*;
-import com.lhkbob.entreri.property.*;
+import com.lhkbob.entreri.Component;
+import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.Ownable;
+import com.lhkbob.entreri.Owner;
+import com.lhkbob.entreri.attr.Attribute;
+import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -48,9 +54,10 @@ import java.util.*;
 public class ReflectionComponentSpecification implements ComponentSpecification {
     private final Class<? extends Component> type;
     private final List<ReflectionPropertyDeclaration> properties;
-    private final Map<String, List<Annotation>> setterValidationAnnotations;
+    private final List<MethodDeclaration> methods;
 
-    public ReflectionComponentSpecification(Class<? extends Component> type) {
+    public ReflectionComponentSpecification(Class<? extends Component> type,
+                                            List<? extends MethodPattern> patterns) {
         if (!Component.class.isAssignableFrom(type)) {
             throw fail(type, "Class must extend Component");
         }
@@ -59,59 +66,129 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
         }
 
         List<ReflectionPropertyDeclaration> properties = new ArrayList<>();
+        List<MethodDeclaration> methods = new ArrayList<>();
+
+        Set<Class<? extends Annotation>> interested = new HashSet<>();
+        interested.add(com.lhkbob.entreri.attr.Factory.class);
+        for (MethodPattern pattern : patterns) {
+            interested.addAll(pattern.getSupportedAttributes());
+        }
+        Iterator<Class<? extends Annotation>> it = interested.iterator();
+        while (it.hasNext()) {
+            Class<? extends Annotation> attr = it.next();
+            if (attr.getAnnotation(Attribute.class) == null) {
+                it.remove();
+            }
+        }
 
         // since this is an interface, we're only dealing with public methods
         // so getMethods() returns everything we're interested in plus the methods
         // declared in Component, which we'll have to exclude
-        Map<String, Method> getters = new HashMap<>();
-        Map<String, Method> setters = new HashMap<>();
-        Map<String, Integer> setterParameters = new HashMap<>();
-        setterValidationAnnotations = new HashMap<>();
+        Map<Method, MethodPattern> validMethods = new HashMap<>();
+        Map<Method, List<String>> methodProperties = new HashMap<>();
+        Map<String, ReflectionPropertyDeclaration> declaredProperties = new HashMap<>();
 
-        for (Method method : type.getMethods()) {
+        for (Method m : type.getMethods()) {
             // exclude methods defined in Component, Owner, Ownable, and Object
-            Class<?> md = method.getDeclaringClass();
-            if (md.equals(Component.class) || md.equals(Owner.class) ||
-                md.equals(Ownable.class) || md.equals(Object.class)) {
+            Class<?> declare = m.getDeclaringClass();
+            if (declare.equals(Component.class) || declare.equals(Ownable.class) ||
+                declare.equals(Owner.class) || declare.equals(Object.class)) {
                 continue;
             }
 
-            if (method.getName().startsWith("is")) {
-                processGetter(method, "is", getters);
-            } else if (method.getName().startsWith("has")) {
-                processGetter(method, "has", getters);
-            } else if (method.getName().startsWith("get")) {
-                processGetter(method, "get", getters);
-            } else if (method.getName().startsWith("set")) {
-                processSetter(method, setters, setterParameters, setterValidationAnnotations);
-            } else {
-                throw fail(md, method + " is an illegal property method");
+            boolean matched = false;
+            for (MethodPattern pattern : patterns) {
+                if (pattern.matches(m)) {
+                    validMethods.put(m, pattern);
+                    matched = true;
+
+                    // determine the set of properties defined by this method and merge it into component state
+                    Map<String, Class<?>> methodDeclaredTypes = pattern.getDeclaredProperties(m);
+                    for (Map.Entry<String, Class<?>> p : methodDeclaredTypes.entrySet()) {
+                        if (p.getValue() != null) {
+                            // this method explicitly declares a named property and its type
+                            ReflectionPropertyDeclaration oldProp = declaredProperties.get(p.getKey());
+                            if (oldProp != null) {
+                                if (!oldProp.type.equals(p.getValue())) {
+                                    throw fail(type,
+                                               p.getKey() + " has inconsistent type across its methods");
+                                }
+                                // else type is consistent but some other method already created the prop declaration
+                            } else {
+                                // make a new property declaration
+                                ReflectionPropertyDeclaration prop = new ReflectionPropertyDeclaration(p.getKey(),
+                                                                                                       p.getValue());
+
+                                declaredProperties.put(p.getKey(), prop);
+                                properties.add(prop);
+                            }
+                        } else {
+                            // this method references a property but doesn't exactly know the type of it yet
+                            declaredProperties.put(p.getKey(), null);
+                        }
+                    }
+
+                    // remember the property names needed for this pattern
+                    methodProperties.put(m, new ArrayList<>(methodDeclaredTypes.keySet()));
+
+                    break;
+                }
+            }
+
+            if (!matched) {
+                throw fail(declare, m.getName() + " is an unsupported property method");
             }
         }
 
-        for (String property : getters.keySet()) {
-            Method getter = getters.get(property);
-            Method setter = setters.remove(property);
-            Integer param = setterParameters.remove(property);
-
-            if (setter == null) {
-                throw fail(type, property + " has no matching setter");
-            } else if (!setter.getParameterTypes()[param].equals(getter.getReturnType())) {
-                throw fail(type, property + " has inconsistent type");
+        // make sure all declared properties have a known type
+        for (Map.Entry<String, ReflectionPropertyDeclaration> p : declaredProperties.entrySet()) {
+            if (p.getValue() == null) {
+                throw fail(type, p.getKey() + " is referenced but a concrete type could not be determined");
             }
-
-            properties.add(new ReflectionPropertyDeclaration(property, createFactory(getter), getter, setter,
-                                                             param));
         }
 
-        if (!setters.isEmpty()) {
-            throw fail(type, setters.keySet() + " have no matching getters");
+        // update the list of property attribute annotations for all properties
+        for (Map.Entry<Method, MethodPattern> m : validMethods.entrySet()) {
+            for (String property : methodProperties.get(m.getKey())) {
+                ReflectionPropertyDeclaration prop = declaredProperties.get(property);
+                Set<Annotation> attrs = m.getValue()
+                                         .getPropertyLevelAttributes(m.getKey(), property, interested);
+                prop.addAttributes(attrs);
+            }
+        }
+
+        // now all attributes are available on the property declaration, the property implementation can be chosen
+        for (ReflectionPropertyDeclaration prop : declaredProperties.values()) {
+            prop.updatePropertyImplementation(validMethods, methodProperties);
+        }
+
+        // compute method declarations based on these properties (now complete up to method declarations)
+        for (Method m : validMethods.keySet()) {
+            MethodPattern pattern = validMethods.get(m);
+            List<Class<? extends Property>> propTypes = new ArrayList<>();
+            List<ReflectionPropertyDeclaration> props = new ArrayList<>();
+            for (String p : methodProperties.get(m)) {
+                ReflectionPropertyDeclaration prop = declaredProperties.get(p);
+                props.add(prop);
+                propTypes.add(prop.propertyType);
+            }
+
+            MethodDeclaration method = pattern.createMethodDeclaration(m, propTypes, props);
+
+            // add the method to every property
+            for (ReflectionPropertyDeclaration prop : props) {
+                prop.methods.add(method);
+            }
+            methods.add(method);
         }
 
         // order the list of properties by their natural ordering
         Collections.sort(properties);
+        Collections.sort(methods);
+
         this.type = type;
         this.properties = Collections.unmodifiableList(properties);
+        this.methods = Collections.unmodifiableList(methods);
     }
 
     @Override
@@ -137,13 +214,8 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
     }
 
     @Override
-    public List<Annotation> getValidationAnnotations(String setterName) {
-        List<Annotation> v = setterValidationAnnotations.get(setterName);
-        if (v == null) {
-            return Collections.emptyList();
-        } else {
-            return Collections.unmodifiableList(v);
-        }
+    public List<? extends MethodDeclaration> getMethods() {
+        return methods;
     }
 
     private static IllegalComponentDefinitionException fail(Class<?> cls, String msg) {
@@ -155,40 +227,20 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
      */
     private static class ReflectionPropertyDeclaration implements PropertyDeclaration {
         private final String name;
-        private final PropertyFactory<?> factory;
+        private PropertyFactory<?> factory;
+        private Class<? extends Property> propertyType;
 
-        private final Method setter;
-        private final int setterParameter;
-
-        private final Method getter;
-        private final boolean isSharedInstance;
-        private final boolean isGeneric;
-        private final boolean isVersioned;
-
-        private final Class<? extends Property> propertyType;
-        private final List<Annotation> validationAnnotations;
+        private final Class<?> type;
+        private final Set<Annotation> annotations;
+        private final List<MethodDeclaration> methods;
 
         @SuppressWarnings("unchecked")
-        private ReflectionPropertyDeclaration(String name, PropertyFactory<?> factory, Method getter,
-                                              Method setter, int setterParameter) {
+        private ReflectionPropertyDeclaration(String name, Class<?> type) {
             this.name = name;
-            this.factory = factory;
-            this.getter = getter;
-            this.setter = setter;
-            this.setterParameter = setterParameter;
-            isSharedInstance = getter.getAnnotation(SharedInstance.class) != null;
-            isVersioned = getter.getAnnotation(NoAutoVersion.class) == null;
+            this.type = type;
 
-            propertyType = getCreatedType((Class<? extends PropertyFactory<?>>) factory.getClass());
-            isGeneric = propertyType.getAnnotation(GenericProperty.class) != null;
-
-            List<Annotation> v = new ArrayList<>();
-            for (Annotation a : setter.getParameterAnnotations()[setterParameter]) {
-                if (a instanceof NotNull || a instanceof Within) {
-                    v.add(a);
-                }
-            }
-            validationAnnotations = Collections.unmodifiableList(v);
+            annotations = new HashSet<>();
+            methods = new ArrayList<>();
         }
 
         @Override
@@ -198,17 +250,7 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
 
         @Override
         public String getType() {
-            return getter.getReturnType().getCanonicalName();
-        }
-
-        @Override
-        public boolean isPropertyGeneric() {
-            return isGeneric;
-        }
-
-        @Override
-        public boolean isAutoVersionEnabled() {
-            return isVersioned;
+            return type.getCanonicalName();
         }
 
         @Override
@@ -217,33 +259,13 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
         }
 
         @Override
-        public String getSetterMethod() {
-            return setter.getName();
+        public Set<Annotation> getAttributes() {
+            return annotations;
         }
 
         @Override
-        public String getGetterMethod() {
-            return getter.getName();
-        }
-
-        @Override
-        public int getSetterParameter() {
-            return setterParameter;
-        }
-
-        @Override
-        public boolean getSetterReturnsComponent() {
-            return !setter.getReturnType().equals(void.class);
-        }
-
-        @Override
-        public List<Annotation> getValidationAnnotations() {
-            return validationAnnotations;
-        }
-
-        @Override
-        public boolean isShared() {
-            return isSharedInstance;
+        public List<MethodDeclaration> getMethods() {
+            return methods;
         }
 
         @Override
@@ -255,255 +277,147 @@ public class ReflectionComponentSpecification implements ComponentSpecification 
         public int compareTo(PropertyDeclaration o) {
             return name.compareTo(o.getName());
         }
-    }
 
-    private static void processSetter(Method m, Map<String, Method> setters, Map<String, Integer> parameters,
-                                      Map<String, List<Annotation>> setterValidationAnnotations) {
-        if (!m.getReturnType().equals(m.getDeclaringClass()) && !m.getReturnType().equals(void.class)) {
-            throw fail(m.getDeclaringClass(), m + " has invalid return type for setter");
-        }
-        if (m.getParameterTypes().length == 0) {
-            throw fail(m.getDeclaringClass(), m + " must have at least one parameter");
+        private void addAttributes(Set<Annotation> annotations) {
+            // add annotations, but make sure that annotations of the same type are not added
+            // if the values are equal then ignore the duplicates; if they disagree in parameters then
+            // a conflict exists and the component is invalid
+            for (Annotation a : annotations) {
+                if (!this.annotations.contains(a)) {
+                    for (Annotation o : this.annotations) {
+                        if (a.getClass().equals(o.getClass())) {
+                            // a is of the same type as o, but they are not equal
+                            throw new IllegalComponentDefinitionException("Conflicting applications of " +
+                                                                          a.getClass() + " on property " +
+                                                                          name);
+                        }
+                    }
+                    // not of any prior type
+                    this.annotations.add(a);
+                } // ignore duplicates
+            }
         }
 
-        if (m.getParameterTypes().length == 1) {
-            String name = getNameFromParameter(m, 0);
-            if (name != null) {
-                // verify absence of @Named on actual setter
-                if (m.getAnnotation(Named.class) != null) {
-                    throw fail(m.getDeclaringClass(), m + ", @Named cannot be on both parameter and method");
+        @SuppressWarnings("unchecked")
+        private void updatePropertyImplementation(Map<Method, MethodPattern> methods,
+                                                  Map<Method, List<String>> methodProperties) {
+            Class<? extends PropertyFactory<?>> propFactoryType = null;
+
+            for (Annotation a : annotations) {
+                if (a instanceof com.lhkbob.entreri.attr.Factory) {
+                    propFactoryType = ((com.lhkbob.entreri.attr.Factory) a).value();
+                    break;
                 }
-            } else {
-                name = getName(m, "set");
             }
 
-            if (setters.containsKey(name)) {
-                throw fail(m.getDeclaringClass(), name + " already declared on a setter");
-            }
-            setters.put(name, m);
-            parameters.put(name, 0);
-        } else {
-            // verify absence of @Named on actual setter
-            if (m.getAnnotation(Named.class) != null) {
-                throw fail(m.getDeclaringClass(),
-                           m + ", @Named cannot be applied to setter method with multiple parameters");
+            if (propFactoryType == null) {
+                // look up from the file mapping
+                propFactoryType = TypePropertyMapping.getPropertyFactory(type);
             }
 
-            int numP = m.getParameterTypes().length;
-            for (int i = 0; i < numP; i++) {
-                String name = getNameFromParameter(m, i);
-                if (name == null) {
-                    throw fail(m.getDeclaringClass(), m +
-                                                      ", @Named must be applied to each parameter for multi-parameter setter methods");
-                }
-
-                if (setters.containsKey(name)) {
-                    throw fail(m.getDeclaringClass(), name + " already declared on a setter");
-                }
-
-                setters.put(name, m);
-                parameters.put(name, i);
-            }
-        }
-
-        // add all validation annotations applied directly to the method
-        // parameter annotations are handled by the declaration constructor
-        List<Annotation> annots = new ArrayList<>();
-        for (Annotation a : m.getAnnotations()) {
-            if (a instanceof NotNull || a instanceof Within || a instanceof Validate) {
-                annots.add(a);
-            }
-        }
-        // note this key needs to be method name, not property name
-        setterValidationAnnotations.put(m.getName(), annots);
-    }
-
-    private static void processGetter(Method m, String prefix, Map<String, Method> getters) {
-        String name = getName(m, prefix);
-        if (getters.containsKey(name)) {
-            throw fail(m.getDeclaringClass(), name + " already declared on a getter");
-        }
-        if (m.getParameterTypes().length != 0) {
-            throw fail(m.getDeclaringClass(), m + ", getter must not take arguments");
-        }
-        if (m.getReturnType().equals(void.class)) {
-            throw fail(m.getDeclaringClass(), m + ", getter must have non-void return type");
-        }
-
-        getters.put(name, m);
-    }
-
-    private static String getNameFromParameter(Method m, int p) {
-        for (Annotation annot : m.getParameterAnnotations()[p]) {
-            if (annot instanceof Named) {
-                return ((Named) annot).value();
-            }
-        }
-        return null;
-    }
-
-    private static String getName(Method m, String prefix) {
-        Named n = m.getAnnotation(Named.class);
-        if (n != null) {
-            return n.value();
-        } else {
-            return Character.toLowerCase(m.getName().charAt(prefix.length())) +
-                   m.getName().substring(prefix.length() + 1);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Class<? extends Property> getCreatedType(Class<? extends PropertyFactory<?>> factory) {
-        try {
-            return (Class<? extends Property>) factory.getMethod("create").getReturnType();
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Cannot inspect property factory " + factory, e);
-        }
-    }
-
-    private static Class<?> getGenericSuperClass(Class<?> propertyType) {
-        GenericProperty prop = propertyType.getAnnotation(GenericProperty.class);
-        if (prop != null) {
-            return prop.superClass();
-        } else {
-            return null;
-        }
-    }
-
-    private static PropertyFactory<?> createFactory(Method getter) {
-        Class<?> baseType = getter.getReturnType();
-
-        Class<? extends PropertyFactory<?>> factoryType;
-        if (getter.getAnnotation(com.lhkbob.entreri.property.Factory.class) != null) {
-            // prefer getter specification to allow default overriding
-            factoryType = getter.getAnnotation(com.lhkbob.entreri.property.Factory.class).value();
-        } else {
-            // try to find a default property type
-            factoryType = TypePropertyMapping.getPropertyFactory(baseType);
-        }
-
-        validateFactory(getter, factoryType);
-        PropertyFactory<?> factory = invokeConstructor(factoryType,
-                                                       new Attributes(baseType, getter.getAnnotations()));
-        if (factory == null) {
-            factory = invokeConstructor(factoryType);
-        }
-
-        if (factory == null) {
-            // unable to create a PropertyFactory
-            throw fail(getter.getDeclaringClass(), "Cannot create PropertyFactory for " + getter);
-        } else {
-            return factory;
-        }
-    }
-
-    private static void validateFactory(Method getter, Class<? extends PropertyFactory<?>> factory) {
-        boolean isShared = getter.getAnnotation(SharedInstance.class) != null;
-        Class<?> baseType = getter.getReturnType();
-        Class<? extends Property> propertyType = getCreatedType(factory);
-
-        // verify contract of property
-        Class<?> genericSuperClass = getGenericSuperClass(propertyType);
-        if (genericSuperClass != null) {
-            // special case for generic properties to support more permissive assignments
-            if (isShared) {
-                throw fail(getter.getDeclaringClass(),
-                           propertyType + " can't be used with @SharedInstance, it is declared generic");
-            }
-
-            try {
-                Method g = propertyType.getMethod("get", int.class);
-                if (!g.getReturnType().equals(genericSuperClass)) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement generic " + genericSuperClass +
-                               " get(int)");
-                }
-                Method s = propertyType.getMethod("set", int.class, genericSuperClass);
-                if (!s.getReturnType().equals(void.class)) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement generic void set(int, " +
-                               genericSuperClass + ")");
-                }
-            } catch (NoSuchMethodException e) {
-                throw fail(getter.getDeclaringClass(),
-                           propertyType + " does not implement generic " + baseType +
-                           " get(int) or void set(" + baseType + ", int)");
-            }
-
-            if (!genericSuperClass.isAssignableFrom(baseType)) {
-                throw fail(getter.getDeclaringClass(),
-                           propertyType + " cannot be used with " + baseType + ", it must extend " +
-                           genericSuperClass);
-            }
-        } else {
-            try {
-                Method g = propertyType.getMethod("get", int.class);
-                if (!g.getReturnType().equals(baseType)) {
-                    throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
-                                                           " get(int)");
-                }
-                Method s = propertyType.getMethod("set", int.class, baseType);
-                if (!s.getReturnType().equals(void.class)) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement void set(int, " +
-                               baseType + ")");
-                }
-            } catch (NoSuchMethodException e) {
-                throw fail(getter.getDeclaringClass(), propertyType + " does not implement " + baseType +
-                                                       " get(int) or void set(" + baseType + ", int)");
-            }
-
-            if (isShared) {
-                if (!ShareableProperty.class.isAssignableFrom(propertyType)) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " can't be used with @SharedInstance");
-                }
-
-                // verify additional shareable property contract
+            if (propFactoryType != null) {
                 try {
-                    Method sg = propertyType.getMethod("get", int.class, baseType);
-                    if (!sg.getReturnType().equals(void.class)) {
-                        throw fail(getter.getDeclaringClass(),
-                                   propertyType + " does not implement void get(int, " +
-                                   baseType + ")");
-                    }
-                    Method creator = propertyType.getMethod("createShareableInstance");
-                    if (!creator.getReturnType().equals(baseType)) {
-                        throw fail(getter.getDeclaringClass(),
-                                   propertyType + " does not implement " + baseType +
-                                   " createShareableInstance()");
-                    }
+                    propertyType = (Class<? extends Property>) propFactoryType.getMethod("create")
+                                                                              .getReturnType();
                 } catch (NoSuchMethodException e) {
-                    throw fail(getter.getDeclaringClass(),
-                               propertyType + " does not implement void get(int, " +
-                               baseType + ") or " + baseType +
-                               " createShareableInstance()");
+                    throw new RuntimeException("Cannot inspect PropertyFactory for create() method");
                 }
+
+                factory = createFactory(propFactoryType, methods, methodProperties);
+            } else {
+                throw new RuntimeException("Unable to determine PropertyFactory for property " + name);
             }
         }
-    }
 
-    private static PropertyFactory<?> invokeConstructor(Class<? extends PropertyFactory<?>> type,
-                                                        Object... args) {
-        Class<?>[] paramTypes = new Class<?>[args.length];
-        for (int i = 0; i < args.length; i++) {
-            paramTypes[i] = args[i].getClass();
+        @SuppressWarnings("unchecked")
+        private PropertyFactory<?> createFactory(Class<? extends PropertyFactory<?>> factoryType,
+                                                 Map<Method, MethodPattern> methods,
+                                                 Map<Method, List<String>> methodProperties) {
+            Constructor<?> bestCtor = null;
+            for (Constructor<?> ctor : factoryType.getDeclaredConstructors()) {
+                if (isValidConstructor(ctor) && (bestCtor == null || ctor.getParameterTypes().length >
+                                                                     bestCtor.getParameterTypes().length)) {
+                    bestCtor = ctor;
+                }
+            }
+
+            if (bestCtor == null) {
+                throw new IllegalComponentDefinitionException("No suitable constructor for PropertyFactory (" +
+                                                              factoryType + ") used by property " + name);
+            }
+
+            // collect all attribute types relevant to this constructor
+            Set<Class<? extends Annotation>> interested = new HashSet<>();
+            for (Class<?> arg : bestCtor.getParameterTypes()) {
+                if (arg.isAnnotation()) {
+                    // at this point the only annotation args will be attributes
+                    interested.add((Class<? extends Annotation>) arg);
+                }
+            }
+            // accumulate the actual attribute values on the property
+            for (Map.Entry<Method, MethodPattern> m : methods.entrySet()) {
+                if (methodProperties.get(m.getKey()).contains(name)) {
+                    // this method produced this property so query its properties
+                    Set<Annotation> attrs = m.getValue()
+                                             .getPropertyLevelAttributes(m.getKey(), name, interested);
+                    addAttributes(attrs);
+                }
+            }
+
+            try {
+                bestCtor.setAccessible(true);
+                return (PropertyFactory<?>) bestCtor.newInstance(createArgumentValues(bestCtor));
+            } catch (InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException("Unable to create PropertyFactory via reflection", e);
+            }
         }
 
-        try {
-            // must use getDeclaredConstructor in case the class type is private
-            // or the constructor is not public
-            Constructor<?> ctor = type.getDeclaredConstructor(paramTypes);
-            ctor.setAccessible(true);
-            return (PropertyFactory<?>) ctor.newInstance(args);
-        } catch (SecurityException e) {
-            throw new RuntimeException("Unable to inspect factory's constructor", e);
-        } catch (NoSuchMethodException e) {
-            // ignore, fall back to default constructor
-            return null;
-        } catch (Exception e) {
-            // other exceptions should not occur
-            throw new RuntimeException("Unexpected exception during factory creation", e);
+        private Object[] createArgumentValues(Constructor<?> ctor) {
+            Class<?>[] argTypes = ctor.getParameterTypes();
+            Object[] args = new Object[argTypes.length];
+
+            if (args.length == 0) {
+                return args;
+            }
+
+            int startIndex = 0;
+            if (argTypes[0].equals(Class.class)) {
+                args[0] = type;
+                startIndex = 1;
+            }
+
+            for (int i = startIndex; i < args.length; i++) {
+                Annotation v = null;
+                for (Annotation a : annotations) {
+                    if (argTypes[i].isInstance(a)) {
+                        v = a;
+                        break;
+                    }
+                }
+
+                args[i] = v;
+            }
+
+            return args;
+        }
+
+        private boolean isValidConstructor(Constructor<?> ctor) {
+            Class<?>[] args = ctor.getParameterTypes();
+            if (args.length == 0) {
+                return true;
+            }
+
+            int startIndex = 0;
+            if (args[0].equals(Class.class)) {
+                startIndex = 1;
+            }
+            for (int i = startIndex; i < args.length; i++) {
+                if (!args[i].isAnnotation() || args[i].getAnnotation(Attribute.class) == null) {
+                    // one of the remaining arguments is not an attribute annotation
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }

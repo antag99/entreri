@@ -1,9 +1,0 @@
-import com.lhkbob.entreri.InvokerUtils;
-import java.io.*;
-
-try {
-    return InvokerUtils.validateLog(basedir);
-} catch(IOException e) {
-    e.printStackTrace();
-    return false;
-}
