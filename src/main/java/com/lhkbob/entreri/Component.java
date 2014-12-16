@@ -41,7 +41,7 @@ package com.lhkbob.entreri;
  * and set the values of each property. Specific types of component are defined by creating a sub-interface of
  * Component (implementations will be auto-generated, minimizing the amount of work needed to declare a new
  * component type). Using the {@link com.lhkbob.entreri.attr.Named Named}, {@link
- * com.lhkbob.entreri.attr.SharedInstance SharedInstance}, {@link com.lhkbob.entreri.attr.Factory
+ * com.lhkbob.entreri.attr.SharedInstance SharedInstance}, {@link com.lhkbob.entreri.attr.ImplementedBy
  * Factory} and custom {@link com.lhkbob.entreri.attr.Attribute Attribute} annotations defined by {@link
  * com.lhkbob.entreri.property.Property Property} implementations, the data properties of a component type are
  * defined as a sub-interface. A declaration model similar to the Java Bean model is used and is outlined
@@ -224,7 +224,7 @@ public interface Component extends Owner, Ownable {
     /**
      * Increment the version of the component accessed by this instance. This will be automatically called by
      * all exposed setters by the generated proxies, but if necessary it can be invoked manually as well.
-     * Properties annotated with {@link com.lhkbob.entreri.attr.DontAutoVersion} will not automatically call this
+     * Properties annotated with {@link com.lhkbob.entreri.attr.DoNotAutoVersion} will not automatically call this
      * method.
      *
      * @see #getVersion()

@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.DontAutoVersion;
+import com.lhkbob.entreri.attr.DoNotAutoVersion;
 import com.lhkbob.entreri.attr.Within;
 
 /**
@@ -36,8 +36,8 @@ import com.lhkbob.entreri.attr.Within;
  * @author Michael Ludwig
  */
 public interface FloatComponent extends Component {
-    @DontAutoVersion
     public float getFloat();
 
+    @DoNotAutoVersion
     public void setFloat(@Within(min = -12, max = 4500) float value);
 }

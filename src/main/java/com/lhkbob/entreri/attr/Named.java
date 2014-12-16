@@ -32,17 +32,16 @@ import java.lang.annotation.*;
  * Named
  * =====
  *
- * Annotation applied to getters, setters, and setter parameters in a Component definition to specify an exact
- * property name instead of using Java naming conventions to infer it from the getter or setter.
- *
- * When a setter takes multiple parameters, this annotation is required for each parameter because method
- * parameter names are not always available via reflection at runtime.
+ * Annotation applied to getters, setters, and setter parameters in a Component definition to specify an
+ * exact property name instead of using Java naming conventions to infer it from the getter or setter bean
+ * name, or from the method parameter name.
  *
  * @author Michael Ludwig
  * @see com.lhkbob.entreri.Component
+ * @see com.lhkbob.entreri.property.Property
  */
 @Documented
-@Attribute(Attribute.Level.PROPERTY)
+@Attribute
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PARAMETER, ElementType.METHOD })
 public @interface Named {

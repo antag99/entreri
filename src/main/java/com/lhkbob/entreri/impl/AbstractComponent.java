@@ -29,6 +29,7 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.*;
 import com.lhkbob.entreri.property.Property;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -206,5 +207,14 @@ public abstract class AbstractComponent<T extends Component> implements Componen
         } catch (InvocationTargetException | IllegalAccessException e) {
             return "unable to inspect";
         }
+    }
+
+    protected static <T extends Annotation> T getAnnotation(Class<T> cls, Annotation[] annots) {
+        for (Annotation a : annots) {
+            if (a.annotationType().equals(cls)) {
+                return cls.cast(a);
+            }
+        }
+        return null;
     }
 }

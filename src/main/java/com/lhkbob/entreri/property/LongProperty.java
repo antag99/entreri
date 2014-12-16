@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultLong;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,19 +35,40 @@ import java.util.Arrays;
  * LongProperty
  * ============
  *
- * LongProperty is an implementation of Property that stores a single long value.
+ * LongProperty is an implementation of Property that stores a single long value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultLong} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * LongProperty defines the `get(int) -> long` and `set(int, long) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `long`.
  *
  * @author Michael Ludwig
  */
-@Factory(LongProperty.Factory.class)
-public final class LongProperty implements Property {
+public final class LongProperty implements Property<LongProperty>, Property.ValueSemantics {
+    private final long defaultValue;
+    private final boolean cloneValue;
     private long[] data;
 
     /**
-     * Create an LongProperty.
+     * Create a LongProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default long value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public LongProperty() {
+    public LongProperty(long defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new long[1];
+    }
+
+    /**
+     * Create a LongProperty using the constructor satisfying the default annotation conventions.
+     */
+    public LongProperty(DefaultLong dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0), clonePolicy == null);
     }
 
     /**
@@ -84,6 +104,20 @@ public final class LongProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(LongProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         long t = data[a];
         data[a] = data[b];
@@ -98,54 +132,5 @@ public final class LongProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create LongProperties. Properties annotated with DefaultLong will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<LongProperty> {
-        private final long defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultLong dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0L;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(long defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public LongProperty create() {
-            return new LongProperty();
-        }
-
-        @Override
-        public void setDefaultValue(LongProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(LongProperty src, int srcIndex, LongProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

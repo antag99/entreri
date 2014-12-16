@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultDouble;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,19 +35,40 @@ import java.util.Arrays;
  * DoubleProperty
  * ==============
  *
- * DoubleProperty is an implementation of Property that stores a single double value.
+ * DoubleProperty is an implementation of Property that stores a single double value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultDouble} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * DoubleProperty defines the `get(int) -> double` and `set(int, double) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `double`.
  *
  * @author Michael Ludwig
  */
-@Factory(DoubleProperty.Factory.class)
-public final class DoubleProperty implements Property {
+public final class DoubleProperty implements Property<DoubleProperty>, Property.ValueSemantics {
+    private final double defaultValue;
+    private final boolean cloneValue;
     private double[] data;
 
     /**
-     * Create an DoubleProperty.
+     * Create a DoubleProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default double value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public DoubleProperty() {
+    public DoubleProperty(double defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new double[1];
+    }
+
+    /**
+     * Create a DoubleProperty using the constructor satisfying the default annotation conventions.
+     */
+    public DoubleProperty(DefaultDouble dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0.0), clonePolicy == null);
     }
 
     /**
@@ -84,6 +104,20 @@ public final class DoubleProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(DoubleProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         double t = data[a];
         data[a] = data[b];
@@ -98,54 +132,5 @@ public final class DoubleProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create DoubleProperties. Properties annotated with DefaultDouble will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<DoubleProperty> {
-        private final double defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultDouble dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0.0;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(double defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public DoubleProperty create() {
-            return new DoubleProperty();
-        }
-
-        @Override
-        public void setDefaultValue(DoubleProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(DoubleProperty src, int srcIndex, DoubleProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

@@ -46,10 +46,7 @@ import java.lang.annotation.*;
  * true, the inputs are considered valid; otherwise, the generated setter method will throw an
  * IllegalArgumentException. The snippet must use valid Java syntax, except that the symbols `${1}` to `${n}`
  * should be used to refer to the first through `n`th setter parameters. Those symbols will be replaced with
- * the generated parameter name at compile time. Additionally, the syntax `$propertyName` will be replaced
- * with `getPropertyName()` to refer to properties of the component. Validation is performed before the
- * property values are assigned, so referencing a property name with this syntax in the setter method for that
- * property will produce the old value.
+ * the generated parameter name at compile time.
  *
  * After this syntax replacement, any other errors in the validation expression may produce Java syntax
  * errors when the generated source is compiled.
@@ -57,7 +54,7 @@ import java.lang.annotation.*;
  * @author Michael Ludwig
  */
 @Documented
-@Attribute(Attribute.Level.METHOD)
+@Attribute(level = Attribute.Level.METHOD)
 @Target({ ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Validate {

@@ -29,9 +29,8 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.components.ComplexComponent;
-import com.lhkbob.entreri.components.FloatPropertyFactory;
+import com.lhkbob.entreri.components.FloatPropertyOverride;
 import com.lhkbob.entreri.components.IntComponent;
-import com.lhkbob.entreri.property.FloatProperty;
 import com.lhkbob.entreri.property.Property;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,7 +45,7 @@ public class ComponentDataStoreTest {
     public void testFactorySetValue() {
         EntitySystem system = EntitySystem.Factory.create();
         ComplexComponent c = system.addEntity().add(ComplexComponent.class);
-        Assert.assertEquals(FloatPropertyFactory.DEFAULT, c.getFactoryFloat(), .0001f);
+        Assert.assertEquals(FloatPropertyOverride.DEFAULT, c.getFactoryFloat(), .0001f);
     }
 
     @Test
@@ -55,7 +54,7 @@ public class ComponentDataStoreTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
-        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatPropertyOverride decorated = system.decorate(IntComponent.class, new FloatPropertyOverride());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         int count = 0;
@@ -74,7 +73,7 @@ public class ComponentDataStoreTest {
         Entity e = system.addEntity();
         IntComponent c = e.add(IntComponent.class);
 
-        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatPropertyOverride decorated = system.decorate(IntComponent.class, new FloatPropertyOverride());
         decorated.getIndexedData()[c.getIndex()] = 1f;
 
         Entity e2 = system.addEntity();
@@ -105,7 +104,7 @@ public class ComponentDataStoreTest {
         ComponentDataStore<IntComponent> cr = system.getRepository(IntComponent.class);
         int count = getDecoratedProperties(cr).size();
 
-        FloatProperty decorated = system.decorate(IntComponent.class, new FloatPropertyFactory());
+        FloatPropertyOverride decorated = system.decorate(IntComponent.class, new FloatPropertyOverride());
 
         Assert.assertEquals(count + 1, getDecoratedProperties(cr).size());
 

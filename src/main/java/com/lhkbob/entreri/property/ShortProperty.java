@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultShort;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,21 +35,40 @@ import java.util.Arrays;
  * ShortProperty
  * =============
  *
- * ShortProperty is an implementation of Property that stores a single short value. Under the hood all
- * `short` values stored for this property are packed into a `short[]` and can be accessed in bulk with {@link
- * #getIndexedData()}.
+ * ShortProperty is an implementation of Property that stores a single short value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultShort} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * ShortProperty defines the `get(int) -> short` and `set(int, short) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `short`.
  *
  * @author Michael Ludwig
  */
-@Factory(ShortProperty.Factory.class)
-public final class ShortProperty implements Property {
+public final class ShortProperty implements Property<ShortProperty>, Property.ValueSemantics {
+    private final short defaultValue;
+    private final boolean cloneValue;
     private short[] data;
 
     /**
-     * Create an ShortProperty.
+     * Create a ShortProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default short value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public ShortProperty() {
+    public ShortProperty(short defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new short[1];
+    }
+
+    /**
+     * Create a ShortProperty using the constructor satisfying the default annotation conventions.
+     */
+    public ShortProperty(DefaultShort dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0), clonePolicy == null);
     }
 
     /**
@@ -87,6 +105,20 @@ public final class ShortProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(ShortProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         short t = data[a];
         data[a] = data[b];
@@ -101,54 +133,5 @@ public final class ShortProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create ShortProperties. Properties annotated with DefaultShort will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<ShortProperty> {
-        private final short defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultShort dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(short defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public ShortProperty create() {
-            return new ShortProperty();
-        }
-
-        @Override
-        public void setDefaultValue(ShortProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(ShortProperty src, int srcIndex, ShortProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

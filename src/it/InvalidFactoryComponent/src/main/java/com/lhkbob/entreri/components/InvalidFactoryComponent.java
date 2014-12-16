@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.ImplementedBy;
 
 /**
  * A test component that mis-configures a component so that the property factory has the incorrect type.
@@ -37,6 +37,6 @@ import com.lhkbob.entreri.attr.Factory;
 public interface InvalidFactoryComponent extends Component {
     public void setValue(int v);
 
-    @Factory(FloatPropertyFactory.class)
+    @ImplementedBy(FloatPropertyFactory.class)
     public int getValue();
 }

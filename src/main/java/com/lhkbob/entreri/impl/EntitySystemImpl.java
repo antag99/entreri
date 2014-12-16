@@ -31,7 +31,6 @@ import com.lhkbob.entreri.ComponentIterator;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 import com.lhkbob.entreri.task.Scheduler;
 
 import java.util.*;
@@ -41,17 +40,17 @@ import java.util.*;
  * ================
  *
  * Main and default implementation of EntitySystem that uses the registered annotation processor,
- * {@link ComponentAnnotationProcessor} to generate Java implementations of
+ * {@link com.lhkbob.entreri.impl.apt.ComponentAnnotationProcessor} to generate Java implementations of
  * Component definitions and then have them compiled.
  *
  * @author Michael Ludwig
  */
 public final class EntitySystemImpl implements EntitySystem {
-    // converts valid component data types into indices into componentRepositories
+    // converts valid component data types into indices into dataStores
     private final Map<Class<? extends Component>, Integer> typeIndexMap;
     private int typeIdSeq;
 
-    private ComponentDataStore<?>[] componentRepositories;
+    private ComponentDataStore<?>[] dataStores;
 
     private EntityImpl[] entities;
 
@@ -59,17 +58,19 @@ public final class EntitySystemImpl implements EntitySystem {
     private int entityIdSeq;
 
     private final Scheduler manager;
+    private final ComponentDataStore.Factory dataStoreFactory;
 
     /**
      * Create a new EntitySystem that has no entities added.
      */
-    public EntitySystemImpl() {
+    public EntitySystemImpl(ComponentDataStore.Factory factory) {
+        dataStoreFactory = factory;
         typeIndexMap = new HashMap<>();
         typeIdSeq = 0;
 
         manager = new Scheduler(this);
         entities = new EntityImpl[1];
-        componentRepositories = new ComponentDataStore[0];
+        dataStores = new ComponentDataStore[0];
 
         entityIdSeq = 1; // start at 1, id 0 is reserved for index = 0
         entityInsert = 1;
@@ -77,18 +78,18 @@ public final class EntitySystemImpl implements EntitySystem {
 
     @Override
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public Collection<Class<?>> getComponentTypes(Class<?> type) {
+    public Collection<Class<? extends Component>> getComponentTypes(Class<?> type) {
         if (type == null) {
             throw new NullPointerException("Type cannot be null");
         }
 
-        List<Class<?>> ids = new ArrayList<>();
-        for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null) {
+        List<Class<? extends Component>> ids = new ArrayList<>();
+        for (int i = 0; i < dataStores.length; i++) {
+            if (dataStores[i] != null) {
                 // check the type
-                if (type.isAssignableFrom(componentRepositories[i].getType())) {
+                if (type.isAssignableFrom(dataStores[i].getType())) {
                     // this type is a subclass of the requested type
-                    ids.add((Class) componentRepositories[i].getType());
+                    ids.add((Class) dataStores[i].getType());
                 }
             }
         }
@@ -98,9 +99,9 @@ public final class EntitySystemImpl implements EntitySystem {
     @Override
     public Collection<Class<? extends Component>> getComponentTypes() {
         List<Class<? extends Component>> ids = new ArrayList<>();
-        for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null) {
-                ids.add(componentRepositories[i].getType());
+        for (int i = 0; i < dataStores.length; i++) {
+            if (dataStores[i] != null) {
+                ids.add(dataStores[i].getType());
             }
         }
         return ids;
@@ -167,9 +168,9 @@ public final class EntitySystemImpl implements EntitySystem {
         }
 
         // Now index and update all ComponentIndices
-        for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null) {
-                componentRepositories[i].compact(oldToNew, entityInsert);
+        for (int i = 0; i < dataStores.length; i++) {
+            if (dataStores[i] != null) {
+                dataStores[i].compact(oldToNew, entityInsert);
             }
         }
     }
@@ -193,9 +194,9 @@ public final class EntitySystemImpl implements EntitySystem {
             entities = Arrays.copyOf(entities, (int) (entityIndex * 1.5f) + 1);
         }
 
-        for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null) {
-                componentRepositories[i].expandEntityIndex(entityIndex + 1);
+        for (int i = 0; i < dataStores.length; i++) {
+            if (dataStores[i] != null) {
+                dataStores[i].expandEntityIndex(entityIndex + 1);
             }
         }
 
@@ -231,9 +232,9 @@ public final class EntitySystemImpl implements EntitySystem {
 
         // Remove all components from the entity (that weren't removed
         // by ownership rules)
-        for (int i = 0; i < componentRepositories.length; i++) {
-            if (componentRepositories[i] != null) {
-                componentRepositories[i].removeComponent(ei.index);
+        for (int i = 0; i < dataStores.length; i++) {
+            if (dataStores[i] != null) {
+                dataStores[i].removeComponent(ei.index);
             }
         }
 
@@ -243,9 +244,9 @@ public final class EntitySystemImpl implements EntitySystem {
     }
 
     @Override
-    public <T extends Component, P extends Property> P decorate(Class<T> type, PropertyFactory<P> factory) {
+    public <T extends Component, P extends Property<P>> P decorate(Class<T> type, P property) {
         ComponentDataStore<?> index = getRepository(type);
-        return index.decorate(factory);
+        return index.decorate(property);
     }
 
     @Override
@@ -269,17 +270,17 @@ public final class EntitySystemImpl implements EntitySystem {
     @SuppressWarnings("unchecked")
     <T extends Component> ComponentDataStore<T> getRepository(Class<T> type) {
         int index = getTypeIndex(type);
-        if (index >= componentRepositories.length) {
+        if (index >= dataStores.length) {
             // make sure it's the correct size
-            componentRepositories = Arrays.copyOf(componentRepositories, index + 1);
+            dataStores = Arrays.copyOf(dataStores, index + 1);
         }
 
-        ComponentDataStore<T> i = (ComponentDataStore<T>) componentRepositories[index];
+        ComponentDataStore<T> i = (ComponentDataStore<T>) dataStores[index];
         if (i == null) {
             // if the index does not exist, then we need to use the default component data factory
-            i = new ComponentDataStore<>(this, type);
+            i = dataStoreFactory.create(this, type);
             i.expandEntityIndex(entities.length);
-            componentRepositories[index] = i;
+            dataStores[index] = i;
         }
 
         return i;
@@ -332,7 +333,7 @@ public final class EntitySystemImpl implements EntitySystem {
             if (!advanced) {
                 advance();
             }
-            return index < componentRepositories.length;
+            return index < dataStores.length;
         }
 
         @Override
@@ -341,7 +342,7 @@ public final class EntitySystemImpl implements EntitySystem {
                 throw new NoSuchElementException();
             }
             advanced = false;
-            return componentRepositories[index];
+            return dataStores[index];
         }
 
         @Override
@@ -352,7 +353,7 @@ public final class EntitySystemImpl implements EntitySystem {
         private void advance() {
             do {
                 index++;
-            } while (index < componentRepositories.length && componentRepositories[index] == null);
+            } while (index < dataStores.length && dataStores[index] == null);
             advanced = true;
         }
     }

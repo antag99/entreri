@@ -29,17 +29,12 @@ package com.lhkbob.entreri.impl;
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.Requires;
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.property.IntProperty;
 import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * ComponentDataStore
@@ -53,11 +48,14 @@ import java.util.List;
  * @author Michael Ludwig
  */
 @SuppressWarnings({ "unchecked", "rawtypes" })
-public final class ComponentDataStore<T extends Component> {
+public abstract class ComponentDataStore<T extends Component> {
+    public static interface Factory {
+        public <T extends Component> ComponentDataStore<T> create(EntitySystemImpl impl, Class<T> type);
+    }
+
     private final EntitySystemImpl system;
     private final Class<T> type;
 
-    private final ComponentFactoryProvider.Factory<T> factory;
     private final Class<? extends Component>[] requiredTypes;
 
     // These three arrays have a special value of 0 or null stored in the 0th
@@ -87,13 +85,12 @@ public final class ComponentDataStore<T extends Component> {
      * @param type   The type of component
      * @throws NullPointerException if system or type are null
      */
-    public ComponentDataStore(EntitySystemImpl system, Class<T> type) {
+    public ComponentDataStore(EntitySystemImpl system, Class<T> type, Map<String, Property> factories) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
 
         this.system = system;
-        this.factory = ComponentFactoryProvider.getInstance().getFactory(type);
         this.type = type;
 
         if (type.getAnnotation(Requires.class) != null) {
@@ -104,10 +101,11 @@ public final class ComponentDataStore<T extends Component> {
 
         declaredProperties = new ArrayList<>();
         decoratedProperties = new ArrayList<>(); // empty for now
-        for (PropertyDeclaration p : factory.getSpecification().getProperties()) {
-            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getPropertyFactory(), p.getName());
+        for (Map.Entry<String, Property> p : factories.entrySet()) {
+            DeclaredPropertyStore store = new DeclaredPropertyStore(p.getValue(), p.getKey());
             declaredProperties.add(store);
         }
+        Collections.sort(declaredProperties);
 
         entityIndexToComponentRepository = new int[1]; // holds default 0 value in 0th index
         componentIndexToEntityIndex = new int[1]; // holds default 0 value in 0th index
@@ -120,9 +118,9 @@ public final class ComponentDataStore<T extends Component> {
 
         // decorate the component data with a boolean property to track enabled status
         // we set a unique id for every component
-        componentIdProperty = decorate(new IntProperty.Factory(0));
-        componentVersionProperty = decorate(new IntProperty.Factory(0));
-        ownerDelegatesProperty = decorate(new ObjectProperty.Factory(Clone.Policy.DISABLE));
+        componentIdProperty = decorate(new IntProperty(0, false));
+        componentVersionProperty = decorate(new IntProperty(0, false));
+        ownerDelegatesProperty = decorate(new ObjectProperty(false));
 
         idSeq = 1; // start at 1, just like entity id sequences versionSeq = 0;
 
@@ -322,9 +320,8 @@ public final class ComponentDataStore<T extends Component> {
             DeclaredPropertyStore templateStore = ((AbstractComponent<T>) fromTemplate).owner.declaredProperties
                                                           .get(i);
 
-            templateStore.creator
-                    .clone(templateStore.getProperty(), fromTemplate.getIndex(), dstStore.property,
-                           instance.getIndex());
+            dstStore.property
+                    .clone(templateStore.getProperty(), fromTemplate.getIndex(), instance.getIndex());
         }
 
         return instance;
@@ -348,7 +345,7 @@ public final class ComponentDataStore<T extends Component> {
             expandComponentRepository(componentIndex + 1);
         }
 
-        AbstractComponent<T> instance = factory.newInstance(this);
+        AbstractComponent<T> instance = createDataInstance();
         components[componentIndex] = (T) instance;
         componentIndexToEntityIndex[componentIndex] = entityIndex;
         entityIndexToComponentRepository[entityIndex] = componentIndex;
@@ -392,11 +389,7 @@ public final class ComponentDataStore<T extends Component> {
      *
      * @return A new data instance
      */
-    public AbstractComponent<T> createDataInstance() {
-        AbstractComponent<T> t = factory.newInstance(this);
-        t.setIndex(0);
-        return t;
-    }
+    public abstract AbstractComponent<T> createDataInstance();
 
     /**
      * Detach or remove any component of this index's type from the entity with the given index. True is
@@ -524,30 +517,19 @@ public final class ComponentDataStore<T extends Component> {
         }
     }
 
-    /**
-     * Decorate the type information of this ComponentRepository to add a property created by the given
-     * factory. The returned property will have default data assigned for each current Component in the index,
-     * and will have the default value assigned for each new Component. Decorators can then access the
-     * returned property to manipulate the decorated component data.
-     *
-     * @param factory The factory that will create a unique Property instance associated with the decorated
-     *                property and this index
-     * @return The property decorated onto the type of the index
-     */
-    public <P extends Property> P decorate(PropertyFactory<P> factory) {
+    public <P extends Property> P decorate(P property) {
         int size = (declaredProperties.isEmpty() ? componentInsert
                                                  : declaredProperties.get(0).property.getCapacity());
-        P prop = factory.create();
-        DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<>(factory, prop);
+        DecoratedPropertyStore<P> pstore = new DecoratedPropertyStore<>(property);
 
         // Set values from factory to all component slots
-        prop.setCapacity(size);
+        property.setCapacity(size);
         for (int i = 1; i < size; i++) {
             pstore.setDefaultValue(i);
         }
 
         decoratedProperties.add(pstore);
-        return prop;
+        return property;
     }
 
     /*
@@ -555,16 +537,11 @@ public final class ComponentDataStore<T extends Component> {
      * store for compaction.
      */
     private static abstract class PropertyStore<P extends Property> {
-        final PropertyFactory<P> creator;
-
-        PropertyStore(PropertyFactory<P> creator) {
-            this.creator = creator;
-        }
 
         void setDefaultValue(int index) {
             P prop = getProperty();
             if (prop != null) {
-                creator.setDefaultValue(prop, index);
+                prop.setDefaultValue(index);
             }
         }
 
@@ -585,27 +562,31 @@ public final class ComponentDataStore<T extends Component> {
         abstract P getProperty();
     }
 
-    private static class DeclaredPropertyStore<P extends Property> extends PropertyStore<P> {
+    private static class DeclaredPropertyStore<P extends Property> extends PropertyStore<P>
+            implements Comparable<DeclaredPropertyStore<?>> {
         final String key;
         final P property;
 
-        public DeclaredPropertyStore(PropertyFactory<P> creator, String key) {
-            super(creator);
+        public DeclaredPropertyStore(P property, String key) {
             this.key = key;
-            property = creator.create();
+            this.property = property;
         }
 
         @Override
         P getProperty() {
             return property;
         }
+
+        @Override
+        public int compareTo(DeclaredPropertyStore<?> o) {
+            return key.compareTo(o.key);
+        }
     }
 
     private static class DecoratedPropertyStore<P extends Property> extends PropertyStore<P> {
         final WeakReference<P> property;
 
-        public DecoratedPropertyStore(PropertyFactory<P> creator, P property) {
-            super(creator);
+        public DecoratedPropertyStore(P property) {
             this.property = new WeakReference<>(property);
         }
 

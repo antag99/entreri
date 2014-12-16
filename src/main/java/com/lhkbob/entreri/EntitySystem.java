@@ -27,8 +27,8 @@
 package com.lhkbob.entreri;
 
 import com.lhkbob.entreri.impl.EntitySystemImpl;
+import com.lhkbob.entreri.impl.apt.ComponentDataStoreFactory;
 import com.lhkbob.entreri.property.Property;
-import com.lhkbob.entreri.property.PropertyFactory;
 import com.lhkbob.entreri.task.Scheduler;
 import com.lhkbob.entreri.task.Task;
 
@@ -73,7 +73,7 @@ public interface EntitySystem extends Iterable<Entity> {
          * @return A new, empty EntitySystem
          */
         public static EntitySystem create() {
-            return new EntitySystemImpl();
+            return new EntitySystemImpl(new ComponentDataStoreFactory());
         }
     }
 
@@ -86,8 +86,7 @@ public interface EntitySystem extends Iterable<Entity> {
      * input component data type
      * @throws NullPointerException if type is null
      */
-    // FIXME should this be Class<? extends Component>?
-    public Collection<Class<?>> getComponentTypes(Class<?> type);
+    public Collection<Class<? extends Component>> getComponentTypes(Class<?> type);
 
     /**
      * Get all Component interfaces currently used by the EntitySystem. If a type has had all of its
@@ -179,7 +178,7 @@ public interface EntitySystem extends Iterable<Entity> {
      * Add a new Entity to this EntitySystem. If `template` is not null, the components attached to the
      * template will have their state cloned onto the new entity. The semantics of cloning is defined by the
      * `clone` method of the selected PropertyFactory used by the generated proxy. Factories often modify
-     * their behavior in response to the {@link com.lhkbob.entreri.attr.Clone} annotation. By default they
+     * their behavior in response to the {@link com.lhkbob.entreri.attr.DoNotClone} annotation. By default they
      * follows Java's reference/value assignment rules.
      *
      * Specifying a null template makes this behave identically to {@link #addEntity()}.
@@ -203,19 +202,20 @@ public interface EntitySystem extends Iterable<Entity> {
     public void removeEntity(Entity e);
 
     /**
-     * Dynamically update the available properties of the given Component type by adding a Property created by
-     * the given PropertyFactory. The property will be managed by the system as if it was a declared property
-     * of the component type.
+     * Dynamically update the available properties of the given Component type by adding a Property. The
+     * property will be managed by the system as if it was a declared property of the component type.
+     * Decorated properties can be created and used by Tasks to add dynamic runtime data to statically defined
+     * component types. The provided Property instance should only be passed to `decorate` once; the same
+     * instance being managed for different component types or different entity systems will corrupt its data.
      *
-     * All components, current and new, will initially have their starting values for the decorated property
-     * be the default as defined by the factory. The returned property can be accessed and used by Tasks to
-     * add dynamic runtime data to statically defined component types. Game editors could also use this to
-     * simulate dynamic component creation.
+     * All components of the given type, current and new, will initially have their starting values for the
+     * decorated property be the default as defined by the factory. The property argument is returned so that
+     * creation and decoration can be consolidated to a single line of code.
      *
      * @param type    The component type to mutate
-     * @param factory The property factory that creates the decorating property
+     * @param property The property added to the components definition
      * @return The property that has decorated the given component type
-     * @throws NullPointerException if type or factory are null
+     * @throws NullPointerException if type or property are null
      */
-    public <T extends Component, P extends Property> P decorate(Class<T> type, PropertyFactory<P> factory);
+    public <T extends Component, P extends Property<P>> P decorate(Class<T> type, P property);
 }

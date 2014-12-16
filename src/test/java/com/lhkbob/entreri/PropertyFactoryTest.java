@@ -26,56 +26,48 @@
  */
 package com.lhkbob.entreri;
 
-import com.lhkbob.entreri.attr.Clone;
-import com.lhkbob.entreri.attr.Clone.Policy;
-import com.lhkbob.entreri.attr.DefaultDouble;
-import com.lhkbob.entreri.property.DoubleProperty;
-import com.lhkbob.entreri.property.ObjectProperty;
-import org.junit.Assert;
-import org.junit.Test;
-
 @SuppressWarnings({ "unused", "rawtypes", "unchecked" })
 public class PropertyFactoryTest {
     /*
      * ObjectProperty methods for Attributes creation
      */
-    private void objectPropertyNoPolicy() {
+    /*private void objectPropertyNoPolicy() {
     }
 
-    @Clone(Policy.DISABLE)
+    @DoNotClone(Policy.DISABLE)
     private void objectPropertyDisabled() {
     }
 
-    @Clone(Policy.JAVA_DEFAULT)
+    @DoNotClone(Policy.JAVA_DEFAULT)
     private void objectPropertyDefault() {
     }
 
-    @Clone(Policy.INVOKE_CLONE)
+    @DoNotClone(Policy.INVOKE_CLONE)
     private void objectPropertyInvoke() {
-    }
+    }*/
 
     /*
      * DoubleProperty fields for Attributes creation
      */
-    @DefaultDouble(1.0)
-    private void doublePropertyNoPolicy() {
+    //    @DefaultDouble(1.0)
+    /*private void doublePropertyNoPolicy() {
     }
 
     @DefaultDouble(2.0)
-    @Clone(Policy.DISABLE)
+    @DoNotClone(Policy.DISABLE)
     private void doublePropertyDisabled() {
     }
 
-    @Clone(Policy.JAVA_DEFAULT)
+    @DoNotClone(Policy.JAVA_DEFAULT)
     private void doublePropertyDefault() {
     }
 
-    @Clone(Policy.INVOKE_CLONE)
+    @DoNotClone(Policy.INVOKE_CLONE)
     private void doublePropertyInvoke() {
     }
 
-    private Clone getCloneAttribute(String methodName) throws Exception {
-        return getClass().getDeclaredMethod(methodName).getAnnotation(Clone.class);
+    private DoNotClone getCloneAttribute(String methodName) throws Exception {
+        return getClass().getDeclaredMethod(methodName).getAnnotation(DoNotClone.class);
     }
 
     private DefaultDouble getDefaultDoubleAttribute(String methodName) throws Exception {
@@ -271,5 +263,5 @@ public class PropertyFactoryTest {
         public CloneObject clone() {
             return new CloneObject(foo);
         }
-    }
+    }*/
 }

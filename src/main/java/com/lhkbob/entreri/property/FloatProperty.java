@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultFloat;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,19 +35,40 @@ import java.util.Arrays;
  * FloatProperty
  * =============
  *
- * FloatProperty is an implementation of Property that stores a single float value.
+ * FloatProperty is an implementation of Property that stores a single float value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultFloat} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * FloatProperty defines the `get(int) -> float` and `set(int, float) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `float`.
  *
  * @author Michael Ludwig
  */
-@Factory(FloatProperty.Factory.class)
-public final class FloatProperty implements Property {
+public final class FloatProperty implements Property<FloatProperty>, Property.ValueSemantics {
+    private final float defaultValue;
+    private final boolean cloneValue;
     private float[] data;
 
     /**
-     * Create a FloatProperty.
+     * Create a FloatProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default float value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public FloatProperty() {
+    public FloatProperty(float defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new float[1];
+    }
+
+    /**
+     * Create a FloatProperty using the constructor satisfying the default annotation conventions.
+     */
+    public FloatProperty(DefaultFloat dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0.0f), clonePolicy == null);
     }
 
     /**
@@ -85,6 +105,20 @@ public final class FloatProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(FloatProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         float t = data[a];
         data[a] = data[b];
@@ -99,54 +133,5 @@ public final class FloatProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create FloatProperties. Properties annotated with DefaultFloat will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<FloatProperty> {
-        private final float defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultFloat dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0f;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(float defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public FloatProperty create() {
-            return new FloatProperty();
-        }
-
-        @Override
-        public void setDefaultValue(FloatProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(FloatProperty src, int srcIndex, FloatProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

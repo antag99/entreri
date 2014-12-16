@@ -26,8 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DefaultEnum;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -40,21 +40,52 @@ import java.util.Arrays;
  * automatically uses an EnumProperty for any enum properties unless there's an explicit mapping declared in
  * META-INF.
  *
+ * It supports the {@link com.lhkbob.entreri.attr.DefaultEnum} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * EnumProperty defines the `get(int) -> T` and `set(int, T) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type the enum type `T`.
+ *
+ * ## Generic
+ *
+ * As a generic property, this property supports any type of enum that extends {@link java.lang.Enum}.
+ *
  * @author Michael Ludwig
  */
-@GenericProperty(superClass = Enum.class)
-@Factory(EnumProperty.Factory.class)
-public class EnumProperty implements Property {
-    private final Enum[] values;
+public class EnumProperty<T extends Enum>
+        implements Property<EnumProperty<T>>, Property.ValueSemantics, Property.Generic<T> {
+    private final T[] values;
+    private final T defaultValue;
+    private final boolean cloneValue;
     private int[] data;
 
     /**
-     * Create an EnumProperty for the given enum class type.
+     * Create an EnumProperty with the selected default enum value and clone policy. This is a programmer
+     * friendly constructor.
+     *
+     * @param dflt       The default enum value (must not be null)
+     * @param cloneValue True if values can be copied during a component clone
+     */
+    @SuppressWarnings("unchecked")
+    public EnumProperty(T dflt, boolean cloneValue) {
+        values = (T[]) dflt.getClass().getEnumConstants();
+        defaultValue = dflt;
+        this.cloneValue = cloneValue;
+        data = new int[1];
+    }
+
+    /**
+     * Create an EnumProperty for the given enum class type, compatible with default constructor conventions.
      *
      * @param enumType The enum class
      */
-    public EnumProperty(Class<? extends Enum> enumType) {
+    public EnumProperty(Class<T> enumType, DefaultEnum dflt, DoNotClone doNotClone) {
         values = enumType.getEnumConstants();
+        defaultValue = values[dflt != null ? dflt.ordinal() : 0];
+        cloneValue = doNotClone == null;
         data = new int[1];
     }
 
@@ -77,7 +108,7 @@ public class EnumProperty implements Property {
      * @return The object at the given offset for the given component
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public Enum get(int index) {
+    public T get(int index) {
         return values[data[index]];
     }
 
@@ -88,7 +119,7 @@ public class EnumProperty implements Property {
      * @param value The value to store, can be null
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(int index, Enum value) {
+    public void set(int index, T value) {
         data[index] = value.ordinal();
     }
 
@@ -103,63 +134,23 @@ public class EnumProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(EnumProperty<T> src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int indexA, int indexB) {
         int ord = data[indexA];
         data[indexA] = data[indexB];
         data[indexB] = ord;
-    }
-
-    /**
-     * Factory implementation for EnumProperty.
-     */
-    public static class Factory implements PropertyFactory<EnumProperty> {
-        private final Class<? extends Enum<?>> enumType;
-        private final Clone.Policy policy;
-
-        /**
-         * Default factory constructor for use by the implementation.
-         */
-        public Factory(Class<? extends Enum<?>> type, Clone clone) {
-            enumType = type;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        /**
-         * Create a new factory for the given enum type.
-         *
-         * @param enumType The enum class
-         */
-        public Factory(Class<? extends Enum<?>> enumType) {
-            this.enumType = enumType;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public EnumProperty create() {
-            return new EnumProperty(enumType);
-        }
-
-        @Override
-        public void setDefaultValue(EnumProperty property, int index) {
-            property.data[index] = 0;
-        }
-
-        @Override
-        public void clone(EnumProperty src, int srcIndex, EnumProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

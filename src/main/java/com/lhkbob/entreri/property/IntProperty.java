@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultInt;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,19 +35,40 @@ import java.util.Arrays;
  * IntProperty
  * ===========
  *
- * IntProperty is an implementation of Property that stores a single int value.
+ * IntProperty is an implementation of Property that stores a single int value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultInt} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * IntProperty defines the `get(int) -> int` and `set(int, int) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `int`.
  *
  * @author Michael Ludwig
  */
-@Factory(IntProperty.Factory.class)
-public final class IntProperty implements Property {
+public final class IntProperty implements Property<IntProperty>, Property.ValueSemantics {
+    private final int defaultValue;
+    private final boolean cloneValue;
     private int[] data;
 
     /**
-     * Create an IntProperty.
+     * Create a IntProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default int value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public IntProperty() {
+    public IntProperty(int defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new int[1];
+    }
+
+    /**
+     * Create a IntProperty using the constructor satisfying the default annotation conventions.
+     */
+    public IntProperty(DefaultInt dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0), clonePolicy == null);
     }
 
     /**
@@ -84,6 +104,20 @@ public final class IntProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(IntProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         int t = data[a];
         data[a] = data[b];
@@ -98,54 +132,5 @@ public final class IntProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create IntProperties. Properties annotated with DefaultInt will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<IntProperty> {
-        private final int defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultInt dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(int defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public IntProperty create() {
-            return new IntProperty();
-        }
-
-        @Override
-        public void setDefaultValue(IntProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(IntProperty src, int srcIndex, IntProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

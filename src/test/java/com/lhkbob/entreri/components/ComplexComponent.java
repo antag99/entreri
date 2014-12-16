@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.attr.*;
+import com.lhkbob.entreri.property.FloatProperty;
 
 /**
  * A Component that tests a variety of things: multiple properties, different types, customized default
@@ -52,7 +53,8 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
 
     public void setFactoryFloat(float f);
 
-    @Factory(FloatPropertyFactory.class)
+    @DefaultFloat(FloatPropertyOverride.DEFAULT)
+    @ImplementedBy(FloatProperty.class)
     public float getFactoryFloat();
 
     public short getParam1();
@@ -69,8 +71,8 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
     public ComplexComponent setNamedParamSetter(boolean foo);
 
     @DefaultInt(14)
-    @SharedInstance
-    public CustomProperty.Bletch hasBletch();
+    public CustomProperty.Bletch hasBletch(CustomProperty.Bletch result);
 
+    @Reference
     public void setBletch(CustomProperty.Bletch b);
 }

@@ -27,7 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.NotNull;
+import com.lhkbob.entreri.attr.Reference;
 
 /**
  * A test component that tests the default object property for unknown types.
@@ -37,7 +37,7 @@ import com.lhkbob.entreri.attr.NotNull;
 public interface ObjectComponent extends Component {
     public FooBlah getObject();
 
-    @NotNull
+    @Reference(nullable = false)
     public void setObject(FooBlah value);
 
     public static class FooBlah {

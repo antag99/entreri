@@ -26,36 +26,56 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
-import java.lang.reflect.Method;
 import java.util.Arrays;
 
 /**
  * ObjectProperty
  * ==============
  *
- * ObjectProperty is an implementation of Property that stores the property data as a number of packed Object
- * references for each property. Because it is not primitive data, cache locality will suffer compared to the
- * primitive property types, but it will allow you to store arbitrary objects.
+ * ObjectProperty is an implementation of Property with reference semantics that can store any Object type.
+ * This Property implementation can only be used when the property declaration site specifies the {@link
+ * com.lhkbob.entreri.attr.Reference} attribute.
  *
- * However, ObjectProperty assumes that all component values can be null, and the default value is null. If
- * this is not an acceptable contract then a custom property must be defined with a factory capable of
- * constructing proper default instances.
+ * Because it uses reference semantics, its behaviors are slightly different from most other properties that
+ * use value semantics. In particular, when a property value is "cloned" when creating a component from a
+ * template, the reference is copied and not the actual object.  It supports the {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attribute. References will not be cloned if either the source or
+ * destination property specify not to clone the reference. The default value is always `null`.
+ *
+ * ## Supported method patterns
+ *
+ * EnumProperty defines the `get(int) -> T` and `set(int, T) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type the Object type `T`.
+ *
+ * ## Generic
+ *
+ * As a generic property, this property supports any type that extends {@link java.lang.Object}.
  *
  * @author Michael Ludwig
  */
-@GenericProperty(superClass = Object.class)
-@Factory(ObjectProperty.Factory.class)
-public final class ObjectProperty implements Property {
-    private Object[] data;
+public final class ObjectProperty<T>
+        implements Property<ObjectProperty<T>>, Property.ReferenceSemantics, Property.Generic<T> {
+    private final boolean cloneValue;
+    private T[] data;
 
     /**
-     * Create an ObjectProperty.
+     * Create an ObjectProperty with the given clone policy. This is the programmer-friendly constructor
+     *
+     * @param cloneValue True if the value should be copied (by reference) during a component clone
      */
-    public ObjectProperty() {
-        data = new Object[1];
+    @SuppressWarnings("unchecked")
+    public ObjectProperty(boolean cloneValue) {
+        this.cloneValue = cloneValue;
+        data = (T[]) new Object[1];
+    }
+
+    /**
+     * A constructor meeting the default conventions for automated creation.
+     */
+    public ObjectProperty(DoNotClone doNotClone) {
+        this(doNotClone == null);
     }
 
     /**
@@ -77,7 +97,7 @@ public final class ObjectProperty implements Property {
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
     @SuppressWarnings("unchecked")
-    public Object get(int componentIndex) {
+    public T get(int componentIndex) {
         return data[componentIndex];
     }
 
@@ -88,13 +108,27 @@ public final class ObjectProperty implements Property {
      * @param val            The value to store, can be null
      * @throws ArrayIndexOutOfBoundsException if the componentIndex is invalid
      */
-    public void set(int componentIndex, Object val) {
+    public void set(int componentIndex, T val) {
         data[componentIndex] = val;
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, null);
+    }
+
+    @Override
+    public void clone(ObjectProperty<T> src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
-        Object t = data[a];
+        T t = data[a];
         data[a] = data[b];
         data[b] = t;
     }
@@ -107,65 +141,5 @@ public final class ObjectProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create ObjectProperties.
-     *
-     * @author Michael Ludwig
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static class Factory implements PropertyFactory<ObjectProperty> {
-        private final Clone.Policy policy;
-
-        public Factory(Clone clone) {
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(Clone.Policy policy) {
-            this.policy = policy;
-        }
-
-        @Override
-        public ObjectProperty create() {
-            return new ObjectProperty();
-        }
-
-        @Override
-        public void setDefaultValue(ObjectProperty property, int index) {
-            property.set(index, null);
-        }
-
-        @Override
-        public void clone(ObjectProperty src, int srcIndex, ObjectProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                Object orig = src.get(srcIndex);
-                if (orig instanceof Cloneable) {
-                    try {
-                        // if they implemented Cloneable properly, clone() should
-                        // be public and take no arguments
-                        Method cloneMethod = orig.getClass().getMethod("clone");
-                        Object cloned = cloneMethod.invoke(orig);
-                        dst.set(dstIndex, cloned);
-                        break;
-                    } catch (Exception e) {
-                        // if they implement Cloneable, this shouldn't fail
-                        // and if it does it's not really our fault
-                        throw new RuntimeException(e);
-                    }
-                }
-                // else fall through to java default
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

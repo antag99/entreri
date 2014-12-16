@@ -34,7 +34,7 @@ import java.lang.annotation.*;
  * @author Michael Ludwig
  */
 @Documented
-@Attribute(Attribute.Level.PROPERTY)
+@Attribute
 @Target({ ElementType.METHOD, ElementType.PARAMETER })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DefaultBoolean {

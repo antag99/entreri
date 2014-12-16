@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultByte;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,25 +35,45 @@ import java.util.Arrays;
  * ByteProperty
  * ============
  *
- * ByteProperty is an implementation of Property that stores a single byte value.
+ * ByteProperty is an implementation of Property that stores a single byte value, obviously with value
+ * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultByte} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * ByteProperty defines the `get(int) -> byte` and `set(int, byte) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `byte`.
  *
  * @author Michael Ludwig
  */
-@Factory(ByteProperty.Factory.class)
-public final class ByteProperty implements Property {
+public final class ByteProperty implements Property<ByteProperty>, Property.ValueSemantics {
+    private final byte defaultValue;
+    private final boolean cloneValue;
     private byte[] data;
 
     /**
-     * Create an ByteProperty.
+     * Create a ByteProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default byte value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public ByteProperty() {
+    public ByteProperty(byte defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new byte[1];
     }
 
     /**
+     * Create a ByteProperty using the constructor satisfying the default annotation conventions.
+     */
+    public ByteProperty(DefaultByte dflt, DoNotClone clonePolicy) {
+        this((dflt != null ? dflt.value() : 0), clonePolicy == null);
+    }
+
+    /**
      * Return the backing byte array of this property. The array may be longer than necessary for the number
-     * of components in the system. Data can be accessed for a component directly using the component's
-     * index.
+     * of components in the system. Data can be accessed for a component directly using the component's index.
      *
      * @return The byte data for all packed properties that this property has been packed with
      */
@@ -85,6 +104,20 @@ public final class ByteProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(ByteProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         byte t = data[a];
         data[a] = data[b];
@@ -99,54 +132,5 @@ public final class ByteProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create ByteProperties. Properties annotated with DefaultByte will use that value as the
-     * default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<ByteProperty> {
-        private final byte defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultByte dflt, Clone clone) {
-            defaultValue = dflt != null ? dflt.value() : 0;
-            policy = clone != null ? clone.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(byte defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public ByteProperty create() {
-            return new ByteProperty();
-        }
-
-        @Override
-        public void setDefaultValue(ByteProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(ByteProperty src, int srcIndex, ByteProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

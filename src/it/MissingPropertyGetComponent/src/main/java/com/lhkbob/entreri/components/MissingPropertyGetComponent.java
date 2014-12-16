@@ -27,20 +27,19 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.Factory;
-import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.attr.ImplementedBy;
 import com.lhkbob.entreri.property.PropertyFactory;
 
 /**
  * Invalid component type because it references a property type that doesn't have the expected get method.
  */
 public interface MissingPropertyGetComponent extends Component {
-    @Factory(MissingGetterFactory.class)
+    @ImplementedBy(MissingGetterFactory.class)
     public Object getValue();
 
     public void setValue(Object o);
 
-    public static class MissingGetterProperty implements Property {
+    public static class MissingGetterProperty implements com.lhkbob.entreri.property.Property {
         public void set(int index, Object o) {
 
         }

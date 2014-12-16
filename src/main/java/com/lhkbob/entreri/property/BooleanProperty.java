@@ -26,9 +26,8 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.Clone;
 import com.lhkbob.entreri.attr.DefaultBoolean;
-import com.lhkbob.entreri.attr.Factory;
+import com.lhkbob.entreri.attr.DoNotClone;
 
 import java.util.Arrays;
 
@@ -36,19 +35,40 @@ import java.util.Arrays;
  * BooleanProperty
  * ===============
  *
- * BooleanProperty is an implementation of Property that stores a single boolean property.
+ * BooleanProperty is an implementation of Property that stores a single boolean property, obviously with
+ * value semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultBoolean} and {@link
+ * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * destination property specify not to clone the value.
+ *
+ * ## Supported method patterns
+ *
+ * BooleanProperty defines the `get(int) -> boolean` and `set(int, boolean) -> void` methods that can be used
+ * by a component's Java Bean getters and setters of type `boolean`.
  *
  * @author Michael Ludwig
  */
-@Factory(BooleanProperty.Factory.class)
-public final class BooleanProperty implements Property {
+public final class BooleanProperty implements Property<BooleanProperty>, Property.ValueSemantics {
+    private final boolean defaultValue;
+    private final boolean cloneValue;
     private boolean[] data;
 
     /**
-     * Create a BooleanProperty.
+     * Create a BooleanProperty with a programmer friendly signature.
+     *
+     * @param defaultValue The default boolean value when components are initialized
+     * @param cloneValue   True if the value is cloned, or false if clones just use the default
      */
-    public BooleanProperty() {
+    public BooleanProperty(boolean defaultValue, boolean cloneValue) {
+        this.defaultValue = defaultValue;
+        this.cloneValue = cloneValue;
         data = new boolean[1];
+    }
+
+    /**
+     * Create a BooleanProperty using the constructor satisfying the default annotation conventions.
+     */
+    public BooleanProperty(DefaultBoolean dflt, DoNotClone clonePolicy) {
+        this((dflt != null && dflt.value()), clonePolicy == null);
     }
 
     /**
@@ -85,6 +105,20 @@ public final class BooleanProperty implements Property {
     }
 
     @Override
+    public void setDefaultValue(int index) {
+        set(index, defaultValue);
+    }
+
+    @Override
+    public void clone(BooleanProperty src, int srcIndex, int dstIndex) {
+        if (!src.cloneValue || !cloneValue) {
+            setDefaultValue(dstIndex);
+        } else {
+            set(dstIndex, src.get(srcIndex));
+        }
+    }
+
+    @Override
     public void swap(int a, int b) {
         boolean t = data[a];
         data[a] = data[b];
@@ -99,54 +133,5 @@ public final class BooleanProperty implements Property {
     @Override
     public void setCapacity(int size) {
         data = Arrays.copyOf(data, size);
-    }
-
-    /**
-     * Factory to create BooleanProperties. Properties annotated with DefaultBoolean will use that value as
-     * the default for all components.
-     *
-     * @author Michael Ludwig
-     */
-    public static class Factory implements PropertyFactory<BooleanProperty> {
-        private final boolean defaultValue;
-        private final Clone.Policy policy;
-
-        public Factory(DefaultBoolean dflt, Clone clonePolicy) {
-            defaultValue = dflt != null && dflt.value();
-            policy = clonePolicy != null ? clonePolicy.value() : Clone.Policy.JAVA_DEFAULT;
-        }
-
-        public Factory(boolean defaultValue) {
-            this.defaultValue = defaultValue;
-            policy = Clone.Policy.JAVA_DEFAULT;
-        }
-
-        @Override
-        public BooleanProperty create() {
-            return new BooleanProperty();
-        }
-
-        @Override
-        public void setDefaultValue(BooleanProperty property, int index) {
-            property.set(index, defaultValue);
-        }
-
-        @Override
-        public void clone(BooleanProperty src, int srcIndex, BooleanProperty dst, int dstIndex) {
-            switch (policy) {
-            case DISABLE:
-                // assign default value
-                setDefaultValue(dst, dstIndex);
-                break;
-            case INVOKE_CLONE:
-                // fall through, since default implementation of INVOKE_CLONE is to
-                // just function like JAVA_DEFAULT
-            case JAVA_DEFAULT:
-                dst.set(dstIndex, src.get(srcIndex));
-                break;
-            default:
-                throw new UnsupportedOperationException("Enum value not supported: " + policy);
-            }
-        }
     }
 }

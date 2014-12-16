@@ -27,22 +27,20 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.attr.DefaultInt;
-import com.lhkbob.entreri.attr.Factory;
 import com.lhkbob.entreri.property.ObjectProperty;
-import com.lhkbob.entreri.property.PropertyFactory;
-import com.lhkbob.entreri.property.ShareableProperty;
+import com.lhkbob.entreri.property.Property;
 
-@Factory(CustomProperty.CustomFactoryWithAttributes.class)
-public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> {
-    private final ObjectProperty property;
+public class CustomProperty implements Property<CustomProperty>, Property.ReferenceSemantics {
+    private final int dflt;
+    private final ObjectProperty<Bletch> property;
 
-    public CustomProperty() {
-        property = new ObjectProperty();
+    public CustomProperty(int dflt) {
+        this.dflt = dflt;
+        property = new ObjectProperty<>(true);
     }
 
-    @Override
-    public Bletch createShareableInstance() {
-        return new Bletch();
+    public CustomProperty(DefaultInt dflt) {
+        this(dflt == null ? 0 : dflt.value());
     }
 
     public void set(int index, Bletch b) {
@@ -50,10 +48,9 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
     }
 
     public Bletch get(int index) {
-        return (Bletch) property.get(index);
+        return property.get(index);
     }
 
-    @Override
     public void get(int index, Bletch b) {
         b.value = get(index).value;
     }
@@ -73,31 +70,16 @@ public class CustomProperty implements ShareableProperty<CustomProperty.Bletch> 
         property.swap(indexA, indexB);
     }
 
-    public static class CustomFactoryWithAttributes implements PropertyFactory<CustomProperty> {
-        private final int dflt;
+    @Override
+    public void setDefaultValue(int index) {
+        Bletch b = new Bletch();
+        b.value = dflt;
+        property.set(index, b);
+    }
 
-        public CustomFactoryWithAttributes(DefaultInt dflt) {
-            this.dflt = (dflt == null ? 0 : dflt.value());
-        }
-
-        @Override
-        public CustomProperty create() {
-            return new CustomProperty();
-        }
-
-        @Override
-        public void setDefaultValue(CustomProperty property, int index) {
-            Bletch b = new Bletch();
-            b.value = dflt;
-            property.property.set(index, b);
-        }
-
-        @Override
-        public void clone(CustomProperty src, int srcIndex, CustomProperty dst, int dstIndex) {
-            // don't care about clone policy for the tests, but make it consistent
-            // with value behavior for shareable property
-            src.get(srcIndex, dst.get(dstIndex));
-        }
+    @Override
+    public void clone(CustomProperty src, int srcIndex, int dstIndex) {
+        set(dstIndex, src.get(srcIndex));
     }
 
     public static class Bletch {
