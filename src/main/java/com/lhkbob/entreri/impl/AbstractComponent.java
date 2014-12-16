@@ -208,6 +208,16 @@ public abstract class AbstractComponent<T extends Component> implements Componen
         }
     }
 
+    /**
+     * Search through annotation array `annots` for an annotation type of `cls` and return it. This is used
+     * to select a particular typed annotation from the arrays returned by {@link
+     * Method#getParameterAnnotations()}.
+     *
+     * @param cls    The annotation type to look for
+     * @param annots The annotations to search through
+     * @param <T>    The annotation type
+     * @return The annotation, or null if not found
+     */
     protected static <T extends Annotation> T getAnnotation(Class<T> cls, Annotation[] annots) {
         for (Annotation a : annots) {
             if (a.annotationType().equals(cls)) {

@@ -46,10 +46,14 @@ import java.util.regex.Pattern;
  * preserving an ordering constraint). This pattern matches methods that meet the following criteria:
  *
  * * The method has more than one parameter
- * * Every parameter is annotated with `@Named` specifying the property the parameter corresponds to
  * * The method's return type is `void` or the Component type declaring the method (in which case the
  * implementation will return `this` for method chaining)
  * * The method's name starts with `set`
+ *
+ * This pattern defines multiple properties per method, where each property is named after the `@Named`
+ * attribute applied to the parameter if present or uses the variable name of the parameter as a fallback.
+ * This requires the backing Property of each to define a `void set(int, T)` method which it uses to implement
+ * the matched methods.
  *
  * @author Michael Ludwig
  */

@@ -39,9 +39,10 @@ import java.util.*;
  * AbstractMethodDeclaration
  * =========================
  *
- * An abstract base class for {@link com.lhkbob.entreri.impl.apt.MethodDeclaration} to make implementing them
- * easier. Given a method (reflection or mirror API-based), it will handle the method name, parameters, and
- * return type. All that is left is the actual appending of source code.
+ * An abstract base class for {@link com.lhkbob.entreri.impl.apt.MethodDeclaration} to make implementing
+ * them easier. Given a method, it will handle the method name, parameters, and return type. All that is left
+ * is the actual appending of source code and property validation. It provides protected utility methods for
+ * generating the attribute annotation syntax.
  *
  * @author Michael Ludwig
  */
@@ -55,6 +56,15 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
 
     private final Set<Annotation> attributes;
 
+    /**
+     * Create a new declaration wrapping the given method, which is assumed to be of type METHOD. The
+     * annotations in `attrs` are assumed to have come from the method or its parameters, be annotated with
+     * `@Attribute`, only include the attributes from the requested scope that matched the method initially,
+     * and only have an attribute level of METHOD.
+     *
+     * @param method The method
+     * @param attrs  The attributes
+     */
     protected AbstractMethodDeclaration(ExecutableElement method, Set<Annotation> attrs) {
         this.method = method;
 
@@ -85,6 +95,14 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
         attributes = Collections.unmodifiableSet(checked);
     }
 
+    /**
+     * Generate syntax that uses reflection to retrieve the annotation of type `annotation` from this
+     * method. If the method is known to not have the annotation, null is returned.
+     *
+     * @param context    The context of the generation system
+     * @param annotation The type of annotation
+     * @return Valid syntax, or null
+     */
     protected String getMethodAnnotationReflectionSyntax(Context context, TypeMirror annotation) {
         // make sure this method actually has it
         boolean hasAnnot = false;
@@ -103,6 +121,16 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
                ".class" + ")";
     }
 
+    /**
+     * Generate syntax that uses reflection to retrieve the annotation of type `annotation` from the `param`
+     * parameter of this method. If the method parameter does not have the annotation, null is returned. This
+     * assumes the syntax will be invoked within an AbstractComponent type.
+     *
+     * @param context    The context of the generation system
+     * @param param      The parameter index of the method to query
+     * @param annotation The type of annotation
+     * @return Valid syntax, or null
+     */
     protected String getMethodParameterAnnotationReflectionSyntax(Context context, int param,
                                                                   TypeMirror annotation) {
         // make sure this method parameter has it
@@ -123,7 +151,7 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
                "])";
     }
 
-    protected String getMethodReflectionSyntax(TypeMirror componentType) {
+    private String getMethodReflectionSyntax(TypeMirror componentType) {
         StringBuilder sb = new StringBuilder();
         sb.append(componentType).append(".class.getMethod(\"").append(methodName).append("\"");
         for (TypeMirror p : parameterTypes) {
@@ -134,6 +162,9 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
         return sb.toString();
     }
 
+    /**
+     * @return A collection of all the properties defined by this method
+     */
     protected abstract Collection<PropertyDeclaration> getProperties();
 
     @Override

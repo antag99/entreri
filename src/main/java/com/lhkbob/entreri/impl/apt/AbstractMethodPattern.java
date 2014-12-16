@@ -50,6 +50,13 @@ import java.util.Set;
 public abstract class AbstractMethodPattern implements MethodPattern {
     private final Set<Class<? extends Annotation>> attributes;
 
+    /**
+     * Create a new pattern that uses the provided annotation classes as its supported attributes. It
+     * ignores any annotation class that is not annotated with {@link com.lhkbob.entreri.attr.Attribute} and
+     * automatically includes the {@link com.lhkbob.entreri.attr.Named} annotation.
+     *
+     * @param supportedAttributes The supported attributes
+     */
     protected AbstractMethodPattern(List<Class<? extends Annotation>> supportedAttributes) {
 
         Set<Class<? extends Annotation>> annots = new HashSet<>();
@@ -72,8 +79,19 @@ public abstract class AbstractMethodPattern implements MethodPattern {
                methodName.substring(prefix.length() + 1);
     }
 
+    /**
+     * Get all attribute annotations of the particular `level` from the annotation source, which may be an
+     * {@link javax.lang.model.element.ExecutableElement} for a method, or a {@link
+     * javax.lang.model.element.VariableElement} for a method parameter. The returned annotations will only
+     * include annotation types from `scope`.
+     *
+     * @param level       The attribute level to filter on
+     * @param annotSource The source of annotations
+     * @param scope       The set of annotation types to query
+     * @return All matching attributes
+     */
     protected Set<Annotation> getAttributes(Attribute.Level level, Element annotSource,
-                                                   Set<Class<? extends Annotation>> scope) {
+                                            Set<Class<? extends Annotation>> scope) {
         Set<Annotation> result = new HashSet<>();
 
         for (Class<? extends Annotation> aType : scope) {
@@ -87,6 +105,16 @@ public abstract class AbstractMethodPattern implements MethodPattern {
         return result;
     }
 
+    /**
+     * Get the property name from the method. If the method is annotated with `@Named` that is used.
+     * Otherwise the if the method name starts with any of the possible prefixes, the prefix is removed and
+     * the remaining first letter is made lower case. If the method name does not match any prefix, the method
+     * name is returned unmodified.
+     *
+     * @param method           The method to extract the property name from
+     * @param possiblePrefixes Possible prefixes the name may start with
+     * @return The property name
+     */
     protected String getPropertyName(ExecutableElement method, String... possiblePrefixes) {
         Named name = method.getAnnotation(Named.class);
         if (name != null) {
@@ -103,6 +131,17 @@ public abstract class AbstractMethodPattern implements MethodPattern {
         }
     }
 
+    /**
+     * Get the property name as specified by the `param` argument to the given `method`. If the parameter is
+     * annotated with `@Named` that is used. If not, and `useVarNameAsFallback` is true then the parameter
+     * variable name from the source code is used. Otherwise null is returned, in which case the property name
+     * ought to be determined by the method instead.
+     *
+     * @param method               The method defining the property
+     * @param param                The specific parameter that defines the property
+     * @param useVarNameAsFallback True if the variable name of the parameter can define the property name
+     * @return The property name, or null if it couldn't be determined
+     */
     protected String getPropertyName(ExecutableElement method, int param, boolean useVarNameAsFallback) {
         VariableElement p = method.getParameters().get(param);
         Named name = p.getAnnotation(Named.class);

@@ -50,11 +50,12 @@ import java.util.*;
  * ComponentSpecification
  * ======================
  *
- * ComponentSpecification provides an interface to access the information encoded in a Component sub-interface
- * in order to generate a proxy implementation. The specification can be extracted at runtime using
- * reflection, or at compile time using the annotation processor mirror API. The two factory methods, {@link
- * Factory#fromClass(Class)} and {@link Factory#fromTypeElement(javax.lang.model.element.TypeElement,
- * javax.annotation.processing.ProcessingEnvironment)} correspond to these two scenarios.
+ * ComponentSpecification provides an interface to access the information encoded in a Component
+ * sub-interface in order to generate a proxy implementation. This class is responsible for validating all
+ * aspects of a Component sub-interface, determining the Property implementations to use, and matching all
+ * declared methods with method patterns. Use this in conjunction with {@link
+ * com.lhkbob.entreri.impl.apt.ComponentGenerator} to output actual Java source code for the component proxy
+ * implementations.
  *
  * @author Michael Ludwig
  */
@@ -64,11 +65,33 @@ public class ComponentSpecification {
     private final List<PropertyDeclaration> properties;
     private final List<MethodDeclaration> methods;
 
+    /**
+     * Create a new ComponentSpecification for the given Component subinterface `type`, operating within
+     * the APT processing environment given by `env`. This uses the default list of method patterns with
+     * precedence:
+     *
+     * 1. {@link com.lhkbob.entreri.impl.apt.MultiSetterPattern}
+     * 2. {@link com.lhkbob.entreri.impl.apt.SharedBeanGetterPattern}
+     * 3. {@link com.lhkbob.entreri.impl.apt.BeanGetterPattern}
+     * 4. {@link com.lhkbob.entreri.impl.apt.BeanSetterPattern}
+     *
+     * @param type The component type to analyze
+     * @param env  The processing environment
+     */
     public ComponentSpecification(TypeElement type, ProcessingEnvironment env) {
         this(type, env, new MultiSetterPattern(), new SharedBeanGetterPattern(), new BeanGetterPattern(),
              new BeanSetterPattern());
     }
 
+    /**
+     * Create a new ComponentSpecification for the given Component sub-interface `type`, operating within
+     * the APT processing environment given by `env`. This uses the provided list of method patterns
+     * to match methods, where precedence is determined by the order provided.
+     *
+     * @param type     The component type to analyze
+     * @param env      The processing environment
+     * @param patterns The list of method patterns, with higher precedence first
+     */
     public ComponentSpecification(TypeElement type, ProcessingEnvironment env, MethodPattern... patterns) {
         Context context = createContext(env, type.asType(), patterns);
         TypeMirror componentType = context.fromClass(Component.class);
@@ -316,6 +339,12 @@ public class ComponentSpecification {
         return properties;
     }
 
+    /**
+     * Get all methods that must be implemented. This is the union of all methods from the property
+     * declarations of this specification, with duplicates removed, and ordered by the method name.
+     *
+     * @return The list of methods the component type must implement to compile correctly
+     */
     public List<? extends MethodDeclaration> getMethods() {
         return methods;
     }

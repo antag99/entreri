@@ -41,38 +41,53 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * ComponentFactoryProvider
- * ========================
+ * ComponentGenerator
+ * ==================
  *
- * ComponentFactoryProvider provides {@link ComponentGenerator.Factory}
- * instances that can create instances of components on demand.  The provider encapsulates the strategy used
- * to create or generate the component implementations. The current approach are to generate the source
- * at build time and look them up using reflection. It is relatively easy to extend this to an additional
- * Janino or Proxy factory if the APT based approach is insufficient.
+ * ComponentGenerator is the primary implementation of {@link Generator}. It handles the class definition,
+ * interfaces, and formatting of the component proxy while delegating to the properties and method
+ * declarations when appropriate to append syntax implementing all required methods. The component classes it
+ * defines extend {@link com.lhkbob.entreri.impl.AbstractComponent}. They all declare a static `create` method
+ * that takes a single {@link com.lhkbob.entreri.impl.EntitySystemImpl} as an argument and  return a properly
+ * configured ComponentDataStore that can manage instances of the generated component type.
  *
  * @author Michael Ludwig
  */
 public class ComponentGenerator implements Generator {
+    private static final Charset CHARSET = Charset.forName("UTF-8");
+
     private int tabCount;
     private final StringBuilder source;
 
     private final Map<Object, Map<String, String>> auxMembers;
     private int memberCounter;
 
-    public ComponentGenerator() {
+    /**
+     * Create a new ComponentGenerator.
+     */
+    private ComponentGenerator() {
         source = new StringBuilder();
         tabCount = 0;
         memberCounter = 0;
         auxMembers = new HashMap<>();
     }
 
+    /**
+     * Get the unique implementation name for the provided Component interface. If `includePackage` is true,
+     * the returned string will include the package name to create a valid, absolute type name. The
+     * returned string may then be passed to {@link Class#forName(String)}.
+     *
+     * @param cls            The component interface type
+     * @param includePackage True if the package should be included
+     * @return The class name that corresponds to the generated proxy implementation for the given type
+     */
     public static String getImplementationClassName(Class<? extends Component> cls, boolean includePackage) {
         return getImplementationClassName(cls.getCanonicalName(), cls.getPackage().getName(), includePackage);
     }
 
     /**
      * Get the unique implementation name that should be used when generating source files or looking for an
-     * existing proxy class that implements the given component type. If <var>includePackage</var> is true,
+     * existing proxy class that implements the given component type. If `includePackage` is true,
      * the returned string will include the package name to create a valid, absolute type name.
      *
      * @param spec           The component specification
@@ -116,22 +131,25 @@ public class ComponentGenerator implements Generator {
         return sb.toString();
     }
 
-    private static final Charset CHARSET = Charset.forName("UTF-8");
-
     /**
      * Generate valid Java source code for a proxy implementation of the given component type. The name and
      * package of the generated class are consistent with the results of calling {@link
      * #getImplementationClassName(ComponentSpecification, boolean)}. It is assumed (and not validated) that
      * the property specification is valid and corresponds to the component type. The new class will also
-     * extend from AbstractComponent and has a single constructor that takes a ComponentRepository.
+     * extend from AbstractComponent and has a single constructor that takes a ComponentDataStore. It will
+     * also define a static public create() method to produce an appropriate ComponentDataStore object.
      *
-     * The target source version generates two different outputs based on whether or not it should take
-     * advantage of 1.5+ features.
+     * The source code that is generated requires Java 1.7 or higher to compile.
      *
      * @param spec The component specification that must be implemented
      * @return Source code of a valid implementation for the component type
      */
-    public String generateJavaCode(ComponentSpecification spec) {
+    public static String generateJavaCode(ComponentSpecification spec) {
+        return new ComponentGenerator().generate(spec);
+    }
+
+
+    private String generate(ComponentSpecification spec) {
         source.setLength(0);
 
         List<? extends MethodDeclaration> methods = spec.getMethods();
@@ -219,7 +237,7 @@ public class ComponentGenerator implements Generator {
         return source.toString();
     }
 
-    public void appendMethod(MethodDeclaration method) {
+    private void appendMethod(MethodDeclaration method) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < method.getParameterNames().size(); i++) {
             if (i > 0) {
@@ -235,7 +253,7 @@ public class ComponentGenerator implements Generator {
         appendSyntax("}");
     }
 
-    public void newline() {
+    private void newline() {
         appendSyntax("");
     }
 

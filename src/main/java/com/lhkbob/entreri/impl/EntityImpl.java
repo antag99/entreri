@@ -117,7 +117,7 @@ public final class EntityImpl implements Entity {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T extends Component> T add(T toClone) {
         if (toClone == null) {
-            throw new NullPointerException("ComponentData template, toClone, cannot be null");
+            throw new NullPointerException("Template, toClone, cannot be null");
         }
         ComponentDataStore ci = system.getRepository(toClone.getType());
         return (T) ci.addComponent(index, toClone);

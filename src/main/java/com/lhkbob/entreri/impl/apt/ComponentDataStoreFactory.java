@@ -9,7 +9,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
+ * ComponentDataStoreFactory
+ * =========================
  *
+ * This is the default factory that uses reflection to invoke the static `create` method that each generated
+ * Component proxy implementation provides to create the appropriate ComponentDataStore object.
+ *
+ * @author Michael Ludwig
  */
 public class ComponentDataStoreFactory implements ComponentDataStore.Factory {
     @Override

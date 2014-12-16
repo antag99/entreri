@@ -68,10 +68,33 @@ public interface MethodDeclaration extends Comparable<MethodDeclaration> {
      */
     public TypeMirror getReturnType();
 
+    /**
+     * @return The method this declaration wraps
+     */
     public ExecutableElement getMethod();
 
+    /**
+     * Validate all property declarations that the method implicitly defines to make sure that their chosen
+     * Property implementations expose the required methods to implement the method body of this declaration.
+     * This should make sure the Property's get or set methods take the exact type of the logically defined
+     * property. This will only be called after the PropertyDeclarations have been updated to have valid
+     * property implementations chosen.
+     *
+     * @param context The context of the component generation
+     * @return True if all properties are valid
+     */
     public boolean arePropertiesValid(Context context);
 
+    /**
+     * Often a method declaration must maintain a reference back to the properties that it created so that
+     * the method body can be generated appropriately. However, when combining multiple PropertyDeclaration
+     * instances that represent the same logical property, these back references must be carefully updated as
+     * well.
+     *
+     * @param original    The original property declaration that owned this method declaration
+     * @param replaceWith The new property declaration that the method now belongs to, which will be
+     *                    equivalent in name and type
+     */
     public void replace(PropertyDeclaration original, PropertyDeclaration replaceWith);
 
     /**

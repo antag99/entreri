@@ -59,6 +59,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * com.lhkbob.entreri.property.Property.ValueSemantics}. The suffix must equal `reference` for those extending
  * {@link com.lhkbob.entreri.property.Property.ReferenceSemantics}.
  *
+ * It is also capable of searching up a type's hierarchy to find a mapped property specified on a super
+ * class and using it. This requires that there be no exact match for the requested type, and that the mapped
+ * property for the super class be declared as generic and the generic type variable can unify with the
+ * requested type.
+ *
  * @author Michael Ludwig
  */
 public final class TypePropertyMapper {
@@ -93,11 +98,7 @@ public final class TypePropertyMapper {
     }
 
     /**
-     * Attempt to determine a PropertyFactory class that wraps the corresponding Java type. If it is a primitive
-     * type, it will use the corresponding primitive wrapper defined in com.lhkbob.entreri.property.
-     * Unless the type has an available mapping file, it will fallback to ObjectProperty.Factory.
-     *
-     * This assumes that the base type does not have any type variables
+     * Attempt to determine a Property class that wraps the corresponding Java type.
      *
      * @param baseType The base type the property must support
      * @return A DeclaredType that represents a subclass of PropertyFactory

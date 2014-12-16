@@ -60,10 +60,28 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     private final Set<Annotation> attrs;
     private final Set<MethodDeclaration> methods;
 
+    /**
+     * Create a new PropertyDeclaration within the given `context`, that will have the provided `name` and
+     * logical `type`. This will not have a selected property implementation yet.
+     *
+     * @param context The context of the component generation
+     * @param name    The name of the property
+     * @param type    The logical type of the property (e.g. what's exposed by the component type)
+     */
     public PropertyDeclaration(Context context, String name, TypeMirror type) {
         this(context, name, type, null);
     }
 
+    /**
+     * Create a new PropertyDeclaration within the given `context`, that will have the provided `name` and
+     * logical `type`. The property implementation will be initialized to `propertyImpl`, which may throw
+     * an exception if the implementation is invalid.
+     *
+     * @param context      The context of the component generation
+     * @param name         The name of the property
+     * @param type         The logical type of the property (e.g. what's exposed by the component type)
+     * @param propertyImpl The chosen Property implementation supporting `type`
+     */
     public PropertyDeclaration(Context context, String name, TypeMirror type, TypeMirror propertyImpl) {
         this.context = context;
         this.name = name;
@@ -75,6 +93,12 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
         setPropertyImplementation(propertyImpl);
     }
 
+    /**
+     * Update this declaration to use the chosen Property implementation. This will throw an exception if
+     * the given Property type does not define a constructor the declaration knows how to support.
+     *
+     * @param propertyImpl The property class that supports this logical property type
+     */
     public void setPropertyImplementation(TypeMirror propertyImpl) {
         this.propertyImpl = propertyImpl;
         if (propertyImpl != null) {
@@ -136,10 +160,18 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
         return true;
     }
 
+    /**
+     * @return The chosen constructor of the Property implementation, or null if the implementation hasn't
+     * been determined yet
+     */
     public ExecutableElement getPropertyConstructor() {
         return propertyConstructor;
     }
 
+    /**
+     * @return Valid Java syntax that would create a new Property instance of the selected implementation,
+     * that looks up all required annotation attributes for the constructor
+     */
     public String getConstructorInvocationSyntax() {
         StringBuilder sb = new StringBuilder();
         sb.append("new ").append(propertyImpl).append("(");

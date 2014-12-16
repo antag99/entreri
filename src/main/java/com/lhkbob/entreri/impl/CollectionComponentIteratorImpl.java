@@ -51,6 +51,13 @@ public class CollectionComponentIteratorImpl implements ComponentIterator {
 
     private Iterator<Entity> currentIterator;
 
+    /**
+     * Create a new iterator that runs over the data in `system`, but restricted to the entities
+     * returned by the given Iterable.
+     *
+     * @param system   The system owning the entities
+     * @param entities The ordered restriction of entities to iterate over
+     */
     public CollectionComponentIteratorImpl(EntitySystemImpl system, Iterable<Entity> entities) {
         if (entities == null) {
             throw new NullPointerException("Entity collection cannot be null");

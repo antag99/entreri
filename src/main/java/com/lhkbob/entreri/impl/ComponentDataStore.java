@@ -81,11 +81,12 @@ public abstract class ComponentDataStore<T extends Component> {
     /**
      * Create a ComponentRepository for the given system, that will store Components of the given type.
      *
-     * @param system The owning system
-     * @param type   The type of component
+     * @param system     The owning system
+     * @param type       The type of component
+     * @param properties The properties required by the component type to operate
      * @throws NullPointerException if system or type are null
      */
-    public ComponentDataStore(EntitySystemImpl system, Class<T> type, Map<String, Property> factories) {
+    public ComponentDataStore(EntitySystemImpl system, Class<T> type, Map<String, Property> properties) {
         if (system == null || type == null) {
             throw new NullPointerException("Arguments cannot be null");
         }
@@ -101,7 +102,7 @@ public abstract class ComponentDataStore<T extends Component> {
 
         declaredProperties = new ArrayList<>();
         decoratedProperties = new ArrayList<>(); // empty for now
-        for (Map.Entry<String, Property> p : factories.entrySet()) {
+        for (Map.Entry<String, Property> p : properties.entrySet()) {
             DeclaredPropertyStore store = new DeclaredPropertyStore(p.getValue(), p.getKey());
             declaredProperties.add(store);
         }
@@ -457,11 +458,10 @@ public abstract class ComponentDataStore<T extends Component> {
     }
 
     /**
-     * <p/>
      * Compact the data of this ComponentRepository to account for removals and additions to the index. This
      * will ensure that all active componentDatas are packed into the underlying arrays, and that they will be
      * accessed in the same order as iterating over the entities directly.
-     * <p/>
+     *
      * The map from old to new entity index must be used to properly update the component index's data so that
      * the system is kept in sync.
      *
@@ -517,6 +517,15 @@ public abstract class ComponentDataStore<T extends Component> {
         }
     }
 
+    /**
+     * Decorate this component data store with the given property. This data store will take over
+     * managing the values and capacity of the property so that it remains in sync with the components
+     * the data store manages.
+     *
+     * @param property The property to add
+     * @param <P>      The type of property
+     * @return The input property
+     */
     public <P extends Property> P decorate(P property) {
         int size = (declaredProperties.isEmpty() ? componentInsert
                                                  : declaredProperties.get(0).property.getCapacity());

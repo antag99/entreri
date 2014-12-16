@@ -50,7 +50,8 @@ import java.util.regex.Pattern;
  * name of the property
  *
  * If the method, or its single parameter, are annotated with `@Named` that is used to define the property
- * name independently of the method name, although the method name must still start with `set`.
+ * name independently of the method name, although the method name must still start with `set`. It requires
+ * the backing Property to provide a `void set(int, T)` method which it uses to implement the matched methods.
  *
  * @author Michael Ludwig
  */

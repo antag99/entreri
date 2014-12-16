@@ -30,10 +30,9 @@ package com.lhkbob.entreri.impl.apt;
  * Generator
  * =========
  *
- * Generator hides the nesting structure of a Java source file from MethodDeclarations that must  insert
+ * Generator hides the nesting structure of a Java source file from MethodDeclarations that must insert
  * syntax at various key points. Properly forming the nested structure and invoking the method declarations at
- * the appropriate times is the responsibility of Generator implementations (i.e. the one used in {@link
- * ComponentGenerator}.
+ * the appropriate times is the responsibility of Generator implementations (i.e. {@link ComponentGenerator}.
  *
  * It also provides methods to produce member variable names that either correspond to a `Property` field of
  * the Component proxy, or are uniquely named and safely usable by the method declaration to add meta-fields.

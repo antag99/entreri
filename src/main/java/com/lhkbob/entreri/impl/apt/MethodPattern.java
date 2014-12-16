@@ -49,8 +49,28 @@ import java.util.Set;
  * @author Michael Ludwig
  */
 public interface MethodPattern {
+    /**
+     * Scan through the provided `methods` and match all possible. The provided methods are a subset of the
+     * methods of the component type of the `context`, where methods previously matched by patterns of higher
+     * precedence have been removed. The returned map should use the matched method element as a key, and the
+     * corresponding map value be the collection of all properties implicitly defined by the method. Often
+     * this is likely to be a singleton set.
+     *
+     * The properties defined for a method do not need to have their property implementation decided. This
+     * will be handled automatically after the property declarations have been combined with those from all
+     * other method patterns. The returned properties need only have attributes and methods for known by this
+     * pattern, it will be updated appropriately with state from other patterns afterwards based on its
+     * reported name and type.
+     *
+     * @param context The context of the component generation
+     * @param methods The remaining methods to match
+     * @return All matched methods with the property declarations they define
+     */
     public Map<ExecutableElement, Collection<? extends PropertyDeclaration>> match(Context context,
                                                                                    List<ExecutableElement> methods);
 
+    /**
+     * @return The fixed set of attribute annotations the pattern supports
+     */
     public Set<Class<? extends Annotation>> getSupportedAttributes();
 }

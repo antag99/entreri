@@ -49,7 +49,9 @@ import java.util.regex.Pattern;
  * as the declared name of the property
  *
  * If the method is annotated with `@Named` that is used to define the property name independently of the
- * method name, although the method name must still start with the defined prefixes.
+ * method name, although the method name must still start with the defined prefixes. The `@Named` attribute
+ * can also be placed on the single parameter. This requires the backing Property to provide a `void get(int,
+ * T)` method that it uses to implement the matched methods.
  *
  * @author Michael Ludwig
  */

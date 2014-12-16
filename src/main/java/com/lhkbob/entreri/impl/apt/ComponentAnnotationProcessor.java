@@ -47,7 +47,7 @@ import java.util.Set;
 
 /**
  * ComponentAnnotationProcessor
- * ================================
+ * ============================
  *
  * ComponentAnnotationProcessor is an annotation processor to use with Java 7+ compilers or APT to
  * generate component proxy implementations for all component sub-interfaces encountered in the build class
