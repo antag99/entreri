@@ -40,62 +40,128 @@ package com.lhkbob.entreri;
  * Logically a component definition is a set of named and typed properties, and a method-based API to get
  * and set the values of each property. Specific types of component are defined by creating a sub-interface of
  * Component (implementations will be auto-generated, minimizing the amount of work needed to declare a new
- * component type). Using the {@link com.lhkbob.entreri.attr.Named Named}, {@link
- * com.lhkbob.entreri.attr.SharedInstance SharedInstance}, {@link com.lhkbob.entreri.attr.ImplementedBy
- * Factory} and custom {@link com.lhkbob.entreri.attr.Attribute Attribute} annotations defined by {@link
- * com.lhkbob.entreri.property.Property Property} implementations, the data properties of a component type are
- * defined as a sub-interface. A declaration model similar to the Java Bean model is used and is outlined
- * below.
- *
- * 1. Non-void, zero-argument methods starting with 'get', 'is', and 'has' declare a property. The property
- * type is inspected from the return type of the method. The property name is the method name minus the
- * 'get'/'is'/'has' prefix with its first letter made lower-case. The {@link com.lhkbob.entreri.attr.Named
- * Named} annotation can be used to override the name.
- * 2. Single-argument methods starting with 'set' are assumed to be a setter corresponding to a property.
- * The single parameter's type must equal the type of the getter. The {@link com.lhkbob.entreri.attr.Named
- * Named} annotation can be applied to the setter to specify the property name modified by the method.
- * 3. Multi-argument methods starting with 'set' are assumed to be a setter that assigns values to multiple
- * properties, one for each argument. Each argument must be annotated with {@link
- * com.lhkbob.entreri.attr.Named Named} to specify the property, and the argument type must equal the type
- * of the matching property.
- * 4. Setter methods identified by rules `2` or `3` must return `void` or the component's type, in which case
- * the component will return itself to allow method chaining.
- * 5. Getters with void return types or more than 0 arguments, setters with an incorrect return type, no
- * arguments, or parameter types not matching the property, and any other method not matching the conventions
- * defined above will cause the system to throw an {@link
- * com.lhkbob.entreri.IllegalComponentDefinitionException}.
+ * component type). Method patterns are used to identify groups of methods that access and mutate the
+ * logical property values. One such pattern is the Java Bean pattern, which is supported and sufficient
+ * for the majority of use cases. All methods must match a pattern, and the properties declared by the matched
+ * method groups must not conflict with one another.
  *
  * Component implements both {@link Ownable} and {@link Owner}. This can be used to create hierarchies of both
  * components and entities that share a lifetime. When a component is removed from an entity, all of its owned
  * objects are disowned. If any of them were entities or components, they are also removed from the system.
  *
+ * ## Semantics
+ *
+ * By default, the logical properties in a component definition are assumed to have value semantics. That
+ * means modifying the input to a setter after its been called will not affect the component state, nor will
+ * modifying the returned object from a getter. This is straightforward for all primitive types in Java but
+ * requires special back-end handling for Object types to guarantee these semantics. If there is no backing
+ * {@link com.lhkbob.entreri.property.Property} for an Object type that supports value semantics, the method
+ * in the component definition should be annotated with {@link com.lhkbob.entreri.attr.Reference} to declare
+ * that normal Java reference semantics are to be used instead.
+ *
+ * ## Method patterns
+ *
+ * As `entreri` auto generates the actual component implementations, it must know how to implement the
+ * methods declared in the component type interfaces. Internally, each method is matched against the
+ * set of supported patterns that are capable of providing the templated method body. These body templates
+ * must interact with the {@link com.lhkbob.entreri.property.Property} data store used under the hood
+ * for each logical property of the component type. Because of this, a declared method may match the
+ * pattern syntactically but the chosen Property does not provide the required API for use with the pattern.
+ * See the advanced topics section below for a discussion on how to solve this issue. The next subsections
+ * describe the currently defined method patterns.
+ *
+ * In this model, every method declared in a component subinterface defines one-to-many logical properties,
+ * based on the rules of the pattern the method matches. Multiple methods may define properties of the same
+ * name, in which case they operate on the same property. However, the property definition from the method
+ * group defining the same name must all be consistent: the property must have the same type from each method,
+ * and it cannot have different attribute annotations of the same type on different methods. Although that's
+ * a long-winded way of describing it, this policy behaves the way you'd expect it to. Getter and setter
+ * methods for the same property name match up and share the same property definition.
+ *
+ * ### Bean getters
+ *
+ * Methods that start with 'get', 'is', or 'has', that take no arguments, and return a type `T` are
+ * considered to be bean getter methods. The type `T` may be a primitive or any other Java type, although note
+ * that Object types should be annotated with {@link com.lhkbob.entreri.attr.Reference} if the backing
+ * Property does not support value semantics. The default property name defined by one of these bean getters
+ * is the remainder of the method name after the prefix, with its first character made lowercase. The defined
+ * type of the property is the return type of the method. The {@link com.lhkbob.entreri.attr.Named} attribute
+ * applied to the method overrides the name of the property, but does not affect how the method is
+ * pattern-matched.
+ *
+ * This pattern requires that the backing Property define a method `T get(int)`, which all default property
+ * implementations do.
+ *
+ * ### Bean setters
+ *
+ * Methods that start with 'set', that take a single argument and return `void` or the component
+ * subinterface type are considered bean setter methods. The type `T` of the single argument is the defined
+ * property's type, and the default property name is the remainder of the name after the prefix, with its
+ * first character made lowercase. This is consistent with naming used for bean getters. If the setter method
+ * has the component subinterface as the return type, the generated implementation returns `this` to support
+ * method chaining. This pattern supports the {@link com.lhkbob.entreri.attr.Within} and {@link
+ * com.lhkbob.entreri.attr.Validate} attributes to modify the generated method body. The {@link
+ * com.lhkbob.entreri.attr.Named} attribute applied to either the method or single parameter overrides the
+ * name of the property, but does not affect how the method is pattern-matched.
+ *
+ * This pattern requires that the backing Property define a method `void set(int, T)`, which all default
+ * property implementations do.
+ *
+ * ### Reusable result getters
+ *
+ * Methods that start with 'get', 'is', or 'has', that take a single argument of `T` and return a `T` are
+ * treated similarly to bean getters. The main difference is that the object instance passed into the matched
+ * method represents the result and is updated in place before being returned. This is particularly useful
+ * when the backing property unpacks an object type into its primitive pieces. Instead of having to
+ * instantiate new objects to pack them back together, a single instance can be mutated to match the value for
+ * the components. The defined property uses the same default name and type as bean getters. Like bean
+ * setters, applying {@link com.lhkbob.entreri.attr.Named} to the argument can be used to override the name in
+ * addition to applying it to the method itself.
+ *
+ * This pattern requires that the backing Property define a method `void get(int, T)`. None of the provided
+ * property implementations define this, so reusable getters are only possible if a type has a custom Property
+ * defined for it.
+ *
+ * ### Multi-argument setters
+ *
+ * Methods that start with 'set', return `void` or the component type, and take more than one argument are
+ * matched by this pattern. This pattern defines a property for each of the arguments. For each parameter, the
+ * defined property's name is either the variable name from the source code or the declared name from {@link
+ * com.lhkbob.entreri.attr.Named} and its type is the type of the argument. The generated method will set
+ * values for each the defined properties. This pattern is most useful when combined with the {@link
+ * com.lhkbob.entreri.attr.Validate} attribute to perform validation across multiple arguments before the
+ * component is actually modified.
+ *
+ * This pattern requires that the backing Property define the same method required by bean setters.
+ *
  * ## Property types
  *
  * Under the hood, the data for all components of a particular data are managed by a {@link
- * com.lhkbob.entreri.property.Property} instance and its creating {@link
- * com.lhkbob.entreri.property.PropertyFactory factory}. The particular PropertyFactory that is chosen for a
- * logical property defined in a component interface is determined in three ways. First, if the method has the
- * `@Factory` annotation applied that selected factory is used. Second, if there is a default mapping that is
- * used. Third, a mapping may be defined by configuration inside META-INF.
+ * com.lhkbob.entreri.property.Property} instance. The particular Property that is chosen for a
+ * logical property defined in a component interface is determined in two ways. First, if the method has the
+ * `@ImplementedBy` annotation applied that Property class is used. Second, a mapping is searched for
+ * within the META-INF directories in the class path. The exact file searched for depends on the type of the
+ * logical property and that properties required semantics. See {@link com.lhkbob.entreri.property.Property}
+ * for more complete details.
  *
  * ### Property default type mappings
  *
- * The table below shows how the type of a logical property is mapped to a Property implementation,
- * as well as the custom {@link com.lhkbob.entreri.attr.Attribute} annotation that property class defines
- * that specifies default values for each component instance.
+ * The table below shows how the type of a logical property is mapped to a Property implementation, for the
+ * implementations provided within `entreri`. It also shows the {@link com.lhkbob.entreri.attr.Attribute}
+ * annotation that property class defines that allows specification of default values for a component.
  *
- * Type               | PropertyFactory implementation                              | Default attribute annotation
- * -------------------|-------------------------------------------------------------|-----------------------------
- * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty.Factory} | {@link com.lhkbob.entreri.attr.DefaultBoolean}
- * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultByte}
- * `short`            | {@link com.lhkbob.entreri.property.ShortProperty.Factory}   | {@link com.lhkbob.entreri.attr.DefaultShort}
- * `char`             | {@link com.lhkbob.entreri.property.CharProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultChar}
- * `int`              | {@link com.lhkbob.entreri.property.IntProperty.Factory}     | {@link com.lhkbob.entreri.attr.DefaultInt}
- * `long`             | {@link com.lhkbob.entreri.property.LongProperty.Factory}    | {@link com.lhkbob.entreri.attr.DefaultLong}
- * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}           | {@link com.lhkbob.entreri.attr.DefaultFloat}
- * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty.Factory}  | {@link com.lhkbob.entreri.attr.DefaultDouble}
- * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty.Factory}    | NA
- * `? extends Object` | {@link com.lhkbob.entreri.property.ObjectProperty.Factory}  | NA
+ * Type               | PropertyFactory implementation                      | Default attribute annotation
+ * -------------------|-----------------------------------------------------|-----------------------------
+ * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty} | {@link com.lhkbob.entreri.attr.DefaultBoolean}
+ * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty}    | {@link com.lhkbob.entreri.attr.DefaultByte}
+ * `short`            | {@link com.lhkbob.entreri.property.ShortProperty}   | {@link com.lhkbob.entreri.attr.DefaultShort}
+ * `char`             | {@link com.lhkbob.entreri.property.CharProperty}    | {@link com.lhkbob.entreri.attr.DefaultChar}
+ * `int`              | {@link com.lhkbob.entreri.property.IntProperty}     | {@link com.lhkbob.entreri.attr.DefaultInt}
+ * `long`             | {@link com.lhkbob.entreri.property.LongProperty}    | {@link com.lhkbob.entreri.attr.DefaultLong}
+ * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}   | {@link com.lhkbob.entreri.attr.DefaultFloat}
+ * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty}  | {@link com.lhkbob.entreri.attr.DefaultDouble}
+ * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty}    | {@link com.lhkbob.entreri.attr.DefaultEnum}
+ * `? extends Object` | {@link com.lhkbob.entreri.property.ObjectProperty}  | NA
  *
  * ## Advanced topics
  *
@@ -103,26 +169,13 @@ package com.lhkbob.entreri;
  * implement the property getters and setters but store all of the values in {@link
  * com.lhkbob.entreri.property.Property} instances of a compatible type. This allows iteration over components
  * to have much better cache locality if the component is defined in terms of primitives or types that have
- * specialized Property implementations that can pack and unpack an instance. The {@link
- * com.lhkbob.entreri.attr.SharedInstance SharedInstance} annotation can be added to the getter method of
- * a property to specify that the {@link com.lhkbob.entreri.property.ShareableProperty ShareableProperty} API
- * should be leveraged by the generated class.
+ * specialized Property implementations that can pack and unpack an instance.
  *
- * Additional attribute annotations can be added to the getter method to influence the behavior of the
- * {@link com.lhkbob.entreri.property.PropertyFactory PropertyFactory} used for each property in the component
- * definition. Besides using the Factory annotation to specify the factory type, a property implementation can
- * be associated with a type with canonical name `C` by adding the file `META-INF/entreri/mapping/C` to the
- * classpath, where its contents must be:
- *
- * ```
- * <BINARY NAME OF PROPERTY>
- * ```
- *
- * where the value is suitable for passing into {@link Class#forName(String)}.
- *
- * The provided Attribute annotations and any custom annotations you write can only be applied to the getter
- * method that defines the property. They are ignored if added to the setter method. The getter method is
- * considered to be the definition of the property and the setter is only specified to complete the API.
+ * Additional attribute annotations can be added to methods to influence the behavior of the {@link
+ * com.lhkbob.entreri.property.Property} used for each property in the component definition. Attributes are
+ * either property or method level. Property-level attributes applied to any method of a logical property are
+ * visible to any method that defines the same logical property. Method-level attributes are only visible to
+ * that particular method.
  *
  * As interfaces, Component definitions can extend from other interfaces. However, any methods defined in
  * the additional super-interfaces must follow the exact same property specification. The total sum of methods
