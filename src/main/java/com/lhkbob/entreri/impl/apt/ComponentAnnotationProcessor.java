@@ -28,6 +28,7 @@ package com.lhkbob.entreri.impl.apt;
 
 import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
+import com.lhkbob.entreri.property.Property;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -45,13 +46,15 @@ import java.io.Writer;
 import java.util.Set;
 
 /**
- * ComponentImplementationProcessor
+ * ComponentAnnotationProcessor
  * ================================
  *
- * ComponentImplementationProcessor is an annotation processor to use with Java 6+ compilers or APT to generate
- * component proxy implementations for all component sub-interfaces encountered in the build class path. These
- * will then be dynamically loaded at runtime instead of using something such as Janino to generate classes
- * from scratch.
+ * ComponentAnnotationProcessor is an annotation processor to use with Java 7+ compilers or APT to
+ * generate component proxy implementations for all component sub-interfaces encountered in the build class
+ * path. These will then be dynamically loaded at runtime instead of using something such as Janino to
+ * generate classes from scratch.
+ *
+ * This also validates the interface contract of all Property implementations.
  *
  * @author Michael Ludwig
  */
@@ -68,33 +71,69 @@ public class ComponentAnnotationProcessor extends AbstractProcessor {
                 TypeElement t = (TypeElement) e;
                 if (tutil.isAssignable(t.asType(),
                                        eutil.getTypeElement(Component.class.getCanonicalName()).asType())) {
-
-                    try {
-                        ComponentSpecification spec = new ComponentSpecification(t, processingEnv);
-                        String name = ComponentGenerator.getImplementationClassName(spec, true);
-                        String code = new ComponentGenerator().generateJavaCode(spec);
-
-                        try {
-                            Writer w = processingEnv.getFiler().createSourceFile(name, t).openWriter();
-                            w.write(code);
-                            w.flush();
-                            w.close();
-                        } catch (IOException ioe) {
-                            processingEnv.getMessager()
-                                         .printMessage(Diagnostic.Kind.ERROR, ioe.getMessage(), t);
-                        }
-                    } catch (IllegalComponentDefinitionException ec) {
-                        String typePrefix = t.asType().toString();
-                        String msg = ec.getMessage();
-                        if (msg.startsWith(typePrefix)) {
-                            msg = msg.substring(typePrefix.length());
-                        }
-                        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, t);
-                    }
+                    generateComponentImplementation(t);
+                }
+            } else if (e.getKind().equals(ElementKind.CLASS)) {
+                // check if the class implements Property
+                TypeElement t = (TypeElement) e;
+                if (tutil.isAssignable(t.asType(),
+                                       eutil.getTypeElement(Property.class.getCanonicalName()).asType())) {
+                    validatePropertyImplementation(t);
                 }
             }
         }
 
         return false;
+    }
+
+    private void validatePropertyImplementation(TypeElement property) {
+        Types tu = processingEnv.getTypeUtils();
+        Elements eu = processingEnv.getElementUtils();
+
+        boolean referenceSemantics = tu.isAssignable(property.asType(),
+                                                     eu.getTypeElement(Property.ReferenceSemantics.class
+                                                                               .getCanonicalName()).asType());
+        boolean valueSemantics = tu.isAssignable(property.asType(),
+                                                 eu.getTypeElement(Property.ValueSemantics.class
+                                                                           .getCanonicalName()).asType());
+        if (!(referenceSemantics ^ valueSemantics)) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                                     "Must implement only one of ReferenceSemantics or ValueSemantics",
+                                                     property);
+        }
+
+        if (property.getTypeParameters().size() > 0) {
+            if (!tu.isAssignable(property.asType(),
+                                 eu.getTypeElement(Property.Generic.class.getCanonicalName()).asType())) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                                         "Property with type variables must implement Generic",
+                                                         property);
+            }
+        }
+    }
+
+    private void generateComponentImplementation(TypeElement component) {
+        try {
+            // generate a custom Component implementation for this Component interface
+            ComponentSpecification spec = new ComponentSpecification(component, processingEnv);
+            String name = ComponentGenerator.getImplementationClassName(spec, true);
+            String code = new ComponentGenerator().generateJavaCode(spec);
+
+            try {
+                Writer w = processingEnv.getFiler().createSourceFile(name, component).openWriter();
+                w.write(code);
+                w.flush();
+                w.close();
+            } catch (IOException ioe) {
+                processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, ioe.getMessage(), component);
+            }
+        } catch (IllegalComponentDefinitionException ec) {
+            String typePrefix = component.asType().toString();
+            String msg = ec.getMessage();
+            if (msg.startsWith(typePrefix)) {
+                msg = msg.substring(typePrefix.length());
+            }
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, msg, component);
+        }
     }
 }
