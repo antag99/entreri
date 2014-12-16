@@ -38,7 +38,7 @@ import java.util.Arrays;
  * EnumProperty is a specialized generic property for enum values that stores just the ordinal values of a
  * specific enum class in a packed int array.  The type-mapping of component implementation generation
  * automatically uses an EnumProperty for any enum properties unless there's an explicit mapping declared in
- * META-INF.
+ * META-INF for a particular enum.
  *
  * It supports the {@link com.lhkbob.entreri.attr.DefaultEnum} and {@link
  * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or

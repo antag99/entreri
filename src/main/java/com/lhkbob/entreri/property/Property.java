@@ -33,40 +33,77 @@ package com.lhkbob.entreri.property;
  * Property represents a generic field or property of a {@link com.lhkbob.entreri.Component} definition. A
  * component can have multiple properties. A single Property instance holds the corresponding values for every
  * component of that type in an EntitySystem. It is effectively an indexed map from component index to
- * property value.
+ * property value. This is an approach to mapped-objects where Components can be mapped onto primitive arrays
+ * so that iteration sees optimal cache locality. As an example, there could be two component instances of
+ * type A, with properties a and b. The two components would share a Property for 'a' and a Property for 'b',
+ * which hold the data for both components.
  *
- * This is an approach to mapped-objects where Components can be mapped onto primitive arrays so that
- * iteration sees optimal cache locality. As an example, there could be two instances of type A, with
- * properties a and b. The two 'a' references would share the same data store, and the two 'b' references
- * would share another store.
+ * ## Defining new Property classes
  *
- * All property implementations must expose two methods:
- * FIXME update to specify patterns
+ * Although `entreri` comes with predefined Property types for all Java primitives, any Enum, and Object
+ * references it can be desirable to define new Property types. This is necessary to take full advantage of
+ * the mapped-object design pattern and see the performance gains `entreri` is capable of. A canonical example
+ * of an Object type benefiting from a custom Property are linear algebra vectors and matrices, which can be
+ * efficiently packed into float or double arrays.
  *
- * 1. `T get(int)` - which returns the value of type `T` at the component index.
- * 2. `void set(int, T)` - which stores the value of type `T` at the particular component index.
+ * The following subsections discuss the details of implementing a new Property type.
  *
- * To support primitives without boxing, `T` need not be a subclass of Object are not part of the interface
- * definition that would require generics.  They are are required and any attempts to use a Property
- * implementation without them will throw an exception. The exposed get() and set() methods, and potentially a
- * bulk accessor (such as returning the underlying array) are the supported methods for manipulating decorated
- * property values.
+ * ### Semantics
+ *
+ * Any class extending Property must implement one of {@link
+ * com.lhkbob.entreri.property.Property.ValueSemantics} or {@link
+ * com.lhkbob.entreri.property.Property.ReferenceSemantics}. The annotation processor will verify that one and
+ * only one of these interfaces is implemented. Depending on the chosen semantics, the behavior of any
+ * accessors, mutators, and {@link #clone(T, int, int)} will change and must be implemented appropriately by
+ * the property.
+ *
+ * ### Accessor and mutator methods
+ *
+ * The Property interface defines a minimal number of methods to allow the `entreri` implementation to
+ * manage the data in a generic manner. However, it does not include methods to get or set the state for a
+ * particular component instance. This is done so that properties can declare these methods with primitive
+ * types in their signature, that the use of generics might otherwise prohibit.
+ *
+ * For a property, the index of a component represents its identity, and can be thought of as a pointer to
+ * the component. This component index is logically independent of how the property chooses to store data for
+ * its components. For properties that store references or single values, the component index mapping
+ * one-to-one with an array index is appropriate. For linear algebra data types, scaling the index by a number
+ * of primitives is reasonable. The exact mechanism is up to the Property, but it is important to remember
+ * that for the following discussion all indices refer to the component index.
+ *
+ * A property implementation can define different methods to expose support for the different component
+ * method patterns described in {@link com.lhkbob.entreri.Component}. If the property supports a type `T`,
+ * the following a the signatures that the component method patterns look for:
+ *
+ * Component pattern | Signature                     | Description
+ * ------------------|-------------------------------|------------
+ * `T get[NAME]()`   | T get(int index)              | Get the value of type `T` for the component at `index`.
+ * `* set[NAME](T)`  | void set(int index, T value)  | Update the stored value for the component at `index` to be `value`.
+ * `T get[NAME](T)`  | void get(int index, T result) | Update `result` to equal the value for the component at `index`.
+ *
+ * These getters and setters exposed by the Property subclass must respect the requirements of its chosen
+ * semantics. It is not required for a property type to support all of these methods. It is not validated if a
+ * property declares both mutators and accessors, but not doing so would limit the use of the property type
+ * since it would prevent the component method patterns from supporting that type.
+ *
+ * In a property implementation, the type `T` may be a concrete type or generic type. If it is generic, the
+ * Property must also implement {@link com.lhkbob.entreri.property.Property.Generic} where Generic's type
+ * variable is set to the type `T`.
+ *
+ * ### Instantiation
  *
  * Property instances are carefully managed by an EntitySystem. There is ever only one property instance per
- * defined property in a component type for a system. Property instances are created by {@link PropertyFactory
- * PropertyFactories}. Every concrete Property class should be annotated with {@link
- * com.lhkbob.entreri.attr.ImplementedBy} to specify the PropertyFactory class that constructs it. If not every
- * component method utilizing the property must specify the `@Factory` annotation explicitly.
+ * defined property in a component type for a system. Property instances are constructed for a component type
+ * the first time a component type is referenced by the system. In order to automatically construct the
+ * Property instances, subclasses must define a public constructor that fits the following criteria:
  *
- * # Constructors FIXME update to be within Property
- *
- * 1. Access may be public, private, or protected although public access makes it self-documenting.
+ * 1. Constructor access must be public.
  * 2. The first argument may be of type `Class` and will be passed the concrete type the property must store.
  * This is largely only valuable for generic properties that might depend on the actual class type.
  * 3. All remaining arguments must be {@link com.lhkbob.entreri.attr.Attribute}-labeled `Annotation`
  * instances.
  *
- * The default `entrer` implementation will inject the property class (if its requested as the first
+ * The default `entreri` implementation will inject the property class (if its requested as the first
  * argument), and it will inject the annotation instances that were attached to the property methods of the
  * component. If `null` is passed in, it means the attribute was not specified for that property in the
  * component description. If the `Class` argument is present in the constructor, the value will never be null.
@@ -74,41 +111,133 @@ package com.lhkbob.entreri.property;
  * The following examples illustrate constructors that fit these patterns:
  *
  * ```java
- * // a factory that requires no extra configuration
- * public MyFactory() { }
+ * // a property that requires no extra configuration
+ * public MyProperty() { }
  *
- * // a generic factory that wants the property class
- * public MyGenericFactory(Class<? extends T> type) {
- * // here T is the type specified in the @GenericProperty annotation
+ * // a generic property that wants the property class
+ * public MyGenericProperty(Class<? extends T> type) {
+ *     // here T is the type specified in the Generic<> interface
  * }
  *
- * // a factory that supports multiple attributes
- * public MyCustomizableFactory(DefaultValue dflt, Clone clonePolicy) {
- * if (dflt != null) {
- * // read default value for property
- * }
+ * // a property that supports multiple attributes
+ * public MyCustomizableProperty(DefaultValue dflt, Clone clonePolicy) {
+ *     if (dflt != null) {
+ *         // read default value for property
+ *     }
  * }
  *
  * // a generic factory with attributes
- * public MyCustomGenericFactory(Class<? extends T> type, Clone clonePolicy) {
+ * public MyCustomGenericProperty(Class<? extends T> type, Clone clonePolicy) {
  *
  * }
  * ```
  *
  * In the event that multiple constructors fit these patterns, the constructor with the most arguments is
  * invoked. Other constructors that have a more programmer friendly API can and should be provided if they
- * make sense and will be ignored.
+ * make sense and will not be used during the code generation stage.
  *
+ * ### Mapping to a Property implementation
+ *
+ * Once a Property class is defined and implemented, `entreri` must be told of its existence when code is
+ * being generated for component implementations. In the discussion that follows, assume the new Property
+ * implementation is type `P` and supports values of type `T`. If a component method references type `T`, the
+ * method can be annotated with {@link com.lhkbob.entreri.attr.ImplementedBy} and its value set to `P.class`
+ * to select the custom property implementation for that component's method. Other references to type `T`
+ * would use the default property for that type.
+ *
+ * To map the custom `P` to every property declaration of `T`, a mapping file must be placed in the META-INF
+ * directory for the code generation process to discover. The file `META-INF/entreri/mapping/<T>-<semantics>`
+ * is searched for. If found, its contents are read and assumed to be the qualified class name of the Property
+ * implementation supporting `T`. The filename should replace `<T>` with the qualified class name of `T`, and
+ * replace `<semantics>` with the string `value` or `reference` depending on the supported semantics of `P`.
  *
  * @author Michael Ludwig
  */
 public interface Property<T extends Property<T>> {
     /**
-     * Resize the internal storage to support indexed lookups from 0 to <code>size - 1</code>.  If
-     * `size` is less than the current capacity, all previous values with an index less than
-     * `size` must be preserved, and the remainder are discarded.  If `size` is greater than
-     * the current capacity, all previous indexed values must be preserved and the new values can be
-     * undefined.
+     * ReferenceSemantics
+     * ==================
+     *
+     * ReferenceSemantics is a tag interface that a Property subclass can implement to declare that the
+     * semantics it uses for accessing and mutating state are the reference semantics Java uses for any `Object`
+     * type. Features of reference semantics:
+     *
+     * * A component's value may be null.
+     * * The state of the referred object can be changed after assigning it to the component and the
+     * component will reflect that change.
+     * * The state of the component's value can be changed after retrieving it without having to reassign it
+     * to the component.
+     *
+     * A property declaration in a component definition uses value semantics by default. To use a Property
+     * implementation that has reference semantics, the {@link com.lhkbob.entreri.attr.Reference} attribute
+     * must be added to the component's property.
+     *
+     * @author Michael Ludwig
+     * @see com.lhkbob.entreri.property.Property.ValueSemantics
+     */
+    public static interface ReferenceSemantics {
+    }
+
+    /**
+     * ValueSemantics
+     * ==============
+     *
+     * ValueSemantics is a tag interface that a Property subclass can implement to declare that the
+     * semantics it uses for accessing and mutating state are value-like semantics that are usually associated
+     * with primitive types. Requirements of value semantics:
+     *
+     * * Mutations to an object after its been assigned to a component's property does not affect the state of the component.
+     * * Mutations to an object retrieved from a component's property do not affect the state of the component, *or* the
+     * returned value cannot be modified.
+     * * Null values are not allowed, either to be assigned or returned.
+     *
+     * Java primitive types automatically fit the requirements of value semantics. `Object` types that
+     * are immutable, such as {@link String} also fit value semantics without any extra work on the Property
+     * implementer's part. However, other object types do not fit value semantics without special support
+     * from the property. To achieve value semantics, the property may clone instances on input and output,
+     * copy and decompose state into primitive arrays, or wrap values in unmodifiable interfaces (as is often
+     * done for collections).
+     *
+     * The value semantic contract is not validated, it is assumed that implementing
+     * this interface declares the requirements have been met.
+     *
+     * @author Michael Ludwig
+     * @see com.lhkbob.entreri.property.Property.ReferenceSemantics
+     */
+    public static interface ValueSemantics {
+    }
+
+    /**
+     * Generic
+     * =======
+     *
+     * Generic is an informational interface that a Property subclass must implement if it has type
+     * variables in it's definition. In a number of circumstances it makes sense for a single Property
+     * implementation to be valid across multiple types. Examples of this are {@link
+     * com.lhkbob.entreri.property.EnumProperty} and {@link com.lhkbob.entreri.property.ObjectProperty}.
+     * Implementing `Generic` does not mandate the semantics the property must adhere to.
+     *
+     * The type variable `P` is the parameterized type that the Property supports. This does not have to be
+     * equal to the declared type variable of the implementation, although it should reference it. `P` should
+     * be the type returned by the `get(int)` method or the value parameter for the `set(int, P)` method most
+     * Properties declare. In simple cases `P = T` where `T` is the type variable declared by the
+     * implementation. In complex cases, such as for collections, `T` might be the element type and `P =
+     * List<T>`.
+     *
+     * If a Property subclass does not implement this method, it cannot have any type variables. This
+     * interface is required by the code generator so that it can unify the generic type `P` with the
+     * component's property type to determine if the Property implementation supports it.
+     *
+     * @author Michael Ludwig
+     */
+    public static interface Generic<P> {
+    }
+
+    /**
+     * Resize the internal storage to support indexed lookups from 0 to `size - 1`.  If `size` is less than
+     * the current capacity, all previous values with an index less than `size` must be preserved, and the
+     * remainder are discarded.  If `size` is greater than the current capacity, all previous indexed values
+     * must be preserved and the new values can be undefined.
      *
      * This is for internal use *only*, and should not be called outside the management of components.
      *
@@ -118,12 +247,11 @@ public interface Property<T extends Property<T>> {
 
     /**
      * Get the current capacity of the property. All instances must start with a capacity of at least 1.
-     * The capacity represents the number of component instances the property can handle. Even if component's
-     * property value is represented as multiple consecutive primitives, that is still a single value instance
-     * when considering the capacity an index supplied to `get()` or `set()`.
+     * The capacity represents the number of component instances the property can handle.
      *
      * This is an upper limit on valid indices for access purposes. It will be at least the actual number of
-     * component instances of the associated type.
+     * component instances of the associated type. Accessing data beyond the last valid component has
+     * undefined values but will not produce an index-out-of-bounds unless the index exceeds the capacity.
      *
      * @return The current capacity of the property
      */
@@ -160,28 +288,4 @@ public interface Property<T extends Property<T>> {
      * @param dstIndex The index into dst of the component being created
      */
     public void clone(T src, int srcIndex, int dstIndex);
-
-    // a property must extend ReferenceSemantics xor ValueSemantics, this should be verified by the annotation processor
-    // these are made as separate interfaces because:
-    // 1. allows convenient semantic checks by instanceof
-    // 2. is more accessible than an annotation
-    // 3. really more accessible than pulling apart a ParameterizedType at runtime
-    // 4. does not require defining a Semantics super-type for a generic parameter
-    // 5. a generic parameter cannot specify a strict subtype so Property<Semantics> is possible, which is dumb
-    public static interface ReferenceSemantics {
-    }
-
-    public static interface ValueSemantics {
-    }
-
-    // a property impl can have at most one generic parameter. if it does, it must implement generic as well.
-    // the parameter passed to Generic is the value type the property supports. This is unified with the
-    // declaration to get the parameter value for the actual impl, which defines the actual methods available.
-    // So a collection property might be ListProperty<T> implements Property<...>, Generic<List<T>>. The
-    // declaration type gets set to List<Foo>, which unifies to T = Foo so the source outputs ListProperty<Foo>,
-    // which if ListProperty is defined to make sense should then have methods like add(Foo), set(List<Foo>), etc.
-    //
-    // The declared property type from a component CANNOT have any parameters to it
-    public static interface Generic<P> {
-    }
 }
