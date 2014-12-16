@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default long attribute for properties.
+ * DefaultLong
+ * ===========
+ *
+ * Default long attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.LongProperty}, the default property for `long` values.
  *
  * @author Michael Ludwig
  */

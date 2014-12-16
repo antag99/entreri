@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default int attribute for properties.
+ * DefaultInt
+ * ==========
+ *
+ * Default int attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.IntProperty}, the default property for `int` values.
  *
  * @author Michael Ludwig
  */

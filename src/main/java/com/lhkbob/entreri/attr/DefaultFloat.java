@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default float attribute for properties.
+ * DefaultFloat
+ * ============
+ *
+ * Default float attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.FloatProperty}, the default property for `float` values.
  *
  * @author Michael Ludwig
  */

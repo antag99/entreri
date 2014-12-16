@@ -29,8 +29,13 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
+ * DefaultEnum
+ * ===========
+ *
  * Default enum attribute for properties, that represents the enum value by the integer ordinal. Because of
- * this it must be kept carefully in-sync with the actual values of the property's chosen enum type.
+ * this, instances of DefaultEnum  must be kept carefully in sync with the actual values of the property's
+ * chosen enum type. This attribute is supported by {@link com.lhkbob.entreri.property.EnumProperty}, the
+ * default property implementation for any `Enum` type.
  *
  * @author Michael Ludwig
  */

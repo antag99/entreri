@@ -32,11 +32,12 @@ import java.lang.annotation.*;
  * Attribute
  * =========
  *
- * Attribute is used to declare that other annotation types are 'attributes' of a Property declaration in a
+ * Attribute is used to declare an annotation type is an 'attribute' of a property declaration in a
  * Component type definition. They can then be accessed by Properties to configure its behavior. Examples
  * include describing cloning behavior and default values. Attribute annotations should have a runtime
  * retention. See {@link com.lhkbob.entreri.property.Property} for details on how a Property is provided with
- * the attributes it's interested in.
+ * the attributes it's interested in. Attributes become part of the component definitions contract. To help
+ * with automatic documentation, attributes should be annotated with the `@Documented` annotation.
  *
  * An attribute annotation has an associated level, which determines what it influences. For now there are
  * only two levels:
@@ -46,7 +47,7 @@ import java.lang.annotation.*;
  * Attribute annotations at the property level affect the definition of the property, regardless of what
  * method or parameter they were placed on. Thus for simple bean property methods, the attribute annotation
  * can be placed on either method (or the setter's parameter). Regardless, the attribute will be available to
- * the PropertyFactory constructing the Property object that manages the property.
+ * the Property object that manages the property.
  *
  * In some cases it does not make sense to place a property-level annotation on a method. The frequent
  * example of this is a setter method with more than argument that sets multiple property values. In this case
@@ -56,27 +57,37 @@ import java.lang.annotation.*;
  * ## Method-level attributes
  *
  * Often method level attributes are used when finer-grained control is needed. Attributes that are method
- * level are not accessible to the PropertyFactories, but are used by the implementation when generating the
+ * level are not accessible to the Properties, but are used by the implementation when generating the
  * source code of the component. They only affect the method they were applied to, instead of every method
  * that references the property. Because it affects the generation of the component code, method-level
- * attributes require more development effort.
+ * attributes cannot be as easily defined as property-level attributes.
  *
  * In situations where a method references multiple properties, the method-level attribute can be applied to
- * the method or the method parameters. When applied to a method parameter, the attribute affects the property
- * corresponding to that parameter, limited to the method's scope.
+ * the method or the method parameters. When applied to a method parameter, it has no different affect from
+ * being applied to the method. Because of this it is highly recommended that a method-level attribute only
+ * use the METHOD target type.
  *
  * Most attributes should be property-level, but validation attributes are often method-level to allow for
- * validation to change per-method. A property-level attribute can be simulated by applying a method-level
- * attribute to every method associated with the property.
- *
+ * validation to change per-method or operate across multiple properties.
  * @author Michael Ludwig
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface Attribute {
+    /**
+     * The attribute levels currently supported.
+     */
     public static enum Level {
+        /**
+         * Property level attributes are visible to all methods referencing the property, regardless of which
+         * method or parameter of the property had the attribute defined on it.
+         */
         PROPERTY,
+        /**
+         * Method level attributes are only visible to the method it is applied to. Applying one to a method
+         * parameter behaves identically to when applied to the method.
+         */
         METHOD
     }
 

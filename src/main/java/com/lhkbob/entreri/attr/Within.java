@@ -38,12 +38,11 @@ import java.lang.annotation.*;
  * the range is valid and produces an open-ended range. Inputs that fall outside the declared range will cause
  * an IllegalArgumentException to be thrown.
  *
- * Compilation failures will result if applied to non-primitive parameters. When applied to a setter method,
- * the range operates on the first parameter regardless of the number of method inputs. When applied to a
- * specific parameter, the proxy generates code for that parameter. In this way, multi-parameter setters can
- * have Within applied to each parameter.
+ * Compilation failures will result if applied to non-primitive properties. Unlike the {@link
+ * com.lhkbob.entreri.attr.Validate} attribute, Within is a property-level validation attribute. This means
+ * the range it declares is a  contract on both the accessors and mutators of the property. Regardless of
+ * where this attribute is applied for a property, any mutator method will verify the range is satisfied.
  *
- * This annotation is ignored when placed on the property getter.
  *
  * @author Michael Ludwig
  */

@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default byte attribute for properties.
+ * DefaultByte
+ * ===========
+ *
+ * Default byte attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.ByteProperty}, the default property for `byte` values.
  *
  * @author Michael Ludwig
  */

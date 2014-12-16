@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default short attribute for properties.
+ * DefaultShort
+ * ============
+ *
+ * Default short attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.ShortProperty}, the default property for `short` values.
  *
  * @author Michael Ludwig
  */

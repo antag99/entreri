@@ -202,7 +202,6 @@ public abstract class AbstractComponent<T extends Component> implements Componen
                 return "null";
             }
         } catch (NoSuchMethodException e) {
-            // should never happen
             return "missing get() method";
         } catch (InvocationTargetException | IllegalAccessException e) {
             return "unable to inspect";

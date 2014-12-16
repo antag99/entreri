@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default char attribute for properties.
+ * DefaultChar
+ * ===========
+ *
+ * Default char attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.CharProperty}, the default property for `char` values.
  *
  * @author Michael Ludwig
  */

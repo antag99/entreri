@@ -38,8 +38,8 @@ import java.lang.annotation.*;
  * values for properties with this attribute are set to the property's  default instead of from the template
  * component's current value.
  *
- * This can be useful for cached components that have more transient state or whose values are only valid
- * for the entity that computed it.
+ * This can be useful for components that have more transient state or whose values are only valid for the
+ * entity that computed it.
  *
  * @author Michael Ludwig
  */

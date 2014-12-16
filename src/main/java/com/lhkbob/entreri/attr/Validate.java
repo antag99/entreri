@@ -33,19 +33,19 @@ import java.lang.annotation.*;
  * ========
  *
  * Validate is a generic validation annotation that lets you specify a Java-like snippet to be inserted into
- * the generated proxy to perform validation on a setter method.  Unlike {@link NotNull} and {@link Within},
+ * the generated proxy to perform validation on a setter method.  Unlike {@link Within},
  * this annotation cannot be placed on setter parameters. Because of the flexibility this offers, Validate
  * allows you to perform validation between different properties of the same component (such as ensuring a
  * minimum is less than a maximum value).
  *
- * This annotation is ignored if placed on the getter property method.
+ * This annotation does nothing if placed on a method that does not accept input arguments.
  *
  * ## Validation expressions
  *
  * The Java-like validation snippet must evaluate to a boolean expression. When that expression evaluates to
  * true, the inputs are considered valid; otherwise, the generated setter method will throw an
  * IllegalArgumentException. The snippet must use valid Java syntax, except that the symbols `${1}` to `${n}`
- * should be used to refer to the first through `n`th setter parameters. Those symbols will be replaced with
+ * should be used to refer to the first through `n`th method parameters. Those symbols will be replaced with
  * the generated parameter name at compile time.
  *
  * After this syntax replacement, any other errors in the validation expression may produce Java syntax

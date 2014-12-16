@@ -29,7 +29,11 @@ package com.lhkbob.entreri.attr;
 import java.lang.annotation.*;
 
 /**
- * Default boolean attribute for properties.
+ * DefaultBoolean
+ * ==============
+ *
+ * Default boolean attribute for properties. This is a property-level attribute and is supported by
+ * {@link com.lhkbob.entreri.property.BooleanProperty}, the default property for `boolean` values.
  *
  * @author Michael Ludwig
  */
