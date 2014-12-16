@@ -54,8 +54,8 @@ package com.lhkbob.entreri.property;
  * com.lhkbob.entreri.property.Property.ValueSemantics} or {@link
  * com.lhkbob.entreri.property.Property.ReferenceSemantics}. The annotation processor will verify that one and
  * only one of these interfaces is implemented. Depending on the chosen semantics, the behavior of any
- * accessors, mutators, and {@link #clone(T, int, int)} will change and must be implemented appropriately by
- * the property.
+ * accessors, mutators, and {@link #clone(Property, int, int)} will change and must be implemented
+ * appropriately by the property.
  *
  * ### Accessor and mutator methods
  *
