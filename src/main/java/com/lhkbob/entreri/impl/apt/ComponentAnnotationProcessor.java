@@ -117,7 +117,7 @@ public class ComponentAnnotationProcessor extends AbstractProcessor {
             // generate a custom Component implementation for this Component interface
             ComponentSpecification spec = new ComponentSpecification(component, processingEnv);
             String name = ComponentGenerator.getImplementationClassName(spec, true);
-            String code = new ComponentGenerator().generateJavaCode(spec);
+            String code = ComponentGenerator.generateJavaCode(spec);
 
             try {
                 Writer w = processingEnv.getFiler().createSourceFile(name, component).openWriter();
