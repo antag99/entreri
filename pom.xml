@@ -67,12 +67,24 @@
                     </reportSet>
                 </reportSets>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.8.1</version>
-
+                <version>2.10.1</version>
                 <configuration>
+                    <doclet>ch.raffael.doclets.pegdown.PegdownDoclet</doclet>
+                    <docletArtifact>
+                        <groupId>ch.raffael.pegdown-doclet</groupId>
+                        <artifactId>pegdown-doclet</artifactId>
+                        <version>1.1</version>
+                    </docletArtifact>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                    <excludePackageNames>com.lhkbob.entreri.impl</excludePackageNames>
+                    <doctitle>${project.name} ${project.version}</doctitle>
+                    <header>${project.name} ${project.version}</header>
+                    <docfilessubdirs>true</docfilessubdirs>
+                    <stylesheetfile>src/main/javadoc/stylesheet.css</stylesheetfile>
                 </configuration>
 
                 <reportSets>
@@ -93,7 +105,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
-                <version>2.3</version>
+                <version>2.5</version>
 
                 <reportSets>
                     <reportSet>
@@ -112,7 +124,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-report-plugin</artifactId>
-                <version>2.14.1</version>
+                <version>2.18</version>
             </plugin>
         </plugins>
     </reporting>
@@ -204,7 +216,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.1</version>
+                    <version>3.3</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -262,22 +274,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <doclet>ch.raffael.doclets.pegdown.PegdownDoclet</doclet>
-                    <docletArtifact>
-                        <groupId>ch.raffael.pegdown-doclet</groupId>
-                        <artifactId>pegdown-doclet</artifactId>
-                        <version>1.1</version>
-                    </docletArtifact>
-                    <useStandardDocletOptions>true</useStandardDocletOptions>
-                    <excludePackageNames>com.lhkbob.entreri.impl</excludePackageNames>
-                </configuration>
             </plugin>
         </plugins>
     </build>
