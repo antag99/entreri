@@ -1,6 +1,139 @@
+/* DejaVu Sans fonts in normal, bold, italic, and bold+italic */
+
 @font-face {
-    font-family: 'DejaVuSansMono';
-    src: url('DejaVuSansMono.eot?#iefix') format('embedded-opentype'), url('DejaVuSansMono.woff') format('woff'), url('DejaVuSansMono.ttf') format('truetype'), url('DejaVuSansMono.svg#DejaVuSansMono') format('svg');
+    font-family: 'DejaVu Sans';
+    src: url('DejaVuSans-webfont.eot');
+    src: url('DejaVuSans-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSans-webfont.woff') format('woff'),
+    url('DejaVuSans-webfont.ttf') format('truetype'),
+    url('DejaVuSans-webfont.svg#dejavu_sansbook') format('svg');
     font-weight: normal;
     font-style: normal;
 }
+
+@font-face {
+    font-family: 'DejaVu Sans';
+    src: url('DejaVuSans-Oblique-webfont.eot');
+    src: url('DejaVuSans-Oblique-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSans-Oblique-webfont.woff') format('woff'),
+    url('DejaVuSans-Oblique-webfont.ttf') format('truetype'),
+    url('DejaVuSans-Oblique-webfont.svg#dejavu_sansoblique') format('svg');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'DejaVu Sans';
+    src: url('DejaVuSans-Bold-webfont.eot');
+    src: url('DejaVuSans-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSans-Bold-webfont.woff') format('woff'),
+    url('DejaVuSans-Bold-webfont.ttf') format('truetype'),
+    url('DejaVuSans-Bold-webfont.svg#dejavu_sansbold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'DejaVu Sans';
+    src: url('DejaVuSans-BoldOblique-webfont.eot');
+    src: url('DejaVuSans-BoldOblique-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSans-BoldOblique-webfont.woff') format('woff'),
+    url('DejaVuSans-BoldOblique-webfont.ttf') format('truetype'),
+    url('DejaVuSans-BoldOblique-webfont.svg#dejavu_sansbold_oblique') format('svg');
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* DejaVu Sans Mono fonts in normal, bold, italic, and bold+italic */
+
+@font-face {
+    font-family: 'DejaVu Sans Mono';
+    src: url('DejaVuSansMono-webfont.eot');
+    src: url('DejaVuSansMono-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSansMono-webfont.woff') format('woff'),
+    url('DejaVuSansMono-webfont.ttf') format('truetype'),
+    url('DejaVuSansMono-webfont.svg#dejavu_sans_monobook') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'DejaVu Sans Mono';
+    src: url('DejaVuSansMono-Oblique-webfont.eot');
+    src: url('DejaVuSansMono-Oblique-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSansMono-Oblique-webfont.woff') format('woff'),
+    url('DejaVuSansMono-Oblique-webfont.ttf') format('truetype'),
+    url('DejaVuSansMono-Oblique-webfont.svg#dejavu_sans_monooblique') format('svg');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'DejaVu Sans Mono';
+    src: url('DejaVuSansMono-Bold-webfont.eot');
+    src: url('DejaVuSansMono-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSansMono-Bold-webfont.woff') format('woff'),
+    url('DejaVuSansMono-Bold-webfont.ttf') format('truetype'),
+    url('DejaVuSansMono-Bold-webfont.svg#dejavu_sans_monobold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'DejaVu Sans Mono';
+    src: url('DejaVuSansMono-BoldOblique-webfont.eot');
+    src: url('DejaVuSansMono-BoldOblique-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSansMono-BoldOblique-webfont.woff') format('woff'),
+    url('DejaVuSansMono-BoldOblique-webfont.ttf') format('truetype'),
+    url('DejaVuSansMono-BoldOblique-webfont.svg#dejavu_sans_monobold_oblique') format('svg');
+    font-weight: bold;
+    font-style: italic;
+}
+
+/* DejaVu Serif fonts in normal, bold, italic, and bold+italic */
+
+@font-face {
+    font-family: 'DejaVu Serif';
+    src: url('DejaVuSerif-webfont.eot');
+    src: url('DejaVuSerif-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSerif-webfont.woff') format('woff'),
+    url('DejaVuSerif-webfont.ttf') format('truetype'),
+    url('DejaVuSerif-webfont.svg#dejavu_serifbook') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'DejaVu Serif';
+    src: url('DejaVuSerif-Italic-webfont.eot');
+    src: url('DejaVuSerif-Italic-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSerif-Italic-webfont.woff') format('woff'),
+    url('DejaVuSerif-Italic-webfont.ttf') format('truetype'),
+    url('DejaVuSerif-Italic-webfont.svg#dejavu_serifitalic') format('svg');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'DejaVu Serif';
+    src: url('DejaVuSerif-Bold-webfont.eot');
+    src: url('DejaVuSerif-Bold-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSerif-Bold-webfont.woff') format('woff'),
+    url('DejaVuSerif-Bold-webfont.ttf') format('truetype'),
+    url('DejaVuSerif-Bold-webfont.svg#dejavu_serifbold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'DejaVu Serif';
+    src: url('DejaVuSerif-BoldItalic-webfont.eot');
+    src: url('DejaVuSerif-BoldItalic-webfont.eot?#iefix') format('embedded-opentype'),
+    url('DejaVuSerif-BoldItalic-webfont.woff') format('woff'),
+    url('DejaVuSerif-BoldItalic-webfont.ttf') format('truetype'),
+    url('DejaVuSerif-BoldItalic-webfont.svg#dejavu_serifbold_italic') format('svg');
+    font-weight: bold;
+    font-style: italic;
+}
+
+
