@@ -26,9 +26,9 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.Reference;
-import com.lhkbob.entreri.attr.Validate;
-import com.lhkbob.entreri.attr.Within;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.property.Reference;
+import com.lhkbob.entreri.property.Within;
 
 import java.util.List;
 
@@ -51,12 +51,14 @@ public final class Validations {
     }
 
     public static void appendReference(String variable, Reference reference, Generator generator) {
+        //        boolean nullable = generator.getContext().getAnnotationBoolean(reference, "nullable");
         if (!reference.nullable()) {
             appendNotNull(variable, generator);
         }
     }
 
     public static void appendWithin(String variable, Within within, Generator generator) {
+
         if (Double.isInfinite(within.max())) {
             // less than min check only
             generator.appendSyntax("if (" + variable + " < " + within.min() + ") {",

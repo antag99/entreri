@@ -33,7 +33,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 // NOTE: this does not test the thread-safety aspects of a job, because
-// it's a little too difficult to right a unit test for that
+// it's a little too difficult to write a unit test for that
 public class SchedulerTest {
     @Test
     public void testResultsReportedToFutureTasksOnly() {

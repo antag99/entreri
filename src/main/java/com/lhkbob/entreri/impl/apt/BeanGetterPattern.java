@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.Attribute;
-
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -77,11 +75,8 @@ public class BeanGetterPattern extends AbstractMethodPattern {
             PropertyDeclaration property = new PropertyDeclaration(context,
                                                                    getPropertyName(m, "get", "is", "has"),
                                                                    m.getReturnType());
-            property.getAttributes()
-                    .addAll(getAttributes(Attribute.Level.PROPERTY, m, context.getAttributeScope()));
-            MethodDeclaration method = new BeanGetterDeclaration(m, property,
-                                                                 getAttributes(Attribute.Level.METHOD, m,
-                                                                               context.getAttributeScope()));
+            property.getAttributes().addAll(getPropertyAttributes(context, m));
+            MethodDeclaration method = new BeanGetterDeclaration(m, property, getMethodAttributes(m));
             property.getMethods().add(method);
 
             matches.put(m, Collections.singleton(property));

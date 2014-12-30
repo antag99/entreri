@@ -26,7 +26,7 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.attr.DefaultInt;
+import com.lhkbob.entreri.property.DefaultInt;
 import com.lhkbob.entreri.property.ObjectProperty;
 import com.lhkbob.entreri.property.Property;
 
@@ -36,7 +36,7 @@ public class CustomProperty implements Property<CustomProperty>, Property.Refere
 
     public CustomProperty(int dflt) {
         this.dflt = dflt;
-        property = new ObjectProperty<>(true);
+        property = new ObjectProperty<>(Bletch.class, true);
     }
 
     public CustomProperty(DefaultInt dflt) {

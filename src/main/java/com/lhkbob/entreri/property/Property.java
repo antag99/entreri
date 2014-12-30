@@ -100,7 +100,7 @@ package com.lhkbob.entreri.property;
  * 1. Constructor access must be public.
  * 2. The first argument may be of type `Class` and will be passed the concrete type the property must store.
  * This is largely only valuable for generic properties that might depend on the actual class type.
- * 3. All remaining arguments must be {@link com.lhkbob.entreri.attr.Attribute}-labeled `Annotation`
+ * 3. All remaining arguments must be {@link Attribute}-labeled `Annotation`
  * instances.
  *
  * The default `entreri` implementation will inject the property class (if its requested as the first
@@ -141,7 +141,7 @@ package com.lhkbob.entreri.property;
  * Once a Property class is defined and implemented, `entreri` must be told of its existence when code is
  * being generated for component implementations. In the discussion that follows, assume the new Property
  * implementation is type `P` and supports values of type `T`. If a component method references type `T`, the
- * method can be annotated with {@link com.lhkbob.entreri.attr.ImplementedBy} and its value set to `P.class`
+ * method can be annotated with {@link ImplementedBy} and its value set to `P.class`
  * to select the custom property implementation for that component's method. Other references to type `T`
  * would use the default property for that type.
  *
@@ -169,7 +169,7 @@ public interface Property<T extends Property<T>> {
      * to the component.
      *
      * A property declaration in a component definition uses value semantics by default. To use a Property
-     * implementation that has reference semantics, the {@link com.lhkbob.entreri.attr.Reference} attribute
+     * implementation that has reference semantics, the {@link Reference} attribute
      * must be added to the component's property.
      *
      * @author Michael Ludwig
@@ -280,7 +280,7 @@ public interface Property<T extends Property<T>> {
      * is used when a component is created and cloned from a template with {@link
      * com.lhkbob.entreri.Entity#add(com.lhkbob.entreri.Component)}. For many cases a assignment respecting
      * the property semantics is sufficient, but some component types might require more complicated cloning
-     * rules. It is recommended to check for the {@link com.lhkbob.entreri.attr.DoNotClone} annotation in the
+     * rules. It is recommended to check for the {@link DoNotClone} annotation in the
      * provided attributes set to define this behavior.
      *
      * @param src      The source property that is being cloned

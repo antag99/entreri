@@ -27,15 +27,15 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.SharedInstance;
+import com.lhkbob.entreri.property.Reference;
 
 /**
- * Invalid component definition that double checks that we fail when using a shared instance annotation with a
- * object properties.
+ * Invalid component definition that makes sure we don't implement the shared getter for a property type
+ * that doesn't expose shared values.
  */
 public interface InvalidSharedObjectComponent extends Component {
-    @SharedInstance
-    public Object getValue();
+    @Reference
+    public Object getValue(Object result);
 
     public void setValue(Object v);
 }

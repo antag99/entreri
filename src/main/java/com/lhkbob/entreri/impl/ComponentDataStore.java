@@ -121,7 +121,7 @@ public abstract class ComponentDataStore<T extends Component> {
         // we set a unique id for every component
         componentIdProperty = decorate(new IntProperty(0, false));
         componentVersionProperty = decorate(new IntProperty(0, false));
-        ownerDelegatesProperty = decorate(new ObjectProperty(false));
+        ownerDelegatesProperty = decorate(new ObjectProperty<>(Object.class, false));
 
         idSeq = 1; // start at 1, just like entity id sequences versionSeq = 0;
 

@@ -26,12 +26,14 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.Attribute;
-import com.lhkbob.entreri.attr.Named;
+import com.lhkbob.entreri.Named;
+import com.lhkbob.entreri.property.Attribute;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.HashSet;
@@ -52,26 +54,16 @@ public abstract class AbstractMethodPattern implements MethodPattern {
 
     /**
      * Create a new pattern that uses the provided annotation classes as its supported attributes. It
-     * ignores any annotation class that is not annotated with {@link com.lhkbob.entreri.attr.Attribute} and
-     * automatically includes the {@link com.lhkbob.entreri.attr.Named} annotation.
+     * automatically includes the {@link com.lhkbob.entreri.Named} annotation.
      *
      * @param supportedAttributes The supported attributes
      */
     protected AbstractMethodPattern(List<Class<? extends Annotation>> supportedAttributes) {
 
         Set<Class<? extends Annotation>> annots = new HashSet<>();
-        for (Class<? extends Annotation> a : supportedAttributes) {
-            if (a.getAnnotation(Attribute.class) != null) {
-                annots.add(a);
-            }
-        }
+        annots.addAll(supportedAttributes);
         annots.add(Named.class);
         attributes = Collections.unmodifiableSet(annots);
-    }
-
-    @Override
-    public Set<Class<? extends Annotation>> getSupportedAttributes() {
-        return attributes;
     }
 
     private static String getPropertyName(String methodName, String prefix) {
@@ -80,26 +72,36 @@ public abstract class AbstractMethodPattern implements MethodPattern {
     }
 
     /**
-     * Get all attribute annotations of the particular `level` from the annotation source, which may be an
-     * {@link javax.lang.model.element.ExecutableElement} for a method, or a {@link
-     * javax.lang.model.element.VariableElement} for a method parameter. The returned annotations will only
-     * include annotation types from `scope`.
+     * Get all annotations of types that were provided to the constructor. The annotation source may be
+     * an executable element (e.g. method) or a variable element (e.g. parameter to said method).
      *
-     * @param level       The attribute level to filter on
      * @param annotSource The source of annotations
-     * @param scope       The set of annotation types to query
-     * @return All matching attributes
+     * @return All annotations of interested types
      */
-    protected Set<Annotation> getAttributes(Attribute.Level level, Element annotSource,
-                                            Set<Class<? extends Annotation>> scope) {
+    protected Set<Annotation> getMethodAttributes(Element annotSource) {
         Set<Annotation> result = new HashSet<>();
 
-        for (Class<? extends Annotation> aType : scope) {
-            if (aType.getAnnotation(Attribute.class).level() == level) {
-                Annotation a = annotSource.getAnnotation(aType);
-                if (a != null) {
-                    result.add(a);
-                }
+        for (Class<? extends Annotation> aType : attributes) {
+            Annotation a = annotSource.getAnnotation(aType);
+            if (a != null) {
+                result.add(a);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Get all attribute annotations from the element.
+     *
+     * @param annotSource The source of annotations
+     * @return All annotation mirrors that have been annotated with Attribute
+     */
+    protected Set<AnnotationMirror> getPropertyAttributes(TypeUtils tu, Element annotSource) {
+        Set<AnnotationMirror> result = new HashSet<>();
+        for (AnnotationMirror am : annotSource.getAnnotationMirrors()) {
+            DeclaredType annotType = am.getAnnotationType();
+            if (tu.asElement(annotType).getAnnotation(Attribute.class) != null) {
+                result.add(am);
             }
         }
         return result;

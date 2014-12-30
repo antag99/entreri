@@ -30,20 +30,20 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
 import com.lhkbob.entreri.Ownable;
 import com.lhkbob.entreri.Owner;
-import com.lhkbob.entreri.attr.Attribute;
-import com.lhkbob.entreri.attr.ImplementedBy;
-import com.lhkbob.entreri.attr.Reference;
+import com.lhkbob.entreri.property.ImplementedBy;
 import com.lhkbob.entreri.property.Property;
+import com.lhkbob.entreri.property.Reference;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
 import javax.tools.Diagnostic;
-import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
@@ -60,6 +60,8 @@ import java.util.*;
  * @author Michael Ludwig
  */
 public class ComponentSpecification {
+    private final Context context;
+
     private final TypeMirror componentType;
     private final String packageName;
     private final List<PropertyDeclaration> properties;
@@ -93,7 +95,7 @@ public class ComponentSpecification {
      * @param patterns The list of method patterns, with higher precedence first
      */
     public ComponentSpecification(TypeElement type, ProcessingEnvironment env, MethodPattern... patterns) {
-        Context context = createContext(env, type.asType(), patterns);
+        context = createContext(env, type.asType());
         TypeMirror componentType = context.fromClass(Component.class);
         TypeMirror objectType = context.fromClass(Object.class);
         TypeMirror ownerType = context.fromClass(Owner.class);
@@ -138,9 +140,8 @@ public class ComponentSpecification {
         Collections.sort(orderedMethods);
         validateMethods(context, orderedMethods);
 
-        context.getLogger().printMessage(Diagnostic.Kind.OTHER,
-                                         getDebugSpecificationMessage(context.getComponentType(),
-                                                                      properties));
+        context.getLogger()
+               .printMessage(Diagnostic.Kind.OTHER, getDebugSpecificationMessage(properties), type);
 
         this.properties = Collections.unmodifiableList(properties);
         this.methods = Collections.unmodifiableList(orderedMethods);
@@ -148,12 +149,22 @@ public class ComponentSpecification {
         packageName = context.getElements().getPackageOf(type).getQualifiedName().toString();
     }
 
-    private static String getDebugSpecificationMessage(TypeMirror componentType,
-                                                       List<PropertyDeclaration> properties) {
+    private static String getDebugSpecificationMessage(List<PropertyDeclaration> properties) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Properties for ").append(componentType).append(":\n");
+        sb.append("Detected properties").append(":\n");
         for (PropertyDeclaration p : properties) {
-            sb.append("\t").append(p).append("\n");
+            sb.append("\t");
+            String[] ms = p.toString().split("\\n");
+            boolean firstLine = true;
+            for (String s : ms) {
+                if (firstLine) {
+                    firstLine = false;
+                } else {
+                    sb.append("\n\t");
+                }
+                sb.append(s);
+            }
+            sb.append("\n");
         }
         return sb.toString();
     }
@@ -164,12 +175,12 @@ public class ComponentSpecification {
 
     private static void validateAttributes(Context context, List<PropertyDeclaration> properties) {
         for (PropertyDeclaration p : properties) {
-            Set<Class<? extends Annotation>> seen = new HashSet<>();
-            for (Annotation a : p.getAttributes()) {
-                if (!seen.add(a.annotationType())) {
+            Set<DeclaredType> seen = new HashSet<>();
+            for (AnnotationMirror a : p.getAttributes()) {
+                if (!seen.add(a.getAnnotationType())) {
                     throw fail(context.getComponentType(),
                                p.getName() + " has multiple distinct attribute values for type " +
-                               a.annotationType());
+                               a.getAnnotationType());
                 }
             }
         }
@@ -190,12 +201,13 @@ public class ComponentSpecification {
             if (p.getPropertyImplementation() == null) {
                 TypeMirror propType = null;
 
-                for (Annotation a : p.getAttributes()) {
-                    if (a instanceof ImplementedBy) {
+                for (AnnotationMirror a : p.getAttributes()) {
+                    ImplementedBy impl = context.asAnnotation(a, ImplementedBy.class);
+                    if (impl != null) {
                         try {
-                            ((ImplementedBy) a).value();
-                        } catch (MirroredTypeException te) {
-                            propType = te.getTypeMirror();
+                            impl.value();
+                        } catch (MirroredTypeException e) {
+                            propType = e.getTypeMirror();
                         }
                         break;
                     }
@@ -204,8 +216,8 @@ public class ComponentSpecification {
                 if (propType == null) {
                     // look up from the file mapping after determining semantics
                     boolean useReferenceSemantics = false;
-                    for (Annotation a : p.getAttributes()) {
-                        if (a instanceof Reference) {
+                    for (AnnotationMirror a : p.getAttributes()) {
+                        if (context.isAnnotationType(a, Reference.class)) {
                             useReferenceSemantics = true;
                             break;
                         }
@@ -267,7 +279,7 @@ public class ComponentSpecification {
                                                          TypeMirror... unneeded) {
         List<ExecutableElement> filtered = new ArrayList<>();
         for (ExecutableElement m : methods) {
-            TypeMirror declaredIn = Context.findEnclosingTypeElement(m).asType();
+            TypeMirror declaredIn = TypeUtils.findEnclosingTypeElement(m).asType();
             boolean declaredInUnneeded = false;
             for (TypeMirror t : unneeded) {
                 if (context.getTypes().isSameType(declaredIn, t)) {
@@ -284,29 +296,16 @@ public class ComponentSpecification {
         return filtered;
     }
 
-    private static Context createContext(ProcessingEnvironment env, TypeMirror componentType,
-                                         MethodPattern[] patterns) {
-        Set<Class<? extends Annotation>> interested = new HashSet<>();
-        // the currently supported influcencePropertyChoice = true attributes
-        interested.add(ImplementedBy.class);
-        interested.add(Reference.class);
-        // any other attributes used by the patterns
-        for (MethodPattern pattern : patterns) {
-            interested.addAll(pattern.getSupportedAttributes());
-        }
-        // remove any that aren't actual attributes and output a debugging message
-        Iterator<Class<? extends Annotation>> it = interested.iterator();
-        while (it.hasNext()) {
-            Class<? extends Annotation> attr = it.next();
-            if (attr.getAnnotation(Attribute.class) == null) {
-                it.remove();
-                env.getMessager().printMessage(Diagnostic.Kind.WARNING, attr +
-                                                                        " used as an attribute, but is not annotated with @Attribute");
-            }
-        }
-
+    private static Context createContext(ProcessingEnvironment env, TypeMirror componentType) {
         return new Context(env, componentType, new TypePropertyMapper(env, Property.ValueSemantics.class),
-                           new TypePropertyMapper(env, Property.ReferenceSemantics.class), interested);
+                           new TypePropertyMapper(env, Property.ReferenceSemantics.class));
+    }
+
+    /**
+     * @return The context used to produce this specification
+     */
+    public Context getContext() {
+        return context;
     }
 
     /**

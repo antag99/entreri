@@ -56,7 +56,7 @@ package com.lhkbob.entreri;
  * modifying the returned object from a getter. This is straightforward for all primitive types in Java but
  * requires special back-end handling for Object types to guarantee these semantics. If there is no backing
  * {@link com.lhkbob.entreri.property.Property} for an Object type that supports value semantics, the method
- * in the component definition should be annotated with {@link com.lhkbob.entreri.attr.Reference} to declare
+ * in the component definition should be annotated with {@link com.lhkbob.entreri.property.Reference} to declare
  * that normal Java reference semantics are to be used instead.
  *
  * ## Method patterns
@@ -82,10 +82,10 @@ package com.lhkbob.entreri;
  *
  * Methods that start with 'get', 'is', or 'has', that take no arguments, and return a type `T` are
  * considered to be bean getter methods. The type `T` may be a primitive or any other Java type, although note
- * that Object types should be annotated with {@link com.lhkbob.entreri.attr.Reference} if the backing
+ * that Object types should be annotated with {@link com.lhkbob.entreri.property.Reference} if the backing
  * Property does not support value semantics. The default property name defined by one of these bean getters
  * is the remainder of the method name after the prefix, with its first character made lowercase. The defined
- * type of the property is the return type of the method. The {@link com.lhkbob.entreri.attr.Named} attribute
+ * type of the property is the return type of the method. The {@link Named} annotation
  * applied to the method overrides the name of the property, but does not affect how the method is
  * pattern-matched.
  *
@@ -99,9 +99,9 @@ package com.lhkbob.entreri;
  * property's type, and the default property name is the remainder of the name after the prefix, with its
  * first character made lowercase. This is consistent with naming used for bean getters. If the setter method
  * has the component subinterface as the return type, the generated implementation returns `this` to support
- * method chaining. This pattern supports the {@link com.lhkbob.entreri.attr.Within} and {@link
- * com.lhkbob.entreri.attr.Validate} attributes to modify the generated method body. The {@link
- * com.lhkbob.entreri.attr.Named} attribute applied to either the method or single parameter overrides the
+ * method chaining. This pattern supports the {@link com.lhkbob.entreri.property.Within} attribute and {@link
+ * Validate} annotation to modify the generated method body. The {@link
+ * Named} annotation applied to either the method or single parameter overrides the
  * name of the property, but does not affect how the method is pattern-matched.
  *
  * This pattern requires that the backing Property define a method `void set(int, T)`, which all default
@@ -115,7 +115,7 @@ package com.lhkbob.entreri;
  * when the backing property unpacks an object type into its primitive pieces. Instead of having to
  * instantiate new objects to pack them back together, a single instance can be mutated to match the value for
  * the components. The defined property uses the same default name and type as bean getters. Like bean
- * setters, applying {@link com.lhkbob.entreri.attr.Named} to the argument can be used to override the name in
+ * setters, applying {@link Named} to the argument can be used to override the name in
  * addition to applying it to the method itself.
  *
  * This pattern requires that the backing Property define a method `void get(int, T)`. None of the provided
@@ -127,9 +127,9 @@ package com.lhkbob.entreri;
  * Methods that start with 'set', return `void` or the component type, and take more than one argument are
  * matched by this pattern. This pattern defines a property for each of the arguments. For each parameter, the
  * defined property's name is either the variable name from the source code or the declared name from {@link
- * com.lhkbob.entreri.attr.Named} and its type is the type of the argument. The generated method will set
+ * Named} and its type is the type of the argument. The generated method will set
  * values for each the defined properties. This pattern is most useful when combined with the {@link
- * com.lhkbob.entreri.attr.Validate} attribute to perform validation across multiple arguments before the
+ * Validate} annotation to perform validation across multiple arguments before the
  * component is actually modified.
  *
  * This pattern requires that the backing Property define the same method required by bean setters.
@@ -147,20 +147,20 @@ package com.lhkbob.entreri;
  * ### Property default type mappings
  *
  * The table below shows how the type of a logical property is mapped to a Property implementation, for the
- * implementations provided within `entreri`. It also shows the {@link com.lhkbob.entreri.attr.Attribute}
+ * implementations provided within `entreri`. It also shows the {@link com.lhkbob.entreri.property.Attribute}
  * annotation that property class defines that allows specification of default values for a component.
  *
  * Type               | PropertyFactory implementation                      | Default attribute annotation
  * -------------------|-----------------------------------------------------|-----------------------------
- * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty} | {@link com.lhkbob.entreri.attr.DefaultBoolean}
- * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty}    | {@link com.lhkbob.entreri.attr.DefaultByte}
- * `short`            | {@link com.lhkbob.entreri.property.ShortProperty}   | {@link com.lhkbob.entreri.attr.DefaultShort}
- * `char`             | {@link com.lhkbob.entreri.property.CharProperty}    | {@link com.lhkbob.entreri.attr.DefaultChar}
- * `int`              | {@link com.lhkbob.entreri.property.IntProperty}     | {@link com.lhkbob.entreri.attr.DefaultInt}
- * `long`             | {@link com.lhkbob.entreri.property.LongProperty}    | {@link com.lhkbob.entreri.attr.DefaultLong}
- * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}   | {@link com.lhkbob.entreri.attr.DefaultFloat}
- * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty}  | {@link com.lhkbob.entreri.attr.DefaultDouble}
- * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty}    | {@link com.lhkbob.entreri.attr.DefaultEnum}
+ * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty} | {@link com.lhkbob.entreri.property.DefaultBoolean}
+ * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty}    | {@link com.lhkbob.entreri.property.DefaultByte}
+ * `short`            | {@link com.lhkbob.entreri.property.ShortProperty}   | {@link com.lhkbob.entreri.property.DefaultShort}
+ * `char`             | {@link com.lhkbob.entreri.property.CharProperty}    | {@link com.lhkbob.entreri.property.DefaultChar}
+ * `int`              | {@link com.lhkbob.entreri.property.IntProperty}     | {@link com.lhkbob.entreri.property.DefaultInt}
+ * `long`             | {@link com.lhkbob.entreri.property.LongProperty}    | {@link com.lhkbob.entreri.property.DefaultLong}
+ * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}   | {@link com.lhkbob.entreri.property.DefaultFloat}
+ * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty}  | {@link com.lhkbob.entreri.property.DefaultDouble}
+ * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty}    | {@link com.lhkbob.entreri.property.DefaultEnum}
  * `? extends Object` | {@link com.lhkbob.entreri.property.ObjectProperty}  | NA
  *
  * ## Advanced topics
@@ -277,7 +277,7 @@ public interface Component extends Owner, Ownable {
     /**
      * Increment the version of the component accessed by this instance. This will be automatically called by
      * all exposed setters by the generated proxies, but if necessary it can be invoked manually as well.
-     * Properties annotated with {@link com.lhkbob.entreri.attr.DoNotAutoVersion} will not automatically call this
+     * Properties annotated with {@link DoNotAutoVersion} will not automatically call this
      * method.
      *
      * @see #getVersion()

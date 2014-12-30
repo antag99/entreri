@@ -75,4 +75,9 @@ public interface Generator {
      * @param blobLines The syntax to append
      */
     public void appendSyntax(String... blobLines);
+
+    /**
+     * @return The Context of this generation
+     */
+    public Context getContext();
 }

@@ -1,7 +1,5 @@
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.DefaultChar;
-import com.lhkbob.entreri.attr.DoNotClone;
 import org.junit.Test;
 
 import java.lang.annotation.Annotation;

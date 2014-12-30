@@ -227,7 +227,7 @@ public class ComponentTest {
         c1.setSuperValue(12);
         c1.setEnum(ComplexComponent.TestEnum.V2);
 
-        Assert.assertEquals(19, c1.hasBletch(b).value);
+        Assert.assertEquals(19, c1.hasBletch(new CustomProperty.Bletch()).value);
         Assert.assertEquals(23.2f, c1.getFactoryFloat(), 0.00001f);
         Assert.assertEquals(4000L, c1.getLong());
         Assert.assertTrue(c1.isNamedParamGetter());
@@ -242,7 +242,7 @@ public class ComponentTest {
         Entity e2 = system.addEntity();
         ComplexComponent c2 = e2.add(ComplexComponent.class);
 
-        Assert.assertEquals(14, c2.hasBletch(b).value);
+        Assert.assertEquals(14, c2.hasBletch(new CustomProperty.Bletch()).value);
         Assert.assertEquals(FloatPropertyOverride.DEFAULT, c2.getFactoryFloat(), 0.00001f);
         Assert.assertEquals(Long.MAX_VALUE, c2.getLong());
         Assert.assertFalse(c2.isNamedParamGetter());

@@ -26,15 +26,18 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.*;
+import com.lhkbob.entreri.DoNotAutoVersion;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.property.Reference;
+import com.lhkbob.entreri.property.Within;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.Collection;
 import java.util.regex.Pattern;
 
 /**
@@ -61,7 +64,7 @@ public class MultiSetterPattern extends AbstractMethodPattern {
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(set).+");
 
     public MultiSetterPattern() {
-        super(Arrays.asList(Validate.class, Reference.class, Within.class, DoNotAutoVersion.class));
+        super(Arrays.asList(Validate.class, DoNotAutoVersion.class));
     }
 
     @Override
@@ -88,13 +91,12 @@ public class MultiSetterPattern extends AbstractMethodPattern {
             for (VariableElement p : m.getParameters()) {
                 String name = getPropertyName(m, index++, true);
                 PropertyDeclaration prop = new PropertyDeclaration(context, name, p.asType());
-                prop.getAttributes()
-                    .addAll(getAttributes(Attribute.Level.PROPERTY, p, context.getAttributeScope()));
-                methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, p, context.getAttributeScope()));
+                prop.getAttributes().addAll(getPropertyAttributes(context, p));
+                methodAttrs.addAll(getMethodAttributes(p));
                 fromArgs.add(prop);
             }
 
-            methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, m, context.getAttributeScope()));
+            methodAttrs.addAll(getMethodAttributes(m));
             MethodDeclaration methodDecl = new MultiSetterDeclaration(m, fromArgs, methodAttrs,
                                                                       m.getReturnType().getKind() !=
                                                                       TypeKind.VOID);
@@ -168,12 +170,16 @@ public class MultiSetterPattern extends AbstractMethodPattern {
                 }
             }
 
+            Context ctx = generator.getContext();
             int property = 0;
             for (PropertyDeclaration prop : properties) {
-                for (Annotation attr : prop.getAttributes()) {
-                    if (attr instanceof Reference) {
-                        Validations.appendReference(getParameterNames().get(property), (Reference) attr,
-                                                    generator);
+                String name = getParameterNames().get(property);
+                for (AnnotationMirror annot : prop.getAttributes()) {
+                    if (generator.getContext().isAnnotationType(annot, Reference.class)) {
+                        Validations
+                                .appendReference(name, ctx.asAnnotation(annot, Reference.class), generator);
+                    } else if (generator.getContext().isAnnotationType(annot, Within.class)) {
+                        Validations.appendWithin(name, ctx.asAnnotation(annot, Within.class), generator);
                     }
                     // else ignore the unsupported attribute
                 }

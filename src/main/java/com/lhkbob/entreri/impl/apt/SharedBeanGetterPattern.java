@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.Attribute;
-
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -87,15 +85,12 @@ public class SharedBeanGetterPattern extends AbstractMethodPattern {
             }
 
             PropertyDeclaration property = new PropertyDeclaration(context, name, m.getReturnType());
-            property.getAttributes()
-                    .addAll(getAttributes(Attribute.Level.PROPERTY, m, context.getAttributeScope()));
-            property.getAttributes().addAll(getAttributes(Attribute.Level.PROPERTY, m.getParameters().get(0),
-                                                          context.getAttributeScope()));
+            property.getAttributes().addAll(getPropertyAttributes(context, m));
+            property.getAttributes().addAll(getPropertyAttributes(context, m.getParameters().get(0)));
 
             Set<Annotation> methodAttrs = new HashSet<>();
-            methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, m, context.getAttributeScope()));
-            methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, m.getParameters().get(0),
-                                             context.getAttributeScope()));
+            methodAttrs.addAll(getMethodAttributes(m));
+            methodAttrs.addAll(getMethodAttributes(m.getParameters().get(0)));
             MethodDeclaration method = new SharedBeanGetterDeclaration(m, property, methodAttrs);
             property.getMethods().add(method);
 

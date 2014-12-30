@@ -30,15 +30,12 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
 import com.lhkbob.entreri.property.Property;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.util.Elements;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.IOException;
@@ -61,23 +58,32 @@ import java.util.Set;
 @SupportedAnnotationTypes("*")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ComponentAnnotationProcessor extends AbstractProcessor {
+    private TypeUtils types;
+
+    @Override
+    public synchronized void init(ProcessingEnvironment env) {
+        super.init(env);
+        types = new TypeUtils(env);
+    }
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Types tutil = processingEnv.getTypeUtils();
-        Elements eutil = processingEnv.getElementUtils();
+
+        TypeMirror componentSuperType = types.getRawType(Component.class);
+        TypeMirror propertySuperType = types.getRawType(Property.class);
+
         for (Element e : roundEnv.getRootElements()) {
             if (e.getKind().equals(ElementKind.INTERFACE)) {
                 // we have an interface
                 TypeElement t = (TypeElement) e;
-                if (tutil.isAssignable(t.asType(),
-                                       eutil.getTypeElement(Component.class.getCanonicalName()).asType())) {
+                if (tutil.isAssignable(t.asType(), componentSuperType)) {
                     generateComponentImplementation(t);
                 }
             } else if (e.getKind().equals(ElementKind.CLASS)) {
                 // check if the class implements Property
                 TypeElement t = (TypeElement) e;
-                if (tutil.isAssignable(t.asType(),
-                                       eutil.getTypeElement(Property.class.getCanonicalName()).asType())) {
+                if (tutil.isAssignable(t.asType(), propertySuperType)) {
                     validatePropertyImplementation(t);
                 }
             }
@@ -87,15 +93,14 @@ public class ComponentAnnotationProcessor extends AbstractProcessor {
     }
 
     private void validatePropertyImplementation(TypeElement property) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.OTHER, "Validating...", property);
+
         Types tu = processingEnv.getTypeUtils();
-        Elements eu = processingEnv.getElementUtils();
 
         boolean referenceSemantics = tu.isAssignable(property.asType(),
-                                                     eu.getTypeElement(Property.ReferenceSemantics.class
-                                                                               .getCanonicalName()).asType());
+                                                     types.getRawType(Property.ReferenceSemantics.class));
         boolean valueSemantics = tu.isAssignable(property.asType(),
-                                                 eu.getTypeElement(Property.ValueSemantics.class
-                                                                           .getCanonicalName()).asType());
+                                                 types.getRawType(Property.ValueSemantics.class));
         if (!(referenceSemantics ^ valueSemantics)) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                                      "Must implement only one of ReferenceSemantics or ValueSemantics",
@@ -103,16 +108,24 @@ public class ComponentAnnotationProcessor extends AbstractProcessor {
         }
 
         if (property.getTypeParameters().size() > 0) {
-            if (!tu.isAssignable(property.asType(),
-                                 eu.getTypeElement(Property.Generic.class.getCanonicalName()).asType())) {
+            TypeMirror genericsSuperType = types.getRawType(Property.Generic.class);
+            if (!tu.isAssignable(property.asType(), genericsSuperType)) {
                 processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
                                                          "Property with type variables must implement Generic",
                                                          property);
             }
         }
+
+        if (PropertyDeclaration.getValidConstructor(types, property) == null) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR,
+                                                     "Property does not define a valid constructor for entreri API",
+                                                     property);
+        }
     }
 
     private void generateComponentImplementation(TypeElement component) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.OTHER, "Validating...", component);
+
         try {
             // generate a custom Component implementation for this Component interface
             ComponentSpecification spec = new ComponentSpecification(component, processingEnv);

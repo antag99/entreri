@@ -1,0 +1,65 @@
+/*
+ * Entreri, an entity-component framework in Java
+ *
+ * Copyright (c) 2014, Michael Ludwig
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ *     Redistributions of source code must retain the above copyright notice,
+ *         this list of conditions and the following disclaimer.
+ *     Redistributions in binary form must reproduce the above copyright notice,
+ *         this list of conditions and the following disclaimer in the
+ *         documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package com.lhkbob.entreri.property;
+
+import java.lang.annotation.*;
+
+/**
+ * Within
+ * ======
+ *
+ * Within is a validation annotation for numeric properties to ensure values fall within a specific range.
+ * For simplicity, the annotation expects minimum and maximum values in doubles but it works with any
+ * primitive type that has `<` and `>` defined that can be lifted to a `double`. Specifying only one half of
+ * the range is valid and produces an open-ended range. Inputs that fall outside the declared range will cause
+ * an IllegalArgumentException to be thrown.
+ *
+ * Compilation failures will result if applied to non-primitive properties. Unlike the {@link
+ * com.lhkbob.entreri.Validate} attribute, Within is a property-level validation attribute. This means
+ * the range it declares is a contract on both the accessors and mutators of the property. Regardless of
+ * where this attribute is applied for a property, any mutator method will verify the range is satisfied.
+ *
+ *
+ * @author Michael Ludwig
+ */
+@Documented
+@Attribute
+@Target({ ElementType.PARAMETER, ElementType.METHOD })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Within {
+    /**
+     * @return Minimum bound of input, inclusive, or leave unspecified for unbounded on the low side of the
+     * range
+     */
+    double min() default Double.NEGATIVE_INFINITY;
+
+    /**
+     * @return Maximum bound of input, inclusive, or leave unspecified for unbounded on the high side of the
+     * range
+     */
+    double max() default Double.POSITIVE_INFINITY;
+}

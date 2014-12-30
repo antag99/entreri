@@ -56,6 +56,8 @@ import java.util.*;
 public class ComponentGenerator implements Generator {
     private static final Charset CHARSET = Charset.forName("UTF-8");
 
+    private final ComponentSpecification spec;
+
     private int tabCount;
     private final StringBuilder source;
 
@@ -65,7 +67,8 @@ public class ComponentGenerator implements Generator {
     /**
      * Create a new ComponentGenerator.
      */
-    private ComponentGenerator() {
+    private ComponentGenerator(ComponentSpecification spec) {
+        this.spec = spec;
         source = new StringBuilder();
         tabCount = 0;
         memberCounter = 0;
@@ -145,11 +148,11 @@ public class ComponentGenerator implements Generator {
      * @return Source code of a valid implementation for the component type
      */
     public static String generateJavaCode(ComponentSpecification spec) {
-        return new ComponentGenerator().generate(spec);
+        return new ComponentGenerator(spec).generate();
     }
 
 
-    private String generate(ComponentSpecification spec) {
+    private String generate() {
         source.setLength(0);
 
         List<? extends MethodDeclaration> methods = spec.getMethods();
@@ -304,5 +307,10 @@ public class ComponentGenerator implements Generator {
 
             source.append(line).append('\n');
         }
+    }
+
+    @Override
+    public Context getContext() {
+        return spec.getContext();
     }
 }

@@ -26,14 +26,17 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.attr.*;
+import com.lhkbob.entreri.DoNotAutoVersion;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.property.Reference;
+import com.lhkbob.entreri.property.Within;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.Collection;
 import java.util.regex.Pattern;
 
 /**
@@ -59,7 +62,7 @@ public class BeanSetterPattern extends AbstractMethodPattern {
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(set).+");
 
     public BeanSetterPattern() {
-        super(Arrays.asList(Validate.class, Reference.class, Within.class, DoNotAutoVersion.class));
+        super(Arrays.asList(Validate.class, DoNotAutoVersion.class));
     }
 
     @Override
@@ -84,15 +87,12 @@ public class BeanSetterPattern extends AbstractMethodPattern {
             }
             PropertyDeclaration property = new PropertyDeclaration(context, name,
                                                                    m.getParameters().get(0).asType());
-            property.getAttributes()
-                    .addAll(getAttributes(Attribute.Level.PROPERTY, m, context.getAttributeScope()));
-            property.getAttributes().addAll(getAttributes(Attribute.Level.PROPERTY, m.getParameters().get(0),
-                                                          context.getAttributeScope()));
+            property.getAttributes().addAll(getPropertyAttributes(context, m));
+            property.getAttributes().addAll(getPropertyAttributes(context, m.getParameters().get(0)));
 
             Set<Annotation> methodAttrs = new HashSet<>();
-            methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, m, context.getAttributeScope()));
-            methodAttrs.addAll(getAttributes(Attribute.Level.METHOD, m.getParameters().get(0),
-                                             context.getAttributeScope()));
+            methodAttrs.addAll(getMethodAttributes(m));
+            methodAttrs.addAll(getMethodAttributes(m.getParameters().get(0)));
             MethodDeclaration method = new BeanSetterDeclaration(m, property, methodAttrs,
                                                                  m.getReturnType().getKind() !=
                                                                  TypeKind.VOID);
@@ -158,17 +158,18 @@ public class BeanSetterPattern extends AbstractMethodPattern {
             for (Annotation annot : getAttributes()) {
                 if (annot instanceof Validate) {
                     Validations.appendValidation(getParameterNames(), (Validate) annot, generator);
-                    break; // @Validate is the only method level attribute this pattern supports
                 } else if (annot instanceof DoNotAutoVersion) {
                     needsUpdate = false;
                 }
             }
 
-            for (Annotation annot : property.getAttributes()) {
-                if (annot instanceof Reference) {
-                    Validations.appendReference(getParameterNames().get(0), (Reference) annot, generator);
-                } else if (annot instanceof Within) {
-                    Validations.appendWithin(getParameterNames().get(0), (Within) annot, generator);
+            Context ctx = generator.getContext();
+            String name = getParameterNames().get(0);
+            for (AnnotationMirror annot : property.getAttributes()) {
+                if (generator.getContext().isAnnotationType(annot, Reference.class)) {
+                    Validations.appendReference(name, ctx.asAnnotation(annot, Reference.class), generator);
+                } else if (generator.getContext().isAnnotationType(annot, Within.class)) {
+                    Validations.appendWithin(name, ctx.asAnnotation(annot, Within.class), generator);
                 }
                 // else ignore the unsupported attribute
             }

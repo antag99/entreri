@@ -26,13 +26,17 @@
  */
 package com.lhkbob.entreri.components;
 
-import com.lhkbob.entreri.attr.*;
-import com.lhkbob.entreri.property.FloatProperty;
+import com.lhkbob.entreri.Named;
+import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.property.DefaultInt;
+import com.lhkbob.entreri.property.DefaultLong;
+import com.lhkbob.entreri.property.ImplementedBy;
+import com.lhkbob.entreri.property.Reference;
 
 /**
  * A Component that tests a variety of things: multiple properties, different types, customized default
- * values, an overridden property factory, named properties, and multi-parameter methods, extending component
- * types, auto-detected properties, sharable instances.
+ * values, an overridden property, named properties, multi-parameter methods, extending component
+ * types, auto-detected properties, sharable instances, validation, value-semantic generics.
  *
  * @author Michael Ludwig
  */
@@ -53,8 +57,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
 
     public void setFactoryFloat(float f);
 
-    @DefaultFloat(FloatPropertyOverride.DEFAULT)
-    @ImplementedBy(FloatProperty.class)
+    @ImplementedBy(FloatPropertyOverride.class) // has a built in default
     public float getFactoryFloat();
 
     public short getParam1();

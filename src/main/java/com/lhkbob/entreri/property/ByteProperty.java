@@ -26,9 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.DefaultByte;
-import com.lhkbob.entreri.attr.DoNotClone;
-
 import java.util.Arrays;
 
 /**
@@ -36,8 +33,8 @@ import java.util.Arrays;
  * ============
  *
  * ByteProperty is an implementation of Property that stores a single byte value, obviously with value
- * semantics. It supports the {@link com.lhkbob.entreri.attr.DefaultByte} and {@link
- * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * semantics. It supports the {@link DefaultByte} and {@link
+ * DoNotClone} attributes. Values will not be cloned if either the source or
  * destination property specify not to clone the value.
  *
  * ## Supported method patterns

@@ -27,8 +27,8 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Component;
-import com.lhkbob.entreri.attr.DoNotAutoVersion;
-import com.lhkbob.entreri.attr.Within;
+import com.lhkbob.entreri.DoNotAutoVersion;
+import com.lhkbob.entreri.property.Within;
 
 /**
  * A test component that tests the float primitive type.

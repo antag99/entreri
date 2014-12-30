@@ -27,11 +27,9 @@
 package com.lhkbob.entreri.impl.apt;
 
 import javax.lang.model.element.ExecutableElement;
-import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * MethodPattern
@@ -58,7 +56,7 @@ public interface MethodPattern {
      *
      * The properties defined for a method do not need to have their property implementation decided. This
      * will be handled automatically after the property declarations have been combined with those from all
-     * other method patterns. The returned properties need only have attributes and methods for known by this
+     * other method patterns. The returned properties need only have attributes and methods known by this
      * pattern, it will be updated appropriately with state from other patterns afterwards based on its
      * reported name and type.
      *
@@ -68,9 +66,4 @@ public interface MethodPattern {
      */
     public Map<ExecutableElement, Collection<? extends PropertyDeclaration>> match(Context context,
                                                                                    List<ExecutableElement> methods);
-
-    /**
-     * @return The fixed set of attribute annotations the pattern supports
-     */
-    public Set<Class<? extends Annotation>> getSupportedAttributes();
 }

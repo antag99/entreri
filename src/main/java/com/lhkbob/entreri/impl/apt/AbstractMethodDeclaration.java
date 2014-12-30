@@ -26,8 +26,6 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
-import com.lhkbob.entreri.IllegalComponentDefinitionException;
-
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.VariableElement;
@@ -73,26 +71,7 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
         parameterNames = Collections.unmodifiableList(new ArrayList<>(parameterNames(method)));
         parameterTypes = Collections.unmodifiableList(new ArrayList<>(parameterTypes(method)));
 
-        // add annotations, but make sure that annotations of the same type are not added
-        // if the values are equal then ignore the duplicates; if they disagree in parameters then
-        // a conflict exists and the component is invalid
-        Set<Annotation> checked = new HashSet<>();
-        for (Annotation a : attrs) {
-            if (!checked.contains(a)) {
-                for (Annotation o : checked) {
-                    if (a.getClass().equals(o.getClass())) {
-                        // a is of the same type as o, but they are not equal
-                        throw new IllegalComponentDefinitionException("Conflicting applications of " +
-                                                                      a.getClass() + " on method " +
-                                                                      methodName);
-                    }
-                }
-                // not of any prior type
-                checked.add(a);
-            } // ignore duplicates
-        }
-
-        attributes = Collections.unmodifiableSet(checked);
+        attributes = attrs;
     }
 
     /**
@@ -172,7 +151,6 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
         return method;
     }
 
-    @Override
     public Set<Annotation> getAttributes() {
         return attributes;
     }
@@ -235,7 +213,7 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Method ").append(getReturnType()).append(" ").append(getName()).append("(");
+        sb.append(getName()).append("(");
         boolean first = true;
         for (TypeMirror t : getParameterTypes()) {
             if (first) {
@@ -245,17 +223,27 @@ public abstract class AbstractMethodDeclaration implements MethodDeclaration {
             }
             sb.append(t);
         }
-        sb.append(") [declares ");
+        sb.append(") -> ").append(getReturnType()).append("\n\t[declares ");
         first = true;
         for (PropertyDeclaration p : getProperties()) {
             if (first) {
                 first = false;
             } else {
-                sb.append(", ");
+                sb.append(",\n\t\t");
             }
             sb.append("(").append(p.getName()).append(" ").append(p.getType()).append(")");
         }
-        sb.append("] [attrs ").append(getAttributes()).append("]");
+        sb.append("]\n\t[attrs ");
+        first = true;
+        for (Annotation attr : getAttributes()) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(",\n\t\t");
+            }
+            sb.append(attr);
+        }
+        sb.append("]");
         return sb.toString();
     }
 }

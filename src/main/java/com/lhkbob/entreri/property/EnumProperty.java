@@ -26,9 +26,6 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.DefaultEnum;
-import com.lhkbob.entreri.attr.DoNotClone;
-
 import java.util.Arrays;
 
 /**
@@ -40,8 +37,8 @@ import java.util.Arrays;
  * automatically uses an EnumProperty for any enum properties unless there's an explicit mapping declared in
  * META-INF for a particular enum.
  *
- * It supports the {@link com.lhkbob.entreri.attr.DefaultEnum} and {@link
- * com.lhkbob.entreri.attr.DoNotClone} attributes. Values will not be cloned if either the source or
+ * It supports the {@link DefaultEnum} and {@link
+ * DoNotClone} attributes. Values will not be cloned if either the source or
  * destination property specify not to clone the value.
  *
  * ## Supported method patterns

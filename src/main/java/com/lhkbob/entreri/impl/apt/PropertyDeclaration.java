@@ -27,9 +27,11 @@
 package com.lhkbob.entreri.impl.apt;
 
 import com.lhkbob.entreri.IllegalComponentDefinitionException;
-import com.lhkbob.entreri.attr.Attribute;
+import com.lhkbob.entreri.property.Attribute;
 
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementFilter;
@@ -57,7 +59,7 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     private TypeMirror propertyImpl;
     private ExecutableElement propertyConstructor;
 
-    private final Set<Annotation> attrs;
+    private final Set<AnnotationMirror> attrs;
     private final Set<MethodDeclaration> methods;
 
     /**
@@ -109,13 +111,23 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     }
 
     private static ExecutableElement validateConstructor(Context context, String name,
-                                                         TypeMirror propertyName) {
-        List<? extends ExecutableElement> ctors = ElementFilter.constructorsIn(context.getElements()
-                                                                                      .getAllMembers(context.asElement(propertyName)));
+                                                         TypeMirror propertyImpl) {
+        ExecutableElement ctor = getValidConstructor(context, context.asElement(propertyImpl));
+
+        if (ctor == null) {
+            throw new IllegalComponentDefinitionException("Property chosen for " + name +
+                                                          " has no valid constructor: " + propertyImpl);
+        }
+        return ctor;
+    }
+
+    public static ExecutableElement getValidConstructor(TypeUtils typeUtils, TypeElement propertyType) {
+        List<? extends ExecutableElement> ctors = ElementFilter.constructorsIn(typeUtils.getElements()
+                                                                                        .getAllMembers(propertyType));
 
         ExecutableElement longestValid = null;
         for (ExecutableElement ctor : ctors) {
-            if (isValidConstructor(context, ctor)) {
+            if (isValidConstructor(typeUtils, ctor)) {
                 if (longestValid == null ||
                     ctor.getParameters().size() > longestValid.getParameters().size()) {
                     longestValid = ctor;
@@ -123,14 +135,10 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
             }
         }
 
-        if (longestValid == null) {
-            throw new IllegalComponentDefinitionException("Property chosen for " + name +
-                                                          " has no valid constructor: " + propertyName);
-        }
         return longestValid;
     }
 
-    private static boolean isValidConstructor(Context context, ExecutableElement ctor) {
+    private static boolean isValidConstructor(TypeUtils typeUtils, ExecutableElement ctor) {
         // constructor can't have any type parameters
         if (!ctor.getTypeParameters().isEmpty()) {
             return false;
@@ -141,18 +149,21 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
             return true;
         }
 
+        Types tu = typeUtils.getTypes();
+
         int startIndex = 0;
-        if (context.getTypes().isSameType(context.getTypes().erasure(args.get(0).asType()),
-                                          context.getTypes().erasure(context.fromClass(Class.class)))) {
+        if (tu.isSameType(tu.erasure(args.get(0).asType()), typeUtils.getRawType(Class.class))) {
             startIndex = 1;
         }
 
-        TypeMirror annotClass = context.fromClass(Annotation.class);
+        TypeMirror annotClass = typeUtils.fromClass(Annotation.class);
         for (int i = startIndex; i < args.size(); i++) {
-            if (!context.getTypes().isAssignable(args.get(i).asType(), annotClass) ||
-                context.asElement(args.get(i).asType()).getAnnotation(Attribute.class) == null) {
-                // FIXME if the constructor is almost valid (e.g. annotation arg but no attribute, we
-                // should add a warning here
+            if (!typeUtils.getTypes().isAssignable(args.get(i).asType(), annotClass)) {
+                return false;
+            }
+
+            Attribute attr = typeUtils.asElement(args.get(i).asType()).getAnnotation(Attribute.class);
+            if (attr == null) {
                 return false;
             }
         }
@@ -205,7 +216,7 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
 
     /**
      * Get the logical name of the property, such as the name extracted from the getter bean method, or from
-     * the {@link com.lhkbob.entreri.attr.Named} annotation.
+     * the {@link com.lhkbob.entreri.Named} annotation.
      *
      * @return The property name
      */
@@ -248,7 +259,7 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
      *
      * @return All annotations present on the given parameter
      */
-    public Set<Annotation> getAttributes() {
+    public Set<AnnotationMirror> getAttributes() {
         return attrs;
     }
 
@@ -279,12 +290,40 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Property ").append(name).append(" ").append(type);
+        sb.append(name).append(" ").append(type);
         if (propertyImpl != null) {
             sb.append(" [implemented by ").append(propertyImpl).append("]");
         }
-        sb.append(" [methods ").append(methods).append("]");
-        sb.append(" [attrs ").append(attrs).append("]");
+        sb.append("\n\t[methods ");
+        boolean first = true;
+        for (MethodDeclaration m : methods) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(",\n\t\t");
+            }
+            String[] ms = m.toString().split("\\n");
+            boolean firstMethod = true;
+            for (String s : ms) {
+                if (firstMethod) {
+                    firstMethod = false;
+                } else {
+                    sb.append("\n\t\t");
+                }
+                sb.append(s);
+            }
+        }
+        sb.append("]\n\t[attrs ");
+        first = true;
+        for (AnnotationMirror attr : attrs) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(",\n\t\t");
+            }
+            sb.append(attr);
+        }
+        sb.append("]");
         return sb.toString();
     }
 }

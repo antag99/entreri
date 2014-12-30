@@ -26,8 +26,7 @@
  */
 package com.lhkbob.entreri.property;
 
-import com.lhkbob.entreri.attr.DoNotClone;
-
+import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -36,17 +35,17 @@ import java.util.Arrays;
  *
  * ObjectProperty is an implementation of Property with reference semantics that can store any Object type.
  * This Property implementation can only be used when the property declaration site specifies the {@link
- * com.lhkbob.entreri.attr.Reference} attribute.
+ * Reference} attribute.
  *
  * Because it uses reference semantics, its behaviors are slightly different from most other properties that
  * use value semantics. In particular, when a property value is "cloned" when creating a component from a
  * template, the reference is copied and not the actual object.  It supports the {@link
- * com.lhkbob.entreri.attr.DoNotClone} attribute. References will not be cloned if either the source or
+ * DoNotClone} attribute. References will not be cloned if either the source or
  * destination property specify not to clone the reference. The default value is always `null`.
  *
  * ## Supported method patterns
  *
- * EnumProperty defines the `get(int) -> T` and `set(int, T) -> void` methods that can be used
+ * ObjectProperty defines the `get(int) -> T` and `set(int, T) -> void` methods that can be used
  * by a component's Java Bean getters and setters of type the Object type `T`.
  *
  * ## Generic
@@ -63,19 +62,20 @@ public final class ObjectProperty<T>
     /**
      * Create an ObjectProperty with the given clone policy. This is the programmer-friendly constructor
      *
+     * @param type       The component class type
      * @param cloneValue True if the value should be copied (by reference) during a component clone
      */
     @SuppressWarnings("unchecked")
-    public ObjectProperty(boolean cloneValue) {
+    public ObjectProperty(Class<T> type, boolean cloneValue) {
         this.cloneValue = cloneValue;
-        data = (T[]) new Object[1];
+        data = (T[]) Array.newInstance(type, 1);
     }
 
     /**
      * A constructor meeting the default conventions for automated creation.
      */
-    public ObjectProperty(DoNotClone doNotClone) {
-        this(doNotClone == null);
+    public ObjectProperty(Class<T> type, DoNotClone doNotClone) {
+        this(type, doNotClone == null);
     }
 
     /**
@@ -85,7 +85,7 @@ public final class ObjectProperty<T>
      *
      * @return The Object data for all packed properties that this property has been packed with
      */
-    public Object[] getIndexedData() {
+    public T[] getIndexedData() {
         return data;
     }
 
@@ -140,6 +140,7 @@ public final class ObjectProperty<T>
 
     @Override
     public void setCapacity(int size) {
+        // this properly preserves the array component type using Array.newInstance()
         data = Arrays.copyOf(data, size);
     }
 }

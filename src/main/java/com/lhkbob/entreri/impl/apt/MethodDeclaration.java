@@ -28,9 +28,7 @@ package com.lhkbob.entreri.impl.apt;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeMirror;
-import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Set;
 
 /**
  * MethodDeclaration
@@ -138,9 +136,4 @@ public interface MethodDeclaration extends Comparable<MethodDeclaration> {
      * @param generator The source code generator to append to
      */
     public void appendMethodBody(Generator generator);
-
-    /**
-     * @return The set of all method-level attribute annotations used by this declaration
-     */
-    public Set<Annotation> getAttributes();
 }
