@@ -177,16 +177,13 @@ public class ComponentGenerator implements Generator {
                      "@Generated(value={\"" + ComponentGenerator.class.getName() +
                      "\"}, date=\"" + nowAsISO + "\")", "@SuppressWarnings(\"unchecked\")");
 
-        appendSyntax("public class " + implName + " extends " + AbstractComponent.class.getName() +
+        appendSyntax("public final class " + implName + " extends " + AbstractComponent.class.getName() +
                      genericParam + " implements " + spec.getType() + " {");
 
-        // add property instances with proper cast so we don't have to do that every
-        // time a property is accessed, and add any shared instance field declarations
-        for (PropertyDeclaration s : spec.getProperties()) {
-            appendSyntax("private final " + s.getPropertyImplementation() + " " +
-                         getPropertyMemberName(s.getName()) + ";");
-        }
+        appendSyntax("private final DataStoreImpl data;");
         newline();
+
+        // note that the property fields are stored in a ComponentDataStore subclass not the Component subclass
         for (MethodDeclaration m : methods) {
             m.appendMembers(this);
         }
@@ -194,21 +191,15 @@ public class ComponentGenerator implements Generator {
 
         // define the constructor, must invoke super, assign properties, and allocate
         // shared instances; as with type declaration we cannot use generics
-        appendSyntax("public " + implName + "(" + ComponentDataStore.class.getName() + genericParam +
-                     " repo) {");
-        appendSyntax("super(repo);", "// get properties from data store");
+        appendSyntax("private " + implName + "(DataStoreImpl repo) {");
+        appendSyntax("super(repo);", "data = repo;");
 
-        int propIndex = 0;
-        for (PropertyDeclaration s : spec.getProperties()) {
-            appendSyntax(getPropertyMemberName(s.getName()) + " = (" +
-                         s.getPropertyImplementation() + ") repo.getProperty(" + propIndex + ");");
-            propIndex++;
-        }
         appendSyntax("// any extra member initialization");
         for (MethodDeclaration m : methods) {
             m.appendConstructorInitialization(this);
         }
-        appendSyntax("}", "");
+        appendSyntax("}");
+        newline();
 
         // now add all methods
         for (MethodDeclaration m : methods) {
@@ -230,13 +221,39 @@ public class ComponentGenerator implements Generator {
                      "throw new RuntimeException(\"Unable to inspect attribute annotations\", e);", "}");
 
         newline();
-        appendSyntax("return new " + ComponentDataStore.class.getName() + genericParam + "(system, " +
-                     spec.getType().toString() +
-                     ".class, properties) {", "@Override", "public " + implName + " createDataInstance() {",
-                     "return new " + implName + "(this);", "}", "};", "}");
+        appendSyntax("return new DataStoreImpl(system, properties);", "}");
 
-        // close the class
-        appendSyntax("}", "");
+        // add an internal ComponentDataStore subclass that stores each property as a field for direct access
+        appendSyntax("private static class DataStoreImpl extends " + ComponentDataStore.class.getName() +
+                     genericParam + " {");
+        // add property instances with proper cast so we don't have to do that every
+        // time a property is accessed, and add any shared instance field declarations
+        for (PropertyDeclaration s : spec.getProperties()) {
+            appendSyntax("private final " + s.getPropertyImplementation() + " " +
+                         getPropertyMemberName(s.getName(), true) + ";");
+        }
+        newline();
+
+        appendSyntax("public DataStoreImpl(" + EntitySystemImpl.class.getName() + " system, " +
+                     Map.class.getName() + "<" + String.class.getName() + ", " + Property.class.getName() +
+                     "> properties) {",
+                     "super(system, " + spec.getType().toString() + ".class, properties);");
+        for (PropertyDeclaration s : spec.getProperties()) {
+            appendSyntax(getPropertyMemberName(s.getName(), true) + " = (" +
+                         s.getPropertyImplementation() + ") properties.get(\"" + s.getName() + "\");");
+        }
+        appendSyntax("}");
+        newline();
+
+        // override the createDataInstance() method
+        appendSyntax("@Override", "public " + implName + " createDataInstance() {", "return new " + implName +
+                                                                                    "(this);", "}");
+        // close the data store class
+        appendSyntax("}");
+
+        // close the outer component class
+        appendSyntax("}");
+        newline();
         return source.toString();
     }
 
@@ -262,7 +279,16 @@ public class ComponentGenerator implements Generator {
 
     @Override
     public String getPropertyMemberName(String propertyName) {
-        return "property_" + filterName(propertyName);
+        return getPropertyMemberName(propertyName, false);
+    }
+
+    private String getPropertyMemberName(String propertyName, boolean inDataStoreImpl) {
+        String inDataStoreImplName = "property_" + filterName(propertyName);
+        if (!inDataStoreImpl) {
+            return "data." + inDataStoreImplName;
+        } else {
+            return inDataStoreImplName;
+        }
     }
 
     @Override

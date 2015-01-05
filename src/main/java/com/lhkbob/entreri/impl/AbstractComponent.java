@@ -174,7 +174,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
 
     @Override
     public String toString() {
-        if (index == 0) {
+        if (!isAlive()) {
             return "dead " + getType().getSimpleName();
         } else {
             StringBuilder sb = new StringBuilder(getType().getSimpleName());
@@ -201,9 +201,7 @@ public abstract class AbstractComponent<T extends Component> implements Componen
             } else {
                 return "null";
             }
-        } catch (NoSuchMethodException e) {
-            return "missing get() method";
-        } catch (InvocationTargetException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             return "unable to inspect";
         }
     }
