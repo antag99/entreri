@@ -79,7 +79,7 @@ public final class ObjectProperty<T>
     }
 
     /**
-     * Return the backing int array of this property's IndexedDataStore. The array may be longer than
+     * Return the backing int array of this property's data store. The array may be longer than
      * necessary for the number of components in the system. Data can be accessed for a component directly
      * using the component's index.
      *

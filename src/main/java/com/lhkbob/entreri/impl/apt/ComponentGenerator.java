@@ -223,6 +223,8 @@ public class ComponentGenerator implements Generator {
         newline();
         appendSyntax("return new DataStoreImpl(system, properties);", "}");
 
+        newline();
+        newline();
         // add an internal ComponentDataStore subclass that stores each property as a field for direct access
         appendSyntax("private static class DataStoreImpl extends " + ComponentDataStore.class.getName() +
                      genericParam + " {");

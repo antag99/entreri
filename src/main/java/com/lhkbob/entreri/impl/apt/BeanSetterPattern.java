@@ -170,6 +170,22 @@ public class BeanSetterPattern extends AbstractMethodPattern {
                     Validations.appendReference(name, ctx.asAnnotation(annot, Reference.class), generator);
                 } else if (generator.getContext().isAnnotationType(annot, Within.class)) {
                     Validations.appendWithin(name, ctx.asAnnotation(annot, Within.class), generator);
+                } else if (generator.getContext()
+                                    .isAnnotationType(annot, com.lhkbob.entreri.property.Collection.class)) {
+                    TypeMirror mapRawType = generator.getContext().getRawType(Map.class);
+                    if (generator.getContext().getTypes().isAssignable(property.getType(), mapRawType)) {
+                        // must check values and keys separately
+                        Validations.appendCollectionNoNullElements(name + ".keySet()", ctx.asAnnotation(annot,
+                                                                                                        com.lhkbob.entreri.property.Collection.class),
+                                                                   generator);
+                        Validations.appendCollectionNoNullElements(name + ".values()", ctx.asAnnotation(annot,
+                                                                                                        com.lhkbob.entreri.property.Collection.class),
+                                                                   generator);
+                    } else {
+                        Validations.appendCollectionNoNullElements(name, ctx.asAnnotation(annot,
+                                                                                          com.lhkbob.entreri.property.Collection.class),
+                                                                   generator);
+                    }
                 }
                 // else ignore the unsupported attribute
             }

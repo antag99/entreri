@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.impl.apt;
 
 import com.lhkbob.entreri.Validate;
+import com.lhkbob.entreri.property.Collection;
 import com.lhkbob.entreri.property.Reference;
 import com.lhkbob.entreri.property.Within;
 
@@ -51,9 +52,23 @@ public final class Validations {
     }
 
     public static void appendReference(String variable, Reference reference, Generator generator) {
-        //        boolean nullable = generator.getContext().getAnnotationBoolean(reference, "nullable");
         if (!reference.nullable()) {
             appendNotNull(variable, generator);
+        }
+    }
+
+    public static void appendElementNotNull(String variable, Collection collection, Generator generator) {
+        if (!collection.allowNullElements()) {
+            appendNotNull(variable, generator);
+        }
+    }
+
+    public static void appendCollectionNoNullElements(String variable, Collection collection,
+                                                      Generator generator) {
+        if (!collection.allowNullElements()) {
+            generator.appendSyntax("for (Object element: " + variable + ") {");
+            appendNotNull("element", generator);
+            generator.appendSyntax("}");
         }
     }
 

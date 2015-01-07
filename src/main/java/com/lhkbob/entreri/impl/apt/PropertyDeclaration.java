@@ -102,6 +102,9 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
      * @param propertyImpl The property class that supports this logical property type
      */
     public void setPropertyImplementation(TypeMirror propertyImpl) {
+        if (type == null && propertyImpl != null) {
+            throw new IllegalStateException("Cannot specify a non-null Property implementation when the logical property type is unknown");
+        }
         this.propertyImpl = propertyImpl;
         if (propertyImpl != null) {
             propertyConstructor = validateConstructor(context, name, propertyImpl);
@@ -225,7 +228,9 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     }
 
     /**
-     * Get the  of the type of value stored by this property.
+     * Get the  of the type of value stored by this property. This can return null if the method pattern
+     * was unable to determine an exact type from a particular method. This property declaration must be
+     * superseded by a more complete declaration for the component specification to remain valid.
      *
      * @return The type of this property, suitable for inclusion in source code
      */
@@ -274,7 +279,7 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
             return false;
         }
         PropertyDeclaration p = (PropertyDeclaration) o;
-        return name.equals(p.name) && type.equals(p.type) &&
+        return name.equals(p.name) && (type == null ? p.type == null : type.equals(p.type)) &&
                (propertyImpl == null ? p.propertyImpl == null : propertyImpl.equals(p.propertyImpl));
     }
 
@@ -282,7 +287,7 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     public int hashCode() {
         int result = 17;
         result *= 31 * result + name.hashCode();
-        result *= 31 * result + type.hashCode();
+        result *= 31 * result + (type == null ? 0 : type.hashCode());
         result *= 31 * result + (propertyImpl == null ? 0 : propertyImpl.hashCode());
         return result;
     }
@@ -290,7 +295,13 @@ public class PropertyDeclaration implements Comparable<PropertyDeclaration> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(name).append(" ").append(type);
+        sb.append(name).append(" ");
+        if (type != null) {
+            sb.append(type);
+        } else {
+            sb.append("unknown");
+        }
+
         if (propertyImpl != null) {
             sb.append(" [implemented by ").append(propertyImpl).append("]");
         }

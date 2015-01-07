@@ -117,6 +117,18 @@ public class TypeUtils {
     }
 
     /**
+     * Create a TypeMirror from the given Class, filling in any type variables with the given TypeMirror
+     * arguments. `arguments` must be as long as the number type variables specified in the class.
+     *
+     * @param type      The class type to convert
+     * @param arguments The types of the variables to be filled in
+     * @return The parameterized type as a TypeMirror
+     */
+    public TypeMirror fromGenericClass(Class<?> type, TypeMirror... arguments) {
+        return getTypes().getDeclaredType(getElements().getTypeElement(type.getCanonicalName()), arguments);
+    }
+
+    /**
      * Create a TypeMirror from the given Class that represents the raw type of the class.
      *
      * @param type The class type to convert

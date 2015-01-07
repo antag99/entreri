@@ -52,12 +52,25 @@ package com.lhkbob.entreri;
  * ## Semantics
  *
  * By default, the logical properties in a component definition are assumed to have value semantics. That
- * means modifying the input to a setter after its been called will not affect the component state, nor will
- * modifying the returned object from a getter. This is straightforward for all primitive types in Java but
- * requires special back-end handling for Object types to guarantee these semantics. If there is no backing
- * {@link com.lhkbob.entreri.property.Property} for an Object type that supports value semantics, the method
- * in the component definition should be annotated with {@link com.lhkbob.entreri.property.Reference} to declare
- * that normal Java reference semantics are to be used instead.
+ * means modifying the input to a setter after its been called will not affect the component state (and the
+ * input will never itself be modified), nor will modifying the returned object from a getter, and null values
+ * are not allowed. This is straightforward for all primitive types in Java but requires special back-end
+ * handling for Object types to guarantee these semantics. If there is no backing {@link
+ * com.lhkbob.entreri.property.Property} for an Object type that supports value semantics, the method in the
+ * component definition should be annotated with {@link com.lhkbob.entreri.property.Reference} to declare that
+ * normal Java reference semantics are to be used instead.
+ *
+ * When Java Objects are treated like value types, some backing Property implementations may make allowances
+ * in the name of performance. The most likely optimization is to use a read-only view that is returned by any
+ * getters (thus preventing a copy). When this is the case, the reference returned may be updated in response
+ * to mutator methods being called on the component. However, this will likely not cause any confusion if you
+ * always make sure to re-access a value after it may have been modified. Lastly, because an Object value type
+ * may either be read-only or a copy, care must be taken when calling methods on it that might mutate it
+ * (throwing exceptions when read-only).
+ *
+ * The value semantics applied to an Object class is only required to extend to its logical depth. Thus, for
+ * collections treated with value semantics, the collection itself is considered as a value but the  elements
+ * are still references.
  *
  * ## Method patterns
  *
@@ -107,15 +120,46 @@ package com.lhkbob.entreri;
  * This pattern requires that the backing Property define a method `void set(int, T)`, which all default
  * property implementations do.
  *
+ * ### Collection access methods
+ *
+ * If a property of a component is a {@link java.util.List}, {@link java.util.Set}, or {@link java.util.Map}
+ * additional access methods may be defined that can mutate and query the underlying collections. For sets and
+ * lists, methods that start with `add` or `append` and take a single element will try to add that instance to
+ * the set or list. The return value may be `void`, `boolean`, or the Component type to chain method calls.
+ * The `remove` method behaves equivalently but removes the element. Methods starting with `contains`, that
+ * take a single argument, and return a `boolean` will return true or false if the element is within the
+ * underlying set or list.
+ *
+ * For maps, `remove` and `contains` method patterns are almost identical to lists and sets but only operate
+ * on the keys of the map. There are no patterns that let you remove or query based on the values of the map.
+ * The main difference between list and set removal methods is that a map `remove` method cannot return the
+ * component's type for method chaining. Instead it can return the value type of the map, which will return
+ * the removed value instance for the input key. Methods that start with `put` and take two arguments specify
+ * the key as the first argument and the value as the second argument to store into the underlying map. The
+ * method may return `void`, `boolean` to indicate a value was replaced, or the value type to return the
+ * replaced value. Methods that start with `get` and take single key argument and return the value type will
+ * query the map for the value associated with the input key. This last pattern is slightly ambiguous with
+ * reusable result getters, so they are required to apply an annotation to disambiguate themselves.
+ *
+ * These collection methods do not require that a bean getter or setter be present. If they are not present,
+ * it is possible that the collection methods cannot fully determine the actual property type. As an example,
+ * the collection methods for lists and sets are completely ambiguous and it is not obvious if it should apply
+ * to a set or list. In this situation, the {@link com.lhkbob.entreri.property.Collection} attribute should be
+ * added with the desired collection type (list, set, or map). This attribute also lets you override the
+ * underlying collection implementation used for value-semantics collection properties and control if null
+ * elements are allowed or not (although this can only be enforced when the component methods are used;
+ * modifying the collection directly can corrupt this).
+ *
  * ### Reusable result getters
  *
  * Methods that start with 'get', 'is', or 'has', that take a single argument of `T` and return a `T` are
- * treated similarly to bean getters. The main difference is that the object instance passed into the matched
- * method represents the result and is updated in place before being returned. This is particularly useful
- * when the backing property unpacks an object type into its primitive pieces. Instead of having to
- * instantiate new objects to pack them back together, a single instance can be mutated to match the value for
- * the components. The defined property uses the same default name and type as bean getters. Like bean
- * setters, applying {@link Named} to the argument can be used to override the name in
+ * treated similarly to bean getters. To remove ambiguities with map-based properties, the single argument
+ * must be annotated with {@link com.lhkbob.entreri.ReturnValue}. The main difference is that the object
+ * instance passed into the matched method represents the result and is updated in place before being
+ * returned. This is particularly useful when the backing property unpacks an object type into its primitive
+ * pieces. Instead of having to instantiate new objects to pack them back together, a single instance can be
+ * mutated to match the value for the components. The defined property uses the same default name and type as
+ * bean getters. Like bean setters, applying {@link Named} to the argument can be used to override the name in
  * addition to applying it to the method itself.
  *
  * This pattern requires that the backing Property define a method `void get(int, T)`. None of the provided
@@ -150,18 +194,24 @@ package com.lhkbob.entreri;
  * implementations provided within `entreri`. It also shows the {@link com.lhkbob.entreri.property.Attribute}
  * annotation that property class defines that allows specification of default values for a component.
  *
- * Type               | PropertyFactory implementation                      | Default attribute annotation
- * -------------------|-----------------------------------------------------|-----------------------------
- * `boolean`          | {@link com.lhkbob.entreri.property.BooleanProperty} | {@link com.lhkbob.entreri.property.DefaultBoolean}
- * `byte`             | {@link com.lhkbob.entreri.property.ByteProperty}    | {@link com.lhkbob.entreri.property.DefaultByte}
- * `short`            | {@link com.lhkbob.entreri.property.ShortProperty}   | {@link com.lhkbob.entreri.property.DefaultShort}
- * `char`             | {@link com.lhkbob.entreri.property.CharProperty}    | {@link com.lhkbob.entreri.property.DefaultChar}
- * `int`              | {@link com.lhkbob.entreri.property.IntProperty}     | {@link com.lhkbob.entreri.property.DefaultInt}
- * `long`             | {@link com.lhkbob.entreri.property.LongProperty}    | {@link com.lhkbob.entreri.property.DefaultLong}
- * `float`            | {@link com.lhkbob.entreri.property.FloatProperty}   | {@link com.lhkbob.entreri.property.DefaultFloat}
- * `double`           | {@link com.lhkbob.entreri.property.DoubleProperty}  | {@link com.lhkbob.entreri.property.DefaultDouble}
- * `? extends Enum`   | {@link com.lhkbob.entreri.property.EnumProperty}    | {@link com.lhkbob.entreri.property.DefaultEnum}
- * `? extends Object` | {@link com.lhkbob.entreri.property.ObjectProperty}  | NA
+ * Type               | Semantics | Property implementation                                   | Default attribute annotation
+ * -------------------|-----------|-----------------------------------------------------------|-----------------------------
+ * `boolean`          | value     | {@link com.lhkbob.entreri.property.BooleanProperty}       | {@link com.lhkbob.entreri.property.DefaultBoolean}
+ * `byte`             | value     | {@link com.lhkbob.entreri.property.ByteProperty}          | {@link com.lhkbob.entreri.property.DefaultByte}
+ * `short`            | value     | {@link com.lhkbob.entreri.property.ShortProperty}         | {@link com.lhkbob.entreri.property.DefaultShort}
+ * `char`             | value     | {@link com.lhkbob.entreri.property.CharProperty}          | {@link com.lhkbob.entreri.property.DefaultChar}
+ * `int`              | value     | {@link com.lhkbob.entreri.property.IntProperty}           | {@link com.lhkbob.entreri.property.DefaultInt}
+ * `long`             | value     | {@link com.lhkbob.entreri.property.LongProperty}          | {@link com.lhkbob.entreri.property.DefaultLong}
+ * `float`            | value     | {@link com.lhkbob.entreri.property.FloatProperty}         | {@link com.lhkbob.entreri.property.DefaultFloat}
+ * `double`           | value     | {@link com.lhkbob.entreri.property.DoubleProperty}        | {@link com.lhkbob.entreri.property.DefaultDouble}
+ * `? extends Enum`   | value     | {@link com.lhkbob.entreri.property.EnumProperty}          | {@link com.lhkbob.entreri.property.DefaultEnum}
+ * `? extends Object` | reference | {@link com.lhkbob.entreri.property.ObjectProperty}        | NA
+ * `List<?>`          | reference | {@link com.lhkbob.entreri.property.ReferenceListProperty} | NA
+ * `List<?>`          | value     | {@link com.lhkbob.entreri.property.ValueListProperty}     | {@link com.lhkbob.entreri.property.Collection}
+ * `Set<?>`           | reference | {@link com.lhkbob.entreri.property.ReferenceSetProperty}  | NA
+ * `Set<?>`           | value     | {@link com.lhkbob.entreri.property.ValueSetProperty}      | {@link com.lhkbob.entreri.property.Collection}
+ * `Map<?,?>`         | reference | {@link com.lhkbob.entreri.property.ReferenceMapProperty}  | NA
+ * `Map<?,?>`         | value     | {@link com.lhkbob.entreri.property.ValueMapProperty}      | {@link com.lhkbob.entreri.property.Collection}
  *
  * ## Advanced topics
  *

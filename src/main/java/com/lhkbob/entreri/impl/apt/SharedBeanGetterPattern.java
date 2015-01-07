@@ -26,6 +26,8 @@
  */
 package com.lhkbob.entreri.impl.apt;
 
+import com.lhkbob.entreri.ReturnValue;
+
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -57,7 +59,7 @@ public class SharedBeanGetterPattern extends AbstractMethodPattern {
     private static final Pattern METHOD_NAME_PATTERN = Pattern.compile("(get|has|is).+");
 
     public SharedBeanGetterPattern() {
-        super(Collections.<Class<? extends Annotation>>emptyList());
+        super(Arrays.<Class<? extends Annotation>>asList(ReturnValue.class));
     }
 
     @Override
@@ -76,6 +78,10 @@ public class SharedBeanGetterPattern extends AbstractMethodPattern {
             }
             // make sure the single argument has the same type as the return of the method
             if (!context.getTypes().isSameType(m.getReturnType(), m.getParameters().get(0).asType())) {
+                continue;
+            }
+            // make sure the single argument is annotated with @ReturnValue
+            if (m.getParameters().get(0).getAnnotation(ReturnValue.class) == null) {
                 continue;
             }
 

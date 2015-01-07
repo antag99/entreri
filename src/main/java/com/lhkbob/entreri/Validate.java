@@ -55,7 +55,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 public @interface Validate {
     /**
      * @return Get the Java-like validation snippet that represents a boolean expression evaluating to true

@@ -43,7 +43,6 @@ import java.lang.annotation.*;
  * the range it declares is a contract on both the accessors and mutators of the property. Regardless of
  * where this attribute is applied for a property, any mutator method will verify the range is satisfied.
  *
- *
  * @author Michael Ludwig
  */
 @Documented

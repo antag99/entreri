@@ -78,6 +78,9 @@ public interface MethodDeclaration extends Comparable<MethodDeclaration> {
      * property. This will only be called after the PropertyDeclarations have been updated to have valid
      * property implementations chosen.
      *
+     * This should also validate the selected type of the property if the method declaration may have
+     * started with a null property type and required other methods to help constrain the type.
+     *
      * @param context The context of the component generation
      * @return True if all properties are valid
      */

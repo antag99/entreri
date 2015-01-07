@@ -168,7 +168,8 @@ public final class TypePropertyMapper {
                             List<? extends TypeMirror> vars = incomplete.getTypeArguments();
                             TypeMirror[] args = new TypeMirror[vars.size()];
                             for (int i = 0; i < args.length; i++) {
-                                args[i] = varMapping.get((TypeVariable) vars.get(i));
+                                TypeVariable var = (TypeVariable) vars.get(i);
+                                args[i] = varMapping.get(var);
                             }
                             mappedPropertyType = tu.getDeclaredType((TypeElement) incomplete.asElement(),
                                                                     args);
@@ -201,7 +202,8 @@ public final class TypePropertyMapper {
         }
         // if we got here there's no property to find
         throw new IllegalComponentDefinitionException(baseType.toString(),
-                                                      "Could not determine Property implementation for type");
+                                                      "Could not determine Property implementation for type with " +
+                                                      pathSuffix + " semantics");
     }
 
     private Map<TypeVariable, ReferenceType> unify(TypeMirror targetType, TypeMirror genericType) {

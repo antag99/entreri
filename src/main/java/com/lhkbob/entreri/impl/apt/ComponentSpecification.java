@@ -81,8 +81,10 @@ public class ComponentSpecification {
      * @param env  The processing environment
      */
     public ComponentSpecification(TypeElement type, ProcessingEnvironment env) {
-        this(type, env, new MultiSetterPattern(), new SharedBeanGetterPattern(), new BeanGetterPattern(),
-             new BeanSetterPattern());
+        // the shared bean getter must be before the collections method pattern to grab getters
+        // annotated with @ReturnValue instead of matching the get-key pattern
+        this(type, env, new SharedBeanGetterPattern(), new CollectionsMethodPattern(),
+             new MultiSetterPattern(), new BeanGetterPattern(), new BeanSetterPattern());
     }
 
     /**
@@ -198,6 +200,12 @@ public class ComponentSpecification {
     private static List<PropertyDeclaration> assignPropertyImplementations(Context context,
                                                                            List<PropertyDeclaration> properties) {
         for (PropertyDeclaration p : properties) {
+            if (p.getType() == null) {
+                throw new IllegalComponentDefinitionException(context.getComponentType().toString(),
+                                                              "Property has under-determined type: " +
+                                                              p.getName());
+            }
+
             if (p.getPropertyImplementation() == null) {
                 TypeMirror propType = null;
 
@@ -229,7 +237,6 @@ public class ComponentSpecification {
 
                 p.setPropertyImplementation(propType);
             }
-
         }
         return properties;
     }
@@ -243,32 +250,48 @@ public class ComponentSpecification {
                 // no compaction necessary yet
                 compacted.put(p.getName(), p);
             } else {
-                // make sure their types are compatible, and use the proper factory type (if specified)
-                // and combine all of the attributes together
-                if (!context.getTypes().isSameType(compact.getType(), p.getType())) {
-                    throw fail(context.getComponentType(),
-                               "Multiple methods create conflicting property type for " + p.getName());
-                }
+                TypeMirror logicalType = compact.getType();
+                TypeMirror propertyImpl = compact.getPropertyImplementation();
 
-                if (p.getPropertyImplementation() != null) {
-                    if (compact.getPropertyImplementation() != null && !context.getTypes()
-                                                                               .isSameType(compact.getPropertyImplementation(),
-                                                                                           p.getPropertyImplementation())) {
-                        throw fail(context.getComponentType(),
-                                   "Multiple methods use conflicting Property implementations for " +
-                                   p.getName());
+                if (p.getType() != null) {
+                    // make sure that p's type is compatible with compact's type
+                    if (compact.getType() != null) {
+                        // the types must be equal
+                        if (!context.getTypes().isSameType(compact.getType(), p.getType())) {
+                            throw fail(context.getComponentType(),
+                                       "Multiple methods create conflicting property type for " +
+                                       p.getName());
+                        }
                     }
-                    // swap them so that compact has the non-null property factory
-                    PropertyDeclaration temp = p;
-                    p = compact;
-                    compact = temp;
-                } // else compact may or may not have a non-null factory, but it will be preserved
+                    logicalType = p.getType();
 
-                compact.getAttributes().addAll(p.getAttributes());
-                for (MethodDeclaration m : p.getMethods()) {
-                    m.replace(p, compact);
-                    compact.getMethods().add(m);
+                    // ensure any specified property implementation is consistent
+                    if (p.getPropertyImplementation() != null) {
+                        if (compact.getPropertyImplementation() != null && !context.getTypes()
+                                                                                   .isSameType(compact.getPropertyImplementation(),
+                                                                                               p.getPropertyImplementation())) {
+                            throw fail(context.getComponentType(),
+                                       "Multiple methods use conflicting Property implementations for " +
+                                       p.getName());
+                        }
+                        propertyImpl = p.getPropertyImplementation();
+                    }
                 }
+
+                PropertyDeclaration merged = new PropertyDeclaration(context, p.getName(), logicalType,
+                                                                     propertyImpl);
+                merged.getAttributes().addAll(p.getAttributes());
+                merged.getAttributes().addAll(compact.getAttributes());
+                for (MethodDeclaration m : compact.getMethods()) {
+                    m.replace(compact, merged);
+                    merged.getMethods().add(m);
+                }
+                for (MethodDeclaration m : p.getMethods()) {
+                    m.replace(p, merged);
+                    merged.getMethods().add(m);
+                }
+
+                compacted.put(p.getName(), merged);
             }
         }
 

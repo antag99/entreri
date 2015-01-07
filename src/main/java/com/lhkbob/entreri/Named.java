@@ -41,7 +41,7 @@ import java.lang.annotation.*;
  * @see com.lhkbob.entreri.property.Property
  */
 @Documented
-@Retention(RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.SOURCE)
 @Target({ ElementType.PARAMETER, ElementType.METHOD })
 public @interface Named {
     /**

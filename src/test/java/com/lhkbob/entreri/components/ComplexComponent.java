@@ -27,6 +27,7 @@
 package com.lhkbob.entreri.components;
 
 import com.lhkbob.entreri.Named;
+import com.lhkbob.entreri.ReturnValue;
 import com.lhkbob.entreri.Validate;
 import com.lhkbob.entreri.property.DefaultInt;
 import com.lhkbob.entreri.property.DefaultLong;
@@ -74,7 +75,7 @@ public interface ComplexComponent extends IntComponent, FloatComponent, SuperInt
     public ComplexComponent setNamedParamSetter(boolean foo);
 
     @DefaultInt(14)
-    public CustomProperty.Bletch hasBletch(CustomProperty.Bletch result);
+    public CustomProperty.Bletch hasBletch(@ReturnValue CustomProperty.Bletch result);
 
     @Reference
     public void setBletch(CustomProperty.Bletch b);
