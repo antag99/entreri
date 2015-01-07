@@ -115,9 +115,9 @@ public interface EntitySystem extends Iterable<Entity> {
     public Iterator<Entity> iterator();
 
     /**
-     * Return an iterator over all components of with the given type. The returned iterator uses a single
-     * flyweight Component instance of T, so it is a fast iterator. This effectively wraps a {@link
-     * ComponentIterator} in a standard {@link Iterator} with a single required component type.
+     * Return an iterator over all components of with the given type. The returned iterator
+     * returns the canonical references to the components. For improved performance used the
+     * {@link #fastIterator()} or {@link #fastIterator(java.lang.Iterable)} methods.
      *
      * @param type The type of component to iterate over
      * @return A fast iterator over components in this system

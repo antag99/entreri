@@ -411,6 +411,16 @@ public abstract class ComponentDataStore<T extends Component> {
             casted.setIndex(0);
         }
 
+        // Set default value for declared and decorated properties,
+        // this is needed because we need to dereference anything the values may be holding onto
+        // and we don't want to wait for them to be overwritten
+        for (int i = 0; i < declaredProperties.size(); i++) {
+            declaredProperties.get(i).setDefaultValue(componentIndex);
+        }
+        for (int i = 0; i < decoratedProperties.size(); i++) {
+            decoratedProperties.get(i).setDefaultValue(componentIndex);
+        }
+
         components[componentIndex] = null;
         entityIndexToComponentRepository[entityIndex] = 0; // entity does not have component
         componentIndexToEntityIndex[componentIndex] = 0; // component does not have entity

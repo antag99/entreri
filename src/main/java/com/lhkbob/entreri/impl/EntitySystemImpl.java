@@ -383,12 +383,13 @@ public final class EntitySystemImpl implements EntitySystem {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public T next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
             nextCalled = false;
-            return data;
+            return (T) data.getCanonical();
         }
 
         @Override
