@@ -26,11 +26,7 @@
  */
 package com.lhkbob.entreri.task;
 
-import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.EntitySystem;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * Timers
@@ -80,7 +76,8 @@ public final class Timers {
      * Task that reports the same delta each invocation, even if it does equal
      * the elapsed wall time
      */
-    private static class FixedDeltaTask implements Task, ParallelAware {
+    @ParallelAware(modifiedComponents = { }, readOnlyComponents = { }, entitySetModified = false)
+    private static class FixedDeltaTask implements Task {
         private final ElapsedTimeResult delta;
 
         public FixedDeltaTask(double dt) {
@@ -97,22 +94,13 @@ public final class Timers {
         public void reset(EntitySystem system) {
             // do nothing
         }
-
-        @Override
-        public Set<Class<? extends Component>> getAccessedComponents() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public boolean isEntitySetModified() {
-            return false;
-        }
     }
 
     /*
      * Task that measures the time delta from its last invocation
      */
-    private static class MeasuredDeltaTask implements Task, ParallelAware {
+    @ParallelAware(modifiedComponents = { }, readOnlyComponents = { }, entitySetModified = false)
+    private static class MeasuredDeltaTask implements Task {
         private long lastStart = -1L;
 
         @Override
@@ -131,16 +119,6 @@ public final class Timers {
         @Override
         public void reset(EntitySystem system) {
             // do nothing
-        }
-
-        @Override
-        public Set<Class<? extends Component>> getAccessedComponents() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public boolean isEntitySetModified() {
-            return false;
         }
     }
 }

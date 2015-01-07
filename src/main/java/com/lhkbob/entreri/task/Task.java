@@ -88,7 +88,8 @@ public interface Task {
     /**
      * Reset any internal storage within this Task in preparation for the next execution of its owning job.
      * This is used when jobs are scheduled to repeat at a given rate. Instead of instantiating new tasks
-     * every time, they can reset their tasks.
+     * every time, they can reset their tasks. All tasks in a job will be reset before the first task is
+     * processed.
      *
      * Examples of how this can be used is if a spatial index is built up per-frame, or if decorated
      * properties cache computed results. By using reset(), it's not necessary to re-decorate or allocate
