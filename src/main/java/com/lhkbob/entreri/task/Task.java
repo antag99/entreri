@@ -35,7 +35,7 @@ import com.lhkbob.entreri.EntitySystem;
  * Tasks are functional processors of the entities and components within an EntitySystem. Different Task
  * implementations have different purposes, such as updating transforms, computing physics or AI, or rendering
  * a scene. Generally task implementations should be as small and as independent as possible to allow for
- * reuse and easy composability.
+ * reuse and easy compose-ability.
  *
  * The {@link Job} and {@link Scheduler} work together to coordinate the execution of collections of tasks.
  * Tasks are grouped into jobs, where a job represents a logical step such as "render frame", or "compute
@@ -46,9 +46,14 @@ import com.lhkbob.entreri.EntitySystem;
  * last task has terminated.
  *
  * A task can communicate with the remaining tasks of a job by {@link Job#report(Result) reporting} results.
- * The results are only reported to tasks within the owning job, and that are executed after the current task.
- * Thus tasks that have already completed their processing will not receive new results. A task receives
- * results by defining any number of methods with the signature:
+ * The results are only reported to tasks within the owning job. Results are reported to tasks that have
+ * already completed and to those that must still be processed within that job. Tasks that are returned from a
+ * call to `process()` are in a new job and so do not receive result reports from the original job (they can
+ * still report and receive results generated during the post-process job execution). In order for a
+ * post-processing task to receive results from the original job, the owning task in the job must receive the
+ * results and manually expose them to the later task.
+ *
+ * A task receives results by defining any number of methods with the signature:
  *
  * ```java
  * public void report(T extends Result)

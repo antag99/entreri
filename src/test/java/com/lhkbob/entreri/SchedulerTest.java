@@ -36,7 +36,7 @@ import org.junit.Test;
 // it's a little too difficult to write a unit test for that
 public class SchedulerTest {
     @Test
-    public void testResultsReportedToFutureTasksOnly() {
+    public void testResultsReportedToAllTasks() {
         EntitySystem system = EntitySystem.Factory.create();
 
         ResultReportingTask t1 = new ResultReportingTask(null, new ResultA(), new ResultA(), new ResultB());
@@ -49,8 +49,8 @@ public class SchedulerTest {
         Job j = system.getScheduler().createJob("test", t2, t3, t1, t4);
 
         j.run();
-        Assert.assertEquals(0, t2.aReceiveCount);
-        Assert.assertEquals(0, t3.bReceiveCount);
+        Assert.assertEquals(2, t2.aReceiveCount);
+        Assert.assertEquals(1, t3.bReceiveCount);
         Assert.assertEquals(2, t4.aReceiveCount);
         Assert.assertEquals(1, t4.bReceiveCount);
         Assert.assertEquals(3, t4.receiveCount);
@@ -58,8 +58,8 @@ public class SchedulerTest {
         // run the job a second time to make sure resubmitting results doesn't
         // screw anything up after a reset
         j.run();
-        Assert.assertEquals(0, t2.aReceiveCount);
-        Assert.assertEquals(0, t3.bReceiveCount);
+        Assert.assertEquals(2, t2.aReceiveCount);
+        Assert.assertEquals(1, t3.bReceiveCount);
         Assert.assertEquals(2, t4.aReceiveCount);
         Assert.assertEquals(1, t4.bReceiveCount);
         Assert.assertEquals(3, t4.receiveCount);

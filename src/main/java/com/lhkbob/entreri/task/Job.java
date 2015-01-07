@@ -223,8 +223,9 @@ public class Job implements Runnable {
     }
 
     /**
-     * Report the given result instance to all tasks yet to be executed by this job, that have declared a
-     * public method named 'report' that takes a Result sub-type that is compatible with `r`'s type.
+     * Report the given result instance to all tasks in this job (ignoring post-processing tasks), that have
+     * declared a public method named 'report' that takes a Result sub-type that is compatible with `r`'s
+     * type.
      *
      * @param r The result to report
      * @throws NullPointerException  if r is null
@@ -254,8 +255,6 @@ public class Job implements Runnable {
             if (all != null) {
                 int ct = all.size();
                 for (int i = 0; i < ct; i++) {
-                    // this will filter on the current task index to only report
-                    // results to future tasks
                     all.get(i).report(r);
                 }
             }
@@ -280,9 +279,7 @@ public class Job implements Runnable {
 
         public void report(Result r) {
             try {
-                if (taskIndex > Job.this.taskIndex) {
-                    reportMethod.invoke(Job.this.tasks[taskIndex], r);
-                }
+                reportMethod.invoke(Job.this.tasks[taskIndex], r);
             } catch (IllegalArgumentException | IllegalAccessException e) {
                 // shouldn't happen, since we check the type before invoking
                 throw new RuntimeException(e);
