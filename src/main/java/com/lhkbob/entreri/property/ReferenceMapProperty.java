@@ -99,7 +99,8 @@ public class ReferenceMapProperty<K, V>
 
     /**
      * Put the `key`-`value` pair into the current Map reference at `index`. If the current map is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#put(K, V)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#put(Object,
+     * Object)}.
      *
      * @param index The component index
      * @param key   The map key
@@ -112,7 +113,7 @@ public class ReferenceMapProperty<K, V>
 
     /**
      * Get the `key`'s value from the current Map reference at `index`. If the current map is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#get(K)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#get(Object)}.
      *
      * @param index The component index
      * @param key   The map key
@@ -124,7 +125,7 @@ public class ReferenceMapProperty<K, V>
 
     /**
      * Remove `key` from the current map reference at `index`. If the current map is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#remove(K)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#remove(Object)}.
      *
      * @param index The component index
      * @param key   The key to remove from the current map
@@ -136,7 +137,8 @@ public class ReferenceMapProperty<K, V>
 
     /**
      * Check if `key` is used as a key in the current map reference at `index`. If the current map is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Map#containsKey(K)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link
+     * java.util.Map#containsKey(Object)}.
      *
      * @param index The component index
      * @param key   The key to check for

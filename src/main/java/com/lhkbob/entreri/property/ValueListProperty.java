@@ -122,7 +122,7 @@ public class ValueListProperty<T>
 
     /**
      * Add `element` to the current List reference at `index`. This has equivalent behavior to {@link
-     * java.util.List#add(T)}.
+     * java.util.List#add(Object)}.
      *
      * @param index   The component index
      * @param element The element to append to the current list
@@ -134,7 +134,7 @@ public class ValueListProperty<T>
 
     /**
      * Remove `element` from the current list reference at `index`. This has equivalent behavior to {@link
-     * java.util.List#remove(T)}.
+     * java.util.List#remove(Object)}.
      *
      * @param index   The component index
      * @param element The element to remove from the current list
@@ -146,7 +146,7 @@ public class ValueListProperty<T>
 
     /**
      * Check if `element` is contained in the current list reference at `index`. This has equivalent
-     * behavior to {@link java.util.List#contains(T)}.
+     * behavior to {@link java.util.List#contains(Object)}.
      *
      * @param index   The component index
      * @param element The element to check for

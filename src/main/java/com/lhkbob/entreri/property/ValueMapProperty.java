@@ -123,7 +123,7 @@ public class ValueMapProperty<K, V>
 
     /**
      * Put the `key`-`value` pair into the  Map at `index`.This has equivalent behavior to {@link
-     * java.util.Map#put(K, V)}.
+     * java.util.Map#put(Object, Object)}.
      *
      * @param index The component index
      * @param key   The map key
@@ -136,7 +136,7 @@ public class ValueMapProperty<K, V>
 
     /**
      * Get the `key`'s value from the Map at `index`. This has equivalent behavior to {@link
-     * java.util.Map#get(K)}.
+     * java.util.Map#get(Object)}.
      *
      * @param index The component index
      * @param key   The map key
@@ -148,7 +148,7 @@ public class ValueMapProperty<K, V>
 
     /**
      * Remove `key` from the map at `index`. This has equivalent behavior to {@link
-     * java.util.Map#remove(K)}.
+     * java.util.Map#remove(Object)}.
      *
      * @param index The component index
      * @param key   The key to remove from the current map
@@ -160,7 +160,7 @@ public class ValueMapProperty<K, V>
 
     /**
      * Check if `key` is used as a key in the map at `index`. This has equivalent behavior to {@link
-     * java.util.Map#containsKey(K)}.
+     * java.util.Map#containsKey(Object)}.
      *
      * @param index The component index
      * @param key   The key to check for

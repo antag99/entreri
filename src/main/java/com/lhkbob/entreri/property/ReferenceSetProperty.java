@@ -97,7 +97,7 @@ public class ReferenceSetProperty<T>
 
     /**
      * Add `element` to the current Set reference at `index`. If the current set is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#add(T)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#add(Object)}.
      *
      * @param index   The component index
      * @param element The element to append to the current set
@@ -109,7 +109,7 @@ public class ReferenceSetProperty<T>
 
     /**
      * Remove `element` from the current Set reference at `index`. If the current set is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#remove(T)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#remove(Object)}.
      *
      * @param index   The component index
      * @param element The element to remove from the current set
@@ -121,7 +121,7 @@ public class ReferenceSetProperty<T>
 
     /**
      * Check if `element` is contained in the current Set reference at `index`. If the current set is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#contains(T)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.Set#contains(Object)}.
      *
      * @param index   The component index
      * @param element The element to check for

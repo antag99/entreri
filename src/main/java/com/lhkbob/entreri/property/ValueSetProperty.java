@@ -121,7 +121,7 @@ public class ValueSetProperty<T>
 
     /**
      * Add `element` to the current Set reference at `index`. This has equivalent behavior to {@link
-     * java.util.Set#add(T)}.
+     * java.util.Set#add(Object)}.
      *
      * @param index   The component index
      * @param element The element to append to the current set
@@ -133,7 +133,7 @@ public class ValueSetProperty<T>
 
     /**
      * Remove `element` from the current Set reference at `index`. This has equivalent behavior to {@link
-     * java.util.Set#remove(T)}.
+     * java.util.Set#remove(Object)}.
      *
      * @param index   The component index
      * @param element The element to remove from the current set
@@ -145,7 +145,7 @@ public class ValueSetProperty<T>
 
     /**
      * Check if `element` is contained in the current set reference at `index`. This has equivalent behavior
-     * to {@link java.util.Set#contains(T)}.
+     * to {@link java.util.Set#contains(Object)}.
      *
      * @param index   The component index
      * @param element The element to check for

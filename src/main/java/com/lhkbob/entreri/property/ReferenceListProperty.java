@@ -98,7 +98,7 @@ public class ReferenceListProperty<T>
 
     /**
      * Add `element` to the current List reference at `index`. If the current list is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.List#add(T)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.List#add(Object)}.
      *
      * @param index   The component index
      * @param element The element to append to the current list
@@ -110,7 +110,7 @@ public class ReferenceListProperty<T>
 
     /**
      * Remove `element` from the current list reference at `index`. If the current list is null a
-     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.List#remove(T)}.
+     * NullPointerException is thrown. This has equivalent behavior to {@link java.util.List#remove(Object)}.
      *
      * @param index   The component index
      * @param element The element to remove from the current list
@@ -122,7 +122,8 @@ public class ReferenceListProperty<T>
 
     /**
      * Check if `element` is contained in the current list reference at `index`. If the current list is null
-     * a NullPointerException is thrown. This has equivalent behavior to {@link java.util.List#contains(T)}.
+     * a NullPointerException is thrown. This has equivalent behavior to {@link
+     * java.util.List#contains(Object)}.
      *
      * @param index   The component index
      * @param element The element to check for
