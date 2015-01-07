@@ -73,13 +73,21 @@ package com.lhkbob.entreri.property;
  *
  * A property implementation can define different methods to expose support for the different component
  * method patterns described in {@link com.lhkbob.entreri.Component}. If the property supports a type `T`,
- * the following a the signatures that the component method patterns look for:
+ * the following are the signatures that the component method patterns look for (for some patterns two
+ * types, the key `K` and value `V` are referenced):
  *
- * Component pattern | Signature                     | Description
- * ------------------|-------------------------------|------------
- * `T get[NAME]()`   | T get(int index)              | Get the value of type `T` for the component at `index`.
- * `* set[NAME](T)`  | void set(int index, T value)  | Update the stored value for the component at `index` to be `value`.
- * `T get[NAME](T)`  | void get(int index, T result) | Update `result` to equal the value for the component at `index`.
+ * Component pattern             | Signature                                | Description
+ * ------------------------------|------------------------------------------|------------
+ * `T get[NAME]()`               | `T get(int index)`                       | Get the value of type `T` for the component at `index`.
+ * `* set[NAME](T)`              | `void set(int index, T value)`           | Update the stored value for the component at `index` to be `value`.
+ * `T get[NAME](@ReturnValue T)` | `void get(int index, T result)`          | Update `result` to equal the value for the component at `index`.
+ * `V get[NAME](K)`              | `V get(int index, K key)`                | Get the value associated with key from a map.
+ * `* put[NAME](K, V)`           | `V put(int index, K key, V value)`       | Put the new value for the key into the map, return the old one.
+ * `boolean contains[NAME](K)`   | `boolean contains(int index, K key)`     | True if the map has a value for the given key.
+ * `boolean contains[NAME](T)`   | `boolean contains(int index, T element)` | True if the list or set has the given element.
+ * `* remove[NAME](K)`           | `V remove(int index, K key)`             | Remove the key's value from the map and return it.
+ * `* remove[NAME](T)`           | `boolean remove(int index, T element)`   | Remove the element and return true if the list or set was modified.
+ * `* add[NAME](T)`              | `boolean add(int index, T element)`      | Append the element to the list or set and return true if it was modified.
  *
  * These getters and setters exposed by the Property subclass must respect the requirements of its chosen
  * semantics. It is not required for a property type to support all of these methods. It is not validated if a

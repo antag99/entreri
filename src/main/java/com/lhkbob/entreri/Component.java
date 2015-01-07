@@ -124,20 +124,20 @@ package com.lhkbob.entreri;
  *
  * If a property of a component is a {@link java.util.List}, {@link java.util.Set}, or {@link java.util.Map}
  * additional access methods may be defined that can mutate and query the underlying collections. For sets and
- * lists, methods that start with `add` or `append` and take a single element will try to add that instance to
+ * lists, methods that start with 'add' or 'append' and take a single element will try to add that instance to
  * the set or list. The return value may be `void`, `boolean`, or the Component type to chain method calls.
- * The `remove` method behaves equivalently but removes the element. Methods starting with `contains`, that
+ * The 'remove' method behaves equivalently but removes the element. Methods starting with 'contains', that
  * take a single argument, and return a `boolean` will return true or false if the element is within the
  * underlying set or list.
  *
- * For maps, `remove` and `contains` method patterns are almost identical to lists and sets but only operate
+ * For maps, 'remove' and 'contains' method patterns are almost identical to lists and sets but only operate
  * on the keys of the map. There are no patterns that let you remove or query based on the values of the map.
- * The main difference between list and set removal methods is that a map `remove` method cannot return the
+ * The main difference between list and set removal methods is that a map 'remove' method cannot return the
  * component's type for method chaining. Instead it can return the value type of the map, which will return
- * the removed value instance for the input key. Methods that start with `put` and take two arguments specify
+ * the removed value instance for the input key. Methods that start with 'put' and take two arguments specify
  * the key as the first argument and the value as the second argument to store into the underlying map. The
  * method may return `void`, `boolean` to indicate a value was replaced, or the value type to return the
- * replaced value. Methods that start with `get` and take single key argument and return the value type will
+ * replaced value. Methods that start with 'get' and take single key argument and return the value type will
  * query the map for the value associated with the input key. This last pattern is slightly ambiguous with
  * reusable result getters, so they are required to apply an annotation to disambiguate themselves.
  *
