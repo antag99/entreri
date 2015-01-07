@@ -30,38 +30,61 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.Entity;
 import com.lhkbob.entreri.EntitySystem;
 
-import java.util.Set;
+import java.lang.annotation.*;
 
 /**
  * ParallelAware
  * =============
  *
- * ParallelAware is an interface that {@link Task} implementations can implement. Tasks that are parallel
- * aware hold to the contract that they will only modify a limited and knowable set of component types, or
- * that they will or will not add or remove entities from the entity system.
+ * ParallelAware is an annotation that {@link Task} implementations can add. Tasks that are parallel aware
+ * hold to the contract that they will only modify or read from a limited and knowable set of component types,
+ * or that they will or will not add or remove entities from the entity system.
  *
- * With that assumption, and the values returned by {@link #getAccessedComponents()} and {@link
- * #isEntitySetModified()}, jobs can automatically guarantee thread safe execution of their tasks.
+ * With that assumption, and the values returned by {@link #modifiedComponents()}, {@link
+ * #readOnlyComponents()} and {@link #entitySetModified()}, jobs can automatically guarantee thread safe
+ * execution of their tasks.
  *
- * It is highly recommended to implement ParallelAware if it's known what types of components or entities will
- * be modified at compile time.
+ * It is highly recommended to add ParallelAware if it's known what types of components or entities will be
+ * modified at compile time. The absence of ParallelAware on a task type forces the job execution to acquire
+ * the system's exclusive lock.
  *
  * @author Michael Ludwig
  */
-public interface ParallelAware {
+@Documented
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ParallelAware {
     /**
-     * Get the set of all component data types that might have their data mutated, be added to, or removed
-     * from an entity. This must always return the same types for a given instance, it cannot change based on
-     * state of the task. Instead, it must return the maximal set of types that might be added, removed, or
+     * Return the set of all component data types that might have their data mutated, be added to, or removed
+     * from an entity. It must return the maximal set of types that might be added, removed, or
      * modified by the task. If a task's component access is completely determined at runtime, then it should
-     * not be parallel aware, or it should return true from {@link #isEntitySetModified()}.
+     * not be parallel aware, or it should return true from {@link #entitySetModified()}.
      *
      * Jobs that do not share any access to the same component types (i.e. their intersection of the returned
-     * set is empty), can be run in parallel if they both return false from {@link #isEntitySetModified()}.
+     * set is empty), can be run in parallel if they both return false from {@link #entitySetModified()}.
+     * Exclusive locks are used for the types returned from this method so a task can be guaranteed no other
+     * task is reading or writing to the component types.
      *
      * @return The set of all component types that might be added, removed, or modified by the task
      */
-    public Set<Class<? extends Component>> getAccessedComponents();
+    public Class<? extends Component>[] modifiedComponents();
+
+    /**
+     * Return the set of all component data types that might be read during task execution. Types that are
+     * already included in {@link #modifiedComponents()} do not need to be duplicated in this method. It must
+     * return the maximal set of types that might be read.  If a task's component access is completely
+     * determined at runtime, then it should not be parallel aware, or it should return true from {@link
+     * #entitySetModified()}.
+     *
+     * Jobs that do not share any access to the same component types (i.e. their intersection of the
+     * returned set is empty), can be run in parallel if they both return false from {@link
+     * #entitySetModified()}. Read-only locks are used for components returned from this method so a task can
+     * be guaranteed no other task is writing to the component types, although other tasks may also be reading
+     * data.
+     *
+     * @return The set of all component types that might be added, removed, or modified by the task
+     */
+    public Class<? extends Component>[] readOnlyComponents();
 
     /**
      * Return whether or not {@link Entity entities} are added or removed from an EntitySystem. Note that
@@ -75,10 +98,7 @@ public interface ParallelAware {
      * Task#process(EntitySystem, Job)} that will get the exclusive lock and perform the determined additions
      * or removals.
      *
-     * Like {@link #getAccessedComponents()}, this must always return the same value for a given instance, and
-     * cannot change during its lifetime.
-     *
      * @return True if the task might add or remove entities from the system
      */
-    public boolean isEntitySetModified();
+    public boolean entitySetModified();
 }

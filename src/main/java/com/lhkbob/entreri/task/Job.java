@@ -31,6 +31,7 @@ import com.lhkbob.entreri.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 /**
  * Job
@@ -51,8 +52,7 @@ public class Job implements Runnable {
     private final Task[] tasks;
     private final Map<Class<? extends Result>, List<ResultReporter>> resultMethods;
 
-    private final boolean needsExclusiveLock;
-    private final List<Class<? extends Component>> locks;
+    private final List<Lock> locks; // includes system lock and type locks in proper, consistent order to prevent deadlocks
 
     private final Scheduler scheduler;
     private final String name;
@@ -81,7 +81,8 @@ public class Job implements Runnable {
         taskIndex = -1;
 
         boolean exclusive = false;
-        Set<Class<? extends Component>> typeLocks = new HashSet<>();
+        Set<Class<? extends Component>> writtenTypes = new HashSet<>();
+        Set<Class<? extends Component>> readTypes = new HashSet<>();
         for (int i = 0; i < tasks.length; i++) {
             if (tasks[i] == null) {
                 throw new NullPointerException("Task cannot be null");
@@ -89,15 +90,23 @@ public class Job implements Runnable {
 
             this.tasks[i] = tasks[i];
 
-            // collect parallelization info (which should not change over
-            // a task's lifetime)
-            if (tasks[i] instanceof ParallelAware) {
-                ParallelAware pa = (ParallelAware) tasks[i];
-                exclusive |= pa.isEntitySetModified();
-                typeLocks.addAll(pa.getAccessedComponents());
-            } else {
+            // collect parallelization info
+            ParallelAware config = tasks[i].getClass().getAnnotation(ParallelAware.class);
+            if (config == null) {
                 // must assume it could touch anything
                 exclusive = true;
+            } else {
+                exclusive |= config.entitySetModified();
+                for (Class<? extends Component> written : config.modifiedComponents()) {
+                    readTypes.remove(written); // if it was read-only it can't be anymore
+                    writtenTypes.add(written);
+                }
+                for (Class<? extends Component> readOnly : config.readOnlyComponents()) {
+                    // if it's a modified type don't put it in the readtypes collection
+                    if (!writtenTypes.contains(readOnly)) {
+                        readTypes.add(readOnly);
+                    }
+                }
             }
 
             // record all result report methods exposed by this task
@@ -123,19 +132,31 @@ public class Job implements Runnable {
             }
         }
 
+        locks = new ArrayList<>();
+        // first lock is always for the system, either read or write depending on exclusivity of tasks
         if (exclusive) {
-            needsExclusiveLock = true;
-            locks = null;
+            locks.add(scheduler.getEntitySystemLock().writeLock());
         } else {
-            needsExclusiveLock = false;
-            locks = new ArrayList<>(typeLocks);
-            // give locks a consistent ordering
-            Collections.sort(locks, new Comparator<Class<? extends Component>>() {
-                @Override
-                public int compare(Class<? extends Component> o1, Class<? extends Component> o2) {
-                    return o1.getName().compareTo(o2.getName());
-                }
-            });
+            locks.add(scheduler.getEntitySystemLock().readLock());
+        }
+
+        // type locks are acquired always in name order, regardless of it its a read or write lock
+        List<Class<? extends Component>> consistentTypeOrdering = new ArrayList<>(writtenTypes.size() +
+                                                                                  readTypes.size());
+        consistentTypeOrdering.addAll(writtenTypes);
+        consistentTypeOrdering.addAll(readTypes);
+        Collections.sort(consistentTypeOrdering, new Comparator<Class<? extends Component>>() {
+            @Override
+            public int compare(Class<? extends Component> o1, Class<? extends Component> o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        for (Class<? extends Component> type : consistentTypeOrdering) {
+            if (writtenTypes.contains(type)) {
+                locks.add(scheduler.getTypeLock(type).writeLock());
+            } else {
+                locks.add(scheduler.getTypeLock(type).readLock());
+            }
         }
     }
 
@@ -170,14 +191,9 @@ public class Job implements Runnable {
     }
 
     private Job runJob() {
-        // acquire locks (either exclusive or per type in order)
-        if (needsExclusiveLock) {
-            scheduler.getEntitySystemLock().writeLock().lock();
-        } else {
-            scheduler.getEntitySystemLock().readLock().lock();
-            for (int i = 0; i < locks.size(); i++) {
-                scheduler.getTypeLock(locks.get(i)).lock();
-            }
+        // acquire locks (already correctly organized in the constructor)
+        for (int i = 0; i < locks.size(); i++) {
+            locks.get(i).lock();
         }
 
         try {
@@ -211,13 +227,8 @@ public class Job implements Runnable {
             }
         } finally {
             // unlock
-            if (needsExclusiveLock) {
-                scheduler.getEntitySystemLock().writeLock().unlock();
-            } else {
-                for (int i = locks.size() - 1; i >= 0; i--) {
-                    scheduler.getTypeLock(locks.get(i)).unlock();
-                }
-                scheduler.getEntitySystemLock().readLock().unlock();
+            for (int i = locks.size() - 1; i >= 0; i--) {
+                locks.get(i).unlock();
             }
         }
     }

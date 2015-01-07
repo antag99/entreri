@@ -30,7 +30,6 @@ import com.lhkbob.entreri.Component;
 import com.lhkbob.entreri.EntitySystem;
 
 import java.util.concurrent.*;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
@@ -61,7 +60,7 @@ public class Scheduler {
 
     // locks per component data type, this map is filled
     // dynamically the first time each type is requested
-    private final ConcurrentHashMap<Class<? extends Component>, ReentrantLock> typeLocks;
+    private final ConcurrentHashMap<Class<? extends Component>, ReentrantReadWriteLock> typeLocks;
 
     private final EntitySystem system;
 
@@ -103,13 +102,11 @@ public class Scheduler {
      * @param id The component type to lock
      * @return The lock used to coordinate access to the particular componen type
      */
-    ReentrantLock getTypeLock(Class<? extends Component> id) {
-        ReentrantLock lock = typeLocks.get(id);
+    ReentrantReadWriteLock getTypeLock(Class<? extends Component> id) {
+        ReentrantReadWriteLock lock = typeLocks.get(id);
         if (lock == null) {
-            // this will either return the newly constructed lock, or 
-            // the lock inserted from another thread after we tried to fetch it,
-            // in either case, the lock is valid
-            ReentrantLock newLock = new ReentrantLock();
+            ReentrantReadWriteLock newLock = new ReentrantReadWriteLock();
+            // this will return the first lock stored into the map, or null if this thread created the first lock
             lock = typeLocks.putIfAbsent(id, newLock);
             if (lock == null) {
                 // newLock was the assigned one
